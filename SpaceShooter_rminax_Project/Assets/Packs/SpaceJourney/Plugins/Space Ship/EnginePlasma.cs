@@ -1,4 +1,5 @@
 ﻿using System;
+using _Project.Scripts.Spaceship;
 using UnityEngine;
 
 public sealed class EnginePlasma : MonoBehaviour

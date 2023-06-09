@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using _Project.Scripts.Spaceship;
+using UnityEngine;
 
 public sealed class ParticleFollow : MonoBehaviour
 {
@@ -22,12 +23,10 @@ public sealed class ParticleFollow : MonoBehaviour
 
 		m_cachedTransform.rotation = Quaternion.Slerp(m_cachedTransform.rotation,
 			m_target.CachedTransform.rotation, Time.deltaTime * m_rotatoionSmooth);
-		if(Input.GetAxis("Stop")==0f){
-		m_particleRenderer.lengthScale = Mathf.Lerp(m_particleScaleRange.x,
-			m_particleScaleRange.y, m_target.SpeedFactor);
-		}else{ 
-			m_particleRenderer.lengthScale = Mathf.Lerp(m_particleScaleRange.x,
-			m_particleScaleRange.y, m_target.m_spaceship.AccelerationCurve.Evaluate(0f));
-		}
+		
+		m_particleRenderer.lengthScale =
+			Mathf.Lerp(m_particleScaleRange.x, m_particleScaleRange.y, Input.GetAxis("Stop") == 0f
+			? m_target.SpeedFactor
+			: m_target.m_spaceship.AccelerationCurve.Evaluate(0f));
 	}
 }

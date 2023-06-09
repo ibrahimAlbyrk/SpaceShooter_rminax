@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using _Project.Scripts.Spaceship;
 using UnityEngine;
 
 public class RocketScript : MonoBehaviour
