@@ -122,8 +122,7 @@ namespace _Project.Scripts.Spaceship
         //singleton
         public static SpaceshipController instance;
 
-        [Client]
-        private void Awake()
+        public void Init()
         {
             if (instance == null)
             {
@@ -164,22 +163,19 @@ namespace _Project.Scripts.Spaceship
         //global bullet barrel variable
         int b = 0;
 
-        [Client]
-        private void LateUpdate()
+        public void OnLateUpdate()
         {
-            if (!isOwned) return;
-
             if (m_spaceship.HP_text != null) m_spaceship.HP_text.text = m_spaceship.HP.ToString();
             if (m_spaceship.enemies_text != null) m_spaceship.enemies_text.text = m_spaceship.enemies.Count.ToString();
 
             if (m_spaceship.enemies.Count == 0)
             {
-                UIcoroutines.instance.GameOver(false);
+                UIcoroutines.instance?.GameOver(false);
             }
 
             if (m_spaceship.HP <= 0)
             {
-                UIcoroutines.instance.GameOver(true);
+                UIcoroutines.instance?.GameOver(true);
                 gameObject.SetActive(false);
             }
 
@@ -261,20 +257,14 @@ namespace _Project.Scripts.Spaceship
 		}*/
         }
 
-        [Client]
-        private void FixedUpdate()
+        public void OnFixedUpdate()
         {
-            if (!isOwned) return;
-            
             UpdateCamera();
             UpdateOrientationAndPosition();
         }
 
-        [Client]
-        private void Update()
+        public void OnUpdate()
         {
-            if (!isOwned) return;
-            
             UpdateInput();
         }
 
