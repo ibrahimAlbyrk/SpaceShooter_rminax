@@ -24,7 +24,7 @@ namespace _Project.Scripts.Spaceship
             _spaceshipController.Init();
 
             _ctx = _spaceshipController.transform.parent.gameObject;
-            
+
             NetworkServer.Spawn(spaceshipObj, connectionToServer);
         }
 
