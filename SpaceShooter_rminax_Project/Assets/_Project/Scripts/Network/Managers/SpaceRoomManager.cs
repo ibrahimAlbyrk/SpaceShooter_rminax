@@ -2,33 +2,34 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using _Project.Scripts.Network.Messages;
 using Mirror;
 using UnityEngine;
 
 namespace _Project.Scripts.Network.Managers
 {
+    using Messages;
+
     public class SpaceRoomManager : MonoBehaviour
     {
         public static SpaceRoomManager Singleton;
-        
+
         /// <summary>
-        /// Match Controllers listen for this to terminate their match and clean up
+        /// Room Controllers listen for this to terminate their room and clean up
         /// </summary>
         public event Action<NetworkConnectionToClient> OnPlayerDisconnected;
 
         /// <summary>
-        /// Cross-reference of client that created the corresponding match in openMatches below
+        /// Cross-reference of client that created the corresponding room in openRooms below
         /// </summary>
         internal static readonly Dictionary<NetworkConnectionToClient, Guid> playerRooms = new();
 
         /// <summary>
-        /// Open matches that are available for joining
+        /// Open rooms that are available for joining
         /// </summary>
         internal static readonly Dictionary<Guid, RoomInfo> openRooms = new();
 
         /// <summary>
-        /// Network Connections of all players in a match
+        /// Network Connections of all players in a room
         /// </summary>
         internal static readonly Dictionary<Guid, HashSet<NetworkConnectionToClient>> roomConnections = new();
 
@@ -43,17 +44,17 @@ namespace _Project.Scripts.Network.Managers
         internal static readonly List<NetworkConnectionToClient> waitingConnections = new();
 
         /// <summary>
-        /// GUID of a match the local player has created
+        /// GUID of a room the local player has created
         /// </summary>
         internal Guid localPlayerRoom = Guid.Empty;
 
         /// <summary>
-        /// GUID of a match the local player has joined
+        /// GUID of a room the local player has joined
         /// </summary>
         internal Guid localJoinedRoom = Guid.Empty;
 
         /// <summary>
-        /// GUID of a match the local player has selected in the Toggle Group match list
+        /// GUID of a room the local player has selected in the Toggle Group room list
         /// </summary>
         internal Guid selectedRoom = Guid.Empty;
 
@@ -84,18 +85,103 @@ namespace _Project.Scripts.Network.Managers
             localJoinedRoom = Guid.Empty;
         }
 
-        #region Room Handlers
-
-        public void CreateRoom(NetworkConnectionToClient conn)
+        #region Button Calls
+        
+        [ClientCallback]
+        public void SelectRoom(Guid roomID)
         {
+            //TODO
+            
+            if (roomID == Guid.Empty)
+            {
+                selectedRoom = Guid.Empty;
+                //joinButton.interactable = false;
+            }
+            else
+            {
+                if (!openRooms.Keys.Contains(roomID))
+                {
+                    //joinButton.interactable = false;
+                    return;
+                }
+
+                selectedRoom = roomID;
+                var infos = openRooms[roomID];
+                //joinButton.interactable = infos.Players < infos.MaxPlayers;
+            }
         }
 
-        public void JoinRoom(NetworkConnectionToClient conn)
+        /// <summary>
+        /// Assigned in inspector to Create button
+        /// </summary>
+        [ClientCallback]
+        public void RequestCreateRoom()
         {
+            NetworkClient.Send(new ServerRoomMessage { ServerRoomOperation = ServerRoomOperation.Create });
         }
 
-        public void JoinRandomRoom(NetworkConnectionToClient conn)
+        /// <summary>
+        /// Assigned in inspector to Join button
+        /// </summary>
+        [ClientCallback]
+        public void RequestJoinRoom()
         {
+            if (selectedRoom == Guid.Empty) return;
+
+            NetworkClient.Send(new ServerRoomMessage { ServerRoomOperation = ServerRoomOperation.Join, RoomID = selectedRoom });
+        }
+
+        /// <summary>
+        /// Assigned in inspector to Leave button
+        /// </summary>
+        [ClientCallback]
+        public void RequestLeaveRoom()
+        {
+            if (localJoinedRoom == Guid.Empty) return;
+
+            NetworkClient.Send(new ServerRoomMessage { ServerRoomOperation = ServerRoomOperation.Leave, RoomID = localJoinedRoom });
+        }
+
+        /// <summary>
+        /// Assigned in inspector to Cancel button
+        /// </summary>
+        [ClientCallback]
+        public void RequestCancelRoom()
+        {
+            if (localPlayerRoom == Guid.Empty) return;
+
+            NetworkClient.Send(new ServerRoomMessage { ServerRoomOperation = ServerRoomOperation.Cancel });
+        }
+
+        /// <summary>
+        /// Assigned in inspector to Ready button
+        /// </summary>
+        [ClientCallback]
+        public void RequestReadyChange()
+        {
+            if (localPlayerRoom == Guid.Empty && localJoinedRoom == Guid.Empty) return;
+
+            var roomID = localPlayerRoom == Guid.Empty ? localJoinedRoom : localPlayerRoom;
+
+            NetworkClient.Send(new ServerRoomMessage { ServerRoomOperation = ServerRoomOperation.Ready, RoomID = roomID });
+        }
+
+        /// <summary>
+        /// Assigned in inspector to Start button
+        /// </summary>
+        [ClientCallback]
+        public void RequestStartRoom()
+        {
+            if (localPlayerRoom == Guid.Empty) return;
+
+            NetworkClient.Send(new ServerRoomMessage { ServerRoomOperation = ServerRoomOperation.Start });
+        }
+        [ClientCallback]
+        public void OnRoomEnded()
+        {
+            localPlayerRoom = Guid.Empty;
+            localJoinedRoom = Guid.Empty;
+            ShowLobbyView();
         }
 
         #endregion
@@ -123,7 +209,7 @@ namespace _Project.Scripts.Network.Managers
             };
 
             playerInfos.Add(conn, playerInfo);
-            
+
             print($"waitingConnections Count: {waitingConnections.Count}");
             print($"playerInfos Count: {playerInfos.Count}");
 
@@ -192,7 +278,7 @@ namespace _Project.Scripts.Network.Managers
 
             waitingConnections.Remove(conn);
             playerInfos.Remove(conn);
-            
+
             print($"waitingConnections Count: {waitingConnections.Count}");
             print($"playerInfos Count: {playerInfos.Count}");
 
@@ -236,6 +322,8 @@ namespace _Project.Scripts.Network.Managers
         internal void OnStopClient()
         {
             //TODO Reset All Configurations
+
+            InitializeData();
         }
 
         #endregion
@@ -286,22 +374,172 @@ namespace _Project.Scripts.Network.Managers
         }
 
         [ServerCallback]
-        private void OnServerPlayerReady(NetworkConnectionToClient conn, Guid roomID){}
+        private void OnServerPlayerReady(NetworkConnectionToClient conn, Guid roomID)
+        {
+            var playerInfo = playerInfos[conn];
+            playerInfo.IsReady = !playerInfo.IsReady;
+            playerInfos[conn] = playerInfo;
+
+            var connections = roomConnections[roomID];
+            var infos = connections.Select(playerConn => playerInfos[playerConn]).ToArray();
+
+            foreach (var playerConn in roomConnections[roomID])
+                playerConn.Send(new ClientRoomMessage { ClientRoomOperation = ClientRoomOperation.UpdateRoom, PlayerInfos = infos });
+        }
 
         [ServerCallback]
-        private void OnServerLeaveRoom(NetworkConnectionToClient conn, Guid roomID){}
-        
+        private void OnServerLeaveRoom(NetworkConnectionToClient conn, Guid roomID)
+        {
+            var roomInfo = openRooms[roomID];
+            roomInfo.Players--;
+            openRooms[roomID] = roomInfo;
+
+            var playerInfo = playerInfos[conn];
+            playerInfo.IsReady = false;
+            playerInfo.RoomID = Guid.Empty;
+            playerInfos[conn] = playerInfo;
+
+            foreach (var kvp in roomConnections)
+                kvp.Value.Remove(conn);
+
+            var connections = roomConnections[roomID];
+            var infos = connections.Select(playerConn => playerInfos[playerConn]).ToArray();
+
+            foreach (var playerConn in roomConnections[roomID])
+                playerConn.Send(new ClientRoomMessage { ClientRoomOperation = ClientRoomOperation.UpdateRoom, PlayerInfos = infos });
+
+            SendRoomList();
+
+            conn.Send(new ClientRoomMessage { ClientRoomOperation = ClientRoomOperation.Departed });
+        }
+
         [ServerCallback]
-        private void OnServerCreateRoom(NetworkConnectionToClient conn){}
-        
+        private void OnServerCreateRoom(NetworkConnectionToClient conn)
+        {
+            if (playerRooms.ContainsKey(conn)) return;
+
+            var newRoomID = Guid.NewGuid();
+            roomConnections.Add(newRoomID, new HashSet<NetworkConnectionToClient>());
+            roomConnections[newRoomID].Add(conn);
+            playerRooms.Add(conn, newRoomID);
+
+            var roomInfo = new RoomInfo
+            {
+                RoomID = newRoomID,
+                MaxPlayers = 100,
+                Players = 1
+            };
+
+            openRooms.Add(newRoomID, roomInfo);
+
+            var playerInfo = playerInfos[conn];
+            playerInfo.IsReady = false;
+            playerInfo.RoomID = newRoomID;
+            playerInfos[conn] = playerInfo;
+
+            var infos = roomConnections[newRoomID].Select(playerConn => playerInfos[playerConn]).ToArray();
+
+            var clientRoomMessage = new ClientRoomMessage
+            {
+                ClientRoomOperation = ClientRoomOperation.Created,
+                RoomID = newRoomID,
+                PlayerInfos = infos
+            };
+
+            conn.Send(clientRoomMessage);
+
+            SendRoomList();
+        }
+
         [ServerCallback]
-        private void OnServerCancelRoom(NetworkConnectionToClient conn){}
-        
+        private void OnServerCancelRoom(NetworkConnectionToClient conn)
+        {
+            if (!playerRooms.ContainsKey(conn)) return;
+
+            conn.Send(new ClientRoomMessage { ClientRoomOperation = ClientRoomOperation.Cancelled });
+
+            if (playerRooms.TryGetValue(conn, out var roomID))
+            {
+                playerRooms.Remove(conn);
+                openRooms.Remove(roomID);
+
+                foreach (var playerConn in roomConnections[roomID])
+                {
+                    var playerInfo = playerInfos[playerConn];
+                    playerConn.isReady = false;
+                    playerInfo.RoomID = Guid.Empty;
+                    playerInfos[playerConn] = playerInfo;
+
+                    playerConn.Send(new ClientRoomMessage { ClientRoomOperation = ClientRoomOperation.Departed });
+                }
+                
+                SendRoomList();
+            }
+        }
+
         [ServerCallback]
-        private void OnServerStartRoom(NetworkConnectionToClient conn){}
-        
+        private void OnServerStartRoom(NetworkConnectionToClient conn)
+        {
+            if (!playerRooms.ContainsKey(conn)) return;
+
+            if (!playerRooms.TryGetValue(conn, out var roomID)) return;
+
+            foreach (var playerConn in roomConnections[roomID])
+            {
+                playerConn.Send(new ClientRoomMessage{ClientRoomOperation = ClientRoomOperation.Started});
+                
+                //Create Player
+                SpaceNetworkManager.singleton.CreatePlayer(conn);
+                
+                //Reset ready state for after the room
+                var playerInfo = playerInfos[playerConn];
+                playerInfo.IsReady = false;
+                playerInfos[playerConn] = playerInfo;
+            }
+
+            playerRooms.Remove(conn);
+            openRooms.Remove(roomID);
+            roomConnections.Remove(roomID);
+            
+            SendRoomList();
+        }
+
         [ServerCallback]
-        private void OnServerJoinRoom(NetworkConnectionToClient conn, Guid roomID){}
+        private void OnServerJoinRoom(NetworkConnectionToClient conn, Guid roomID)
+        {
+            if (!roomConnections.ContainsKey(roomID) || !openRooms.ContainsKey(roomID)) return;
+
+            var roomInfo = openRooms[roomID];
+            roomInfo.Players++;
+            openRooms[roomID] = roomInfo;
+
+            var playerInfo = playerInfos[conn];
+            playerInfo.IsReady = false;
+            playerInfo.RoomID = roomID;
+            playerInfos[conn] = playerInfo;
+
+            var infos = roomConnections[roomID].Select(playerConn => playerInfos[playerConn]).ToArray();
+            
+            SendRoomList();
+
+            var clientRoomMessage = new ClientRoomMessage
+            {
+                ClientRoomOperation = ClientRoomOperation.Joined,
+                RoomID = roomID,
+                PlayerInfos = infos
+            };
+            
+            conn.Send(clientRoomMessage);
+
+            foreach (var playerConn in roomConnections[roomID])
+            {
+                playerConn.Send(new ClientRoomMessage
+                {
+                    ClientRoomOperation = ClientRoomOperation.UpdateRoom,
+                    PlayerInfos = infos
+                });
+            }
+        }
 
         [ServerCallback]
         internal void SendRoomList(NetworkConnectionToClient conn = null)
@@ -389,16 +627,14 @@ namespace _Project.Scripts.Network.Managers
                     //TODO 1: Close lobby UI and room UI
                     break;
                 }
-                default:
-                    throw new ArgumentOutOfRangeException();
             }
         }
-        
+
         [ClientCallback]
         private void ShowLobbyView()
         {
             //TODO 1: open lobby view and close room view
-            
+
             //TODO 2: select to oldest selected room
         }
 
@@ -407,12 +643,12 @@ namespace _Project.Scripts.Network.Managers
         {
             //TODO 1: open lobby view and close room view
         }
-        
+
         [ClientCallback]
         private void RefreshRoomList()
         {
             //TODO 1: Remove Old List
-            
+
             //TODO 2: Instantiate And Setup New List
         }
 

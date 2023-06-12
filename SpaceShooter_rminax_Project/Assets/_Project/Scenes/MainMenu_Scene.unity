@@ -1312,7 +1312,10 @@ MonoBehaviour:
   timeInterpolationGui: 0
   _roomManager: {fileID: 1121027312}
   _maxConnection: 100
-  _gameScenes: []
+  _gameScenes:
+  - Assets/_Project/Scenes/MainMenu_Scene.unity
+  - Assets/_Project/Scenes/Hub_Scene.unity
+  - Assets/_Project/Scenes/OpenWorld_Scene.unity
 --- !u!114 &2047566397
 MonoBehaviour:
   m_ObjectHideFlags: 0

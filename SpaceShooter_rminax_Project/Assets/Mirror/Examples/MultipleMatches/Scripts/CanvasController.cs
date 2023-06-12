@@ -542,7 +542,7 @@ namespace Mirror.Examples.MultipleMatch
 
         #endregion
 
-        #region Client Match Message Handler
+        #region Client Match Message Handlers
 
         [ClientCallback]
         void OnClientMatchMessage(ClientMatchMessage msg)

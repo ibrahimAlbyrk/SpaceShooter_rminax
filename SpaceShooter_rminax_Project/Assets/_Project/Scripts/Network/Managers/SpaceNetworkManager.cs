@@ -106,7 +106,7 @@ namespace _Project.Scripts.Network.Managers
             ServerChangeScene(scene);
         }
 
-        private void OnCreatePlayer(NetworkConnectionToClient conn, CreateSpaceshipMessage createSpaceshipMessage)
+        public void CreatePlayer(NetworkConnectionToClient conn)
         {
             var spaceshipObj = Instantiate(playerPrefab);
             
