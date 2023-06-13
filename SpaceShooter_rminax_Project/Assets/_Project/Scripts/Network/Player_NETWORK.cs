@@ -1,21 +1,41 @@
-﻿using Mirror;
+﻿using System;
+using Mirror;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace _Project.Scripts.Network
 {
+    [RequireComponent(typeof(NetworkMatch))]
     public class Player_NETWORK : NetworkBehaviour
     {
-        public string Username;
+        public static Player_NETWORK LocalPlayer;
 
-        [FormerlySerializedAs("singleObjects")] [SerializeField] private GameObject[] networkObjects;
+        private NetworkMatch _networkMatch;
 
+        #region Sync Variables
+
+        [SyncVar] public string Username;
+
+        [SyncVar(hook = nameof(OnChangedRoomID))] public Guid RoomID;
+
+        private void OnChangedRoomID(Guid _, Guid newRoomID)
+        {
+            _networkMatch.matchId = newRoomID;
+        }
+
+        #endregion
+
+        [Command]
+        public void SetRoomID(Guid roomID)
+        {
+            RoomID = roomID;
+        }
+        
         private void Start()
         {
-            foreach (var singleObject in networkObjects)
-            {
-                singleObject.gameObject.SetActive(isOwned);
-            }
+            if (isLocalPlayer)
+                LocalPlayer = this;
+
+            _networkMatch = GetComponent<NetworkMatch>();
         }
     }
 }

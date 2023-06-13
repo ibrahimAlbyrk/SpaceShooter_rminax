@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Linq;
 using Mirror;
 using UnityEngine;
@@ -10,8 +9,6 @@ namespace _Project.Scripts.Network.Managers
     
     public class SpaceNetworkManager : NetworkManager
     {
-        [SerializeField] private SpaceRoomManager _roomManager;
-        
         [SerializeField] private int _maxConnection;
         
         [Scene] [SerializeField] private string[] _gameScenes;
@@ -42,7 +39,7 @@ namespace _Project.Scripts.Network.Managers
         public override void OnServerReady(NetworkConnectionToClient conn)
         {
             base.OnServerReady(conn);
-            _roomManager.OnServerReady(conn);
+            SpaceRoomManager.Singleton.OnServerReady(conn);
         }
 
         public override void OnServerDisconnect(NetworkConnectionToClient conn)
@@ -52,7 +49,7 @@ namespace _Project.Scripts.Network.Managers
 
         private IEnumerator DoServerDisconnect(NetworkConnectionToClient conn)
         {
-            yield return _roomManager.OnServerDisconnect(conn);
+            yield return SpaceRoomManager.Singleton.OnServerDisconnect(conn);
             base.OnServerDisconnect(conn);
         }
 
@@ -65,12 +62,12 @@ namespace _Project.Scripts.Network.Managers
             base.OnClientConnect();
 
             //var playerNetwork = NetworkClient.localPlayer.GetComponent<Player_NETWORK>();
-            _roomManager.OnClientConnect();
+            SpaceRoomManager.Singleton.OnClientConnect();
         }
 
         public override void OnClientDisconnect()
         { ;
-            _roomManager.OnClientDisconnect();
+            SpaceRoomManager.Singleton.OnClientDisconnect();
         }
 
         #endregion
@@ -79,22 +76,22 @@ namespace _Project.Scripts.Network.Managers
 
         public override void OnStartServer()
         {
-            _roomManager.OnStartServer();
+            SpaceRoomManager.Singleton.OnStartServer();
         }
 
         public override void OnStartClient()
         {
-            _roomManager.OnStartClient();
+            SpaceRoomManager.Singleton.OnStartClient();
         }
 
         public override void OnStopServer()
         {
-            _roomManager.OnStopServer();
+            SpaceRoomManager.Singleton.OnStopServer();
         }
 
         public override void OnStopClient()
         {
-            _roomManager.OnStartClient();   
+            SpaceRoomManager.Singleton.OnStartClient();   
         }
 
         #endregion

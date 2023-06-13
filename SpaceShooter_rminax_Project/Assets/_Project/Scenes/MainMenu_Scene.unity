@@ -854,7 +854,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1697839187
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1218,10 +1218,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2047566393}
-  - component: {fileID: 2047566396}
   - component: {fileID: 2047566395}
-  - component: {fileID: 2047566397}
   - component: {fileID: 2047566398}
+  - component: {fileID: 2047566399}
+  - component: {fileID: 2047566400}
   m_Layer: 0
   m_Name: NetworkManager
   m_TagString: Untagged
@@ -1268,7 +1268,19 @@ MonoBehaviour:
   clientMaxReceivesPerTick: 1000
   clientSendQueueLimit: 10000
   clientReceiveQueueLimit: 10000
---- !u!114 &2047566396
+--- !u!114 &2047566398
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2047566392}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d09f5c8bf2f4747b7a9284ef5d9ce2a7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &2047566399
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1285,8 +1297,8 @@ MonoBehaviour:
   autoStartServerBuild: 1
   autoConnectClientBuild: 0
   sendRate: 30
-  offlineScene: 
-  onlineScene: Assets/_Project/Scenes/MainMenu_Scene.unity
+  offlineScene: Assets/_Project/Scenes/MainMenu_Scene.unity
+  onlineScene: Assets/_Project/Scenes/Hub_Scene.unity
   transport: {fileID: 0}
   networkAddress: localhost
   maxConnections: 100
@@ -1295,10 +1307,7 @@ MonoBehaviour:
     type: 3}
   autoCreatePlayer: 1
   playerSpawnMethod: 0
-  spawnPrefabs:
-  - {fileID: 132862, guid: 34a9267cc7acc7d44b97789354cba91f, type: 3}
-  - {fileID: 125336, guid: 7cce90cf4bfa61946b551f940b910ab8, type: 3}
-  - {fileID: 113648, guid: 2f81eb69d5a7a634c9e09dd0bc6e02dc, type: 3}
+  spawnPrefabs: []
   snapshotSettings:
     bufferTimeMultiplier: 2
     catchupNegativeThreshold: -1
@@ -1310,13 +1319,12 @@ MonoBehaviour:
     dynamicAdjustmentTolerance: 1
     deliveryTimeEmaDuration: 2
   timeInterpolationGui: 0
-  _roomManager: {fileID: 1121027312}
   _maxConnection: 100
   _gameScenes:
   - Assets/_Project/Scenes/MainMenu_Scene.unity
   - Assets/_Project/Scenes/Hub_Scene.unity
   - Assets/_Project/Scenes/OpenWorld_Scene.unity
---- !u!114 &2047566397
+--- !u!114 &2047566400
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1330,15 +1338,3 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   offsetX: 0
   offsetY: 0
---- !u!114 &2047566398
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2047566392}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b979f26c95d34324ba005bfacfa9c4fc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 

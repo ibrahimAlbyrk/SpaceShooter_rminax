@@ -25,6 +25,7 @@ namespace _Project.Scripts.Network.Messages
         public Guid RoomID;
         public byte Players;
         public byte MaxPlayers;
+        public bool IsServer;
     }
     
     [Serializable]
