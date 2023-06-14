@@ -1,4 +1,5 @@
-﻿using Mirror;
+﻿using System;
+using Mirror;
 using UnityEngine;
 
 namespace _Project.Scripts.Spaceship
@@ -11,9 +12,18 @@ namespace _Project.Scripts.Spaceship
 
         private GameObject _ctx;
 
+        private NetworkMatch _networkMatch;
+
+        public void Init(Guid matchID)
+        {
+            _networkMatch.matchId = matchID;
+        }
+        
         public void CreateSpaceship(Vector3 position, Quaternion rotation)
         {
             var spaceshipObj = Instantiate(_spaceshipPrefab, position, rotation);
+            
+            spaceshipObj.GetComponent<NetworkMatch>().matchId = _networkMatch.matchId;
 
             var controller = spaceshipObj.GetComponentInChildren<SpaceshipController>();
 
@@ -25,7 +35,7 @@ namespace _Project.Scripts.Spaceship
 
             _ctx = _spaceshipController.transform.parent.gameObject;
 
-            NetworkServer.Spawn(spaceshipObj, connectionToServer);
+            NetworkServer.Spawn(spaceshipObj, connectionToClient);
         }
 
         public void RemoveSpaceship()
@@ -39,6 +49,11 @@ namespace _Project.Scripts.Spaceship
             base.OnStopClient();
 
             RemoveSpaceship();
+        }
+
+        private void Awake()
+        {
+            _networkMatch = GetComponent<NetworkMatch>();
         }
         
         [Client]

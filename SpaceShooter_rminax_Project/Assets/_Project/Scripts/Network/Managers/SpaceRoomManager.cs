@@ -4,13 +4,29 @@ using System.Collections.Generic;
 using System.Linq;
 using Mirror;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace _Project.Scripts.Network.Managers
 {
+    using UI;
     using Messages;
 
     public class SpaceRoomManager : MonoBehaviour
     {
+        [Header("Room")]
+        [SerializeField] private GameObject _roomList;
+        [SerializeField] private GameObject _roomPrefab;
+        [SerializeField] private RoomGUI _roomGUI;
+        
+        [Header("Views")]
+        [SerializeField] private GameObject _lobbyView;
+        [SerializeField] private GameObject _roomView;
+        
+        [Header("Buttons")]
+        [SerializeField] private Button _createButton;
+        [SerializeField] private Button _joinButton;
+        [SerializeField] private ToggleGroup _toggleGroup;
+        
         public static SpaceRoomManager Singleton;
 
         /// <summary>
@@ -47,23 +63,11 @@ namespace _Project.Scripts.Network.Managers
         /// GUID of a room the local player has selected in the Toggle Group room list
         /// </summary>
         internal Guid selectedRoom = Guid.Empty;
-
-        private static void ClearOpenRoom()
-        {
-            foreach (var roomID in openRooms.ToArray().Select(kvp => kvp.Key))
-            {
-                var isServer = openRooms[roomID].IsServer;
-                
-                if(isServer) continue;
-
-                openRooms.Remove(roomID);
-            }
-        }
         
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         static void ResetStatics()
         {
-            ClearOpenRoom();
+            openRooms.Clear();
             playerRooms.Clear();
             roomConnections.Clear();
             playerInfos.Clear();
@@ -78,14 +82,21 @@ namespace _Project.Scripts.Network.Managers
         //  - ResetCanvas
         internal void InitializeData()
         {
-            ClearOpenRoom();
+            openRooms.Clear();
             playerRooms.Clear();
             roomConnections.Clear();
             waitingConnections.Clear();
             playerInfos.Clear();
             
-            if(Player_NETWORK.LocalPlayer != null)
-                Player_NETWORK.LocalPlayer.SetRoomID(Guid.Empty);
+            if(LobbyPlayer.localLobbyPlayer != null)
+                LobbyPlayer.localLobbyPlayer.CMD_SetRoomID(Guid.Empty);
+        }
+
+        private void ResetCanvas()
+        {
+            InitializeData();
+            _lobbyView.SetActive(false);
+            _roomView.SetActive(false);
         }
 
         #region Button Calls
@@ -104,13 +115,13 @@ namespace _Project.Scripts.Network.Managers
             {
                 if (!openRooms.Keys.Contains(roomID))
                 {
-                    //joinButton.interactable = false;
+                    _joinButton.interactable = false;
                     return;
                 }
 
                 selectedRoom = roomID;
                 var infos = openRooms[roomID];
-                //joinButton.interactable = infos.Players < infos.MaxPlayers;
+                _joinButton.interactable = infos.Players < infos.MaxPlayers;
             }
         }
 
@@ -140,9 +151,9 @@ namespace _Project.Scripts.Network.Managers
         [ClientCallback]
         public void RequestLeaveRoom()
         {
-            if (Player_NETWORK.LocalPlayer.RoomID == Guid.Empty) return;
+            if (LobbyPlayer.localLobbyPlayer.RoomID == Guid.Empty) return;
 
-            NetworkClient.Send(new ServerRoomMessage { ServerRoomOperation = ServerRoomOperation.Leave, RoomID = Player_NETWORK.LocalPlayer.RoomID });
+            NetworkClient.Send(new ServerRoomMessage { ServerRoomOperation = ServerRoomOperation.Leave, RoomID = LobbyPlayer.localLobbyPlayer.RoomID });
         }
 
         /// <summary>
@@ -151,7 +162,7 @@ namespace _Project.Scripts.Network.Managers
         [ClientCallback]
         public void RequestCancelRoom()
         {
-            if (Player_NETWORK.LocalPlayer.RoomID == Guid.Empty) return;
+            if (LobbyPlayer.localLobbyPlayer.RoomID == Guid.Empty) return;
 
             NetworkClient.Send(new ServerRoomMessage { ServerRoomOperation = ServerRoomOperation.Cancel });
         }
@@ -162,9 +173,9 @@ namespace _Project.Scripts.Network.Managers
         [ClientCallback]
         public void RequestReadyChange()
         {
-            if (Player_NETWORK.LocalPlayer.RoomID == Guid.Empty) return;
+            if (LobbyPlayer.localLobbyPlayer.RoomID == Guid.Empty) return;
 
-            NetworkClient.Send(new ServerRoomMessage { ServerRoomOperation = ServerRoomOperation.Ready, RoomID = Player_NETWORK.LocalPlayer.RoomID });
+            NetworkClient.Send(new ServerRoomMessage { ServerRoomOperation = ServerRoomOperation.Ready, RoomID = LobbyPlayer.localLobbyPlayer.RoomID });
         }
 
         /// <summary>
@@ -173,14 +184,14 @@ namespace _Project.Scripts.Network.Managers
         [ClientCallback]
         public void RequestStartRoom()
         {
-            if (Player_NETWORK.LocalPlayer.RoomID == Guid.Empty) return;
+            if (LobbyPlayer.localLobbyPlayer.RoomID == Guid.Empty) return;
 
             NetworkClient.Send(new ServerRoomMessage { ServerRoomOperation = ServerRoomOperation.Start });
         }
         [ClientCallback]
         public void OnRoomEnded()
         {
-            Player_NETWORK.LocalPlayer.SetRoomID(Guid.Empty);
+            LobbyPlayer.localLobbyPlayer.CMD_SetRoomID(Guid.Empty);
             ShowLobbyView();
         }
 
@@ -222,8 +233,7 @@ namespace _Project.Scripts.Network.Managers
             if (playerRooms.TryGetValue(conn, out var roomID))
             {
                 playerRooms.Remove(conn);
-                if(!openRooms[roomID].IsServer)
-                    openRooms.Remove(roomID);
+                openRooms.Remove(roomID);
 
                 foreach (var playerConn in roomConnections[roomID])
                 {
@@ -276,7 +286,7 @@ namespace _Project.Scripts.Network.Managers
 
             waitingConnections.Remove(conn);
             playerInfos.Remove(conn);
-
+            
             SendRoomList();
 
             yield return null;
@@ -289,7 +299,7 @@ namespace _Project.Scripts.Network.Managers
         [ServerCallback]
         internal void OnStopServer()
         {
-            //TODO Reset All Configurations
+            ResetCanvas();
         }
 
         [ClientCallback]
@@ -307,6 +317,9 @@ namespace _Project.Scripts.Network.Managers
         internal void OnStartClient()
         {
             InitializeData();
+            ShowLobbyView();
+            _createButton.gameObject.SetActive(true);
+            _joinButton.gameObject.SetActive(true);
             NetworkClient.RegisterHandler<ClientRoomMessage>(OnClientRoomMessage);
         }
 
@@ -316,9 +329,7 @@ namespace _Project.Scripts.Network.Managers
         [ClientCallback]
         internal void OnStopClient()
         {
-            //TODO Reset All Configurations
-
-            InitializeData();
+            ResetCanvas();
         }
 
         #endregion
@@ -360,9 +371,28 @@ namespace _Project.Scripts.Network.Managers
                     OnServerLeaveRoom(conn, msg.RoomID);
                     break;
                 }
+                case ServerRoomOperation.Ready:
+                {
+                    OnServerPlayerReady(conn, msg.RoomID);
+                    break;
+                }
             }
         }
 
+        [ServerCallback]
+        private void OnServerPlayerReady(NetworkConnectionToClient conn, Guid roomID)
+        {
+            var playerInfo = playerInfos[conn];
+            playerInfo.IsReady = !playerInfo.IsReady;
+            playerInfos[conn] = playerInfo;
+
+            var connections = roomConnections[roomID];
+            var infos = connections.Select(playerConn => playerInfos[playerConn]).ToArray();
+
+            foreach (var playerConn in roomConnections[roomID])
+                playerConn.Send(new ClientRoomMessage { ClientRoomOperation = ClientRoomOperation.UpdateRoom, PlayerInfos = infos });
+        }
+        
         [ServerCallback]
         private void OnServerLeaveRoom(NetworkConnectionToClient conn, Guid roomID)
         {
@@ -457,8 +487,7 @@ namespace _Project.Scripts.Network.Managers
             if (playerRooms.TryGetValue(conn, out var roomID))
             {
                 playerRooms.Remove(conn);
-                if(!openRooms[roomID].IsServer)
-                    openRooms.Remove(roomID);
+                openRooms.Remove(roomID);
 
                 foreach (var playerConn in roomConnections[roomID])
                 {
@@ -486,7 +515,7 @@ namespace _Project.Scripts.Network.Managers
                 playerConn.Send(new ClientRoomMessage{ClientRoomOperation = ClientRoomOperation.Started});
                 
                 //Create Player
-                SpaceNetworkManager.singleton.CreatePlayer(conn);
+                SpaceNetworkManager.singleton.ReplacePlayer(conn);
                 
                 //Reset ready state for after the room
                 var playerInfo = playerInfos[playerConn];
@@ -495,10 +524,7 @@ namespace _Project.Scripts.Network.Managers
             }
 
             playerRooms.Remove(conn);
-            if(!openRooms[roomID].IsServer)
-                openRooms.Remove(roomID);
-            if(!openRooms[roomID].IsServer)
-                roomConnections.Remove(roomID);
+            openRooms.Remove(roomID);
             
             SendRoomList();
         }
@@ -507,10 +533,13 @@ namespace _Project.Scripts.Network.Managers
         private void OnServerJoinRoom(NetworkConnectionToClient conn, Guid roomID)
         {
             if (!roomConnections.ContainsKey(roomID) || !openRooms.ContainsKey(roomID)) return;
+            
+            print("deneme");
 
             var roomInfo = openRooms[roomID];
             roomInfo.Players++;
             openRooms[roomID] = roomInfo;
+            roomConnections[roomID].Add(conn);
 
             var playerInfo = playerInfos[conn];
             playerInfo.IsReady = false;
@@ -594,36 +623,41 @@ namespace _Project.Scripts.Network.Managers
                 }
                 case ClientRoomOperation.Created:
                 {
-                    Player_NETWORK.LocalPlayer.SetRoomID(msg.RoomID);
+                    LobbyPlayer.localLobbyPlayer.CMD_SetRoomID(msg.RoomID);
                     ShowRoomView();
+                    _roomGUI.RefreshRoomPlayers(msg.PlayerInfos);
+                    _roomGUI.SetOwner(true);
                     break;
                 }
                 case ClientRoomOperation.Cancelled:
                 {
-                    Player_NETWORK.LocalPlayer.SetRoomID(Guid.Empty);
+                    LobbyPlayer.localLobbyPlayer.CMD_SetRoomID(Guid.Empty);
                     ShowLobbyView();
                     break;
                 }
                 case ClientRoomOperation.Joined:
                 {
-                    Player_NETWORK.LocalPlayer.SetRoomID(msg.RoomID);
+                    LobbyPlayer.localLobbyPlayer.CMD_SetRoomID(msg.RoomID);
                     ShowRoomView();
+                    _roomGUI.RefreshRoomPlayers(msg.PlayerInfos);
+                    _roomGUI.SetOwner(false);
                     break;
                 }
                 case ClientRoomOperation.Departed:
                 {
-                    Player_NETWORK.LocalPlayer.SetRoomID(Guid.Empty);
+                    LobbyPlayer.localLobbyPlayer.CMD_SetRoomID(Guid.Empty);
                     ShowLobbyView();
                     break;
                 }
                 case ClientRoomOperation.UpdateRoom:
                 {
-                    //TODO 1: Refresh Room Players and send playerInfos of msg to refresh function
+                    _roomGUI.RefreshRoomPlayers(msg.PlayerInfos);
                     break;
                 }
                 case ClientRoomOperation.Started:
                 {
-                    //TODO 1: Close lobby UI and room UI
+                    _lobbyView.SetActive(false);
+                    _roomView.SetActive(false);
                     break;
                 }
             }
@@ -632,23 +666,45 @@ namespace _Project.Scripts.Network.Managers
         [ClientCallback]
         private void ShowLobbyView()
         {
-            //TODO 1: open lobby view and close room view
+            _lobbyView.SetActive(true);
+            _roomView.SetActive(false);
 
-            //TODO 2: select to oldest selected room
+            foreach (Transform child in _roomList.transform)
+            {
+                if (child.gameObject.GetComponent<RoomFieldGUI>().GetRoomID() == selectedRoom)
+                {
+                    var toggle = child.gameObject.GetComponent<Toggle>();
+                    toggle.isOn = true;
+                }
+            }
         }
 
         [ClientCallback]
         private void ShowRoomView()
         {
-            //TODO 1: open lobby view and close room view
+            _lobbyView.SetActive(false);
+            _roomView.SetActive(true);
         }
 
         [ClientCallback]
         private void RefreshRoomList()
         {
-            //TODO 1: Remove Old List
+            foreach (Transform child in _roomList.transform)
+                Destroy(child.gameObject);
 
-            //TODO 2: Instantiate And Setup New List
+            _joinButton.interactable = false;
+
+            foreach (var roomInfo in openRooms.Values)
+            {
+                var newMatch = Instantiate(_roomPrefab, Vector3.zero, Quaternion.identity);
+                newMatch.transform.SetParent(_roomList.transform, false);
+                newMatch.GetComponent<RoomFieldGUI>().SetRoomInfo(roomInfo);
+
+                var toggle = newMatch.GetComponent<Toggle>();
+                toggle.group = _toggleGroup;
+                if (roomInfo.RoomID == selectedRoom)
+                    toggle.isOn = true;
+            }
         }
 
         #endregion
@@ -657,6 +713,12 @@ namespace _Project.Scripts.Network.Managers
 
         private void Awake() => Init();
 
+        private void Start()
+        {
+            _createButton.onClick.AddListener(RequestCreateRoom);
+            _joinButton.onClick.AddListener(RequestJoinRoom);
+        }
+        
         private void Init()
         {
             if (Singleton == null)

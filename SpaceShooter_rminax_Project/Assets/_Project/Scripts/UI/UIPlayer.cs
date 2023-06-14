@@ -8,12 +8,12 @@ namespace _Project.Scripts.UI
     {
         [SerializeField] private TMP_Text _nameText;
 
-        private Player_NETWORK _player;
+        private LobbyPlayer _lobbyPlayer;
 
-        public void SetPlayer(Player_NETWORK player)
+        public void SetPlayer(LobbyPlayer lobbyPlayer)
         {
-            _player = player;
-            _nameText.text = _player.Username;
+            _lobbyPlayer = lobbyPlayer;
+            _nameText.text = _lobbyPlayer.Username;
         }
     }
 }
