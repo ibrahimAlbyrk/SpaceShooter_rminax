@@ -26,6 +26,9 @@ namespace _Project.Scripts.Spaceship
 
         private Transform m_cachedCameraTransform;
 
+        [Header("Network options.")]
+        [SerializeField] private GameObject[] NetworkObjects;
+
         [SerializeField, Tooltip("Camera options.")]
         private CameraSettings m_camera = new()
         {
@@ -121,17 +124,36 @@ namespace _Project.Scripts.Spaceship
 
         //singleton
         public static SpaceshipController instance;
+        
+        #region Client Callbacks
+
+        public override void OnStartClient()
+        {
+            Init();
+        }
+
+        #endregion
 
         public void Init()
         {
-            if (instance == null)
+            foreach (var obj in NetworkObjects)
             {
-                instance = this;
+                obj.SetActive(isOwned);
             }
-            else
+
+            if (isOwned)
             {
-                Debug.LogError("Singleton pattern violated! Two player controled spaceships present in the scene");
+                if (instance == null)
+                {
+                    instance = this;
+                }
+                else
+                {
+                    Debug.LogError("Singleton pattern violated! Two player controled spaceships present in the scene");
+                }
             }
+
+            if (!isOwned) return;
 
             if (m_camera.normalCursor != null)
             {
@@ -162,9 +184,12 @@ namespace _Project.Scripts.Spaceship
 
         //global bullet barrel variable
         int b = 0;
-
-        public void OnLateUpdate()
+        
+        [Client]
+        private void LateUpdate()
         {
+            if (!isOwned) return;
+            
             if (m_spaceship.HP_text != null) m_spaceship.HP_text.text = m_spaceship.HP.ToString();
             if (m_spaceship.enemies_text != null) m_spaceship.enemies_text.text = m_spaceship.enemies.Count.ToString();
 
@@ -257,14 +282,20 @@ namespace _Project.Scripts.Spaceship
 		}*/
         }
 
-        public void OnFixedUpdate()
+        [Client]
+        private void FixedUpdate()
         {
+            if (!isOwned) return;
+            
             UpdateCamera();
             UpdateOrientationAndPosition();
         }
 
-        public void OnUpdate()
+        [Client]
+        private void Update()
         {
+            if (!isOwned) return;
+            
             UpdateInput();
         }
 

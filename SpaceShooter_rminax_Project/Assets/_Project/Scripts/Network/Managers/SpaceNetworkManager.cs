@@ -1,27 +1,31 @@
-﻿using System;
-using System.Collections;
+﻿using Mirror;
+using System;
 using System.Linq;
-using Mirror;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace _Project.Scripts.Network.Managers
 {
     using Spaceship;
-    
+
     public class SpaceNetworkManager : NetworkManager
     {
-        public static event Action OnConnectedServer;
+        public static event Action OnServerConnected;
         public static event Action OnServerRedied;
         public static event Action OnServerDisconnected;
-        public static event Action OnConnectedClient;
-        public static event Action OnDisconnectedClient;
+        public static event Action OnClientConnected;
+        public static event Action OnClientDisconnected;
+
+        [Scene] [SerializeField] private string _hubScene;
+        [Scene] [SerializeField] private string _gameScene;
         
+        [SerializeField] private GameObject _lobbyPlayerPrefab;
         [SerializeField] private GameObject _gamePlayerPrefab;
-        
+
         [SerializeField] private int _maxConnection;
-        
+
         [Scene] [SerializeField] private string[] _gameScenes;
-        
+
         public new static SpaceNetworkManager singleton { get; private set; }
 
         public string GetGameScene(string sceneName)
@@ -31,46 +35,72 @@ namespace _Project.Scripts.Network.Managers
             return gameScene ?? string.Empty;
         }
 
-        /// <summary>
-        /// Runs on both Server and Client
-        /// Networking is NOT initialized when this fires
-        /// </summary>
         public override void Awake()
         {
             base.Awake();
             singleton = this;
-            
+
             maxConnections = _maxConnection;
         }
-        
+
         #region Server System Callbacks
 
         public override void OnServerConnect(NetworkConnectionToClient conn)
         {
-            base.OnServerConnect(conn);
+            if (numPlayers >= maxConnections)
+            {
+                conn.Disconnect();
+                return;
+            }
             
-            OnConnectedServer?.Invoke();
+            base.OnServerConnect(conn);
+
+            OnServerConnected?.Invoke();
         }
 
         public override void OnServerReady(NetworkConnectionToClient conn)
         {
             base.OnServerReady(conn);
-            SpaceRoomManager.Singleton.OnServerReady(conn);
-            
+
             OnServerRedied?.Invoke();
         }
 
         public override void OnServerDisconnect(NetworkConnectionToClient conn)
         {
-            StartCoroutine(DoServerDisconnect(conn));
+            base.OnServerDisconnect(conn);
+
+            OnServerDisconnected?.Invoke();
         }
 
-        private IEnumerator DoServerDisconnect(NetworkConnectionToClient conn)
+        public override void ServerChangeScene(string newSceneName)
         {
-            yield return SpaceRoomManager.Singleton.OnServerDisconnect(conn);
-            base.OnServerDisconnect(conn);
+            //If from the hubScene to the gameScene
+            if (SceneManager.GetActiveScene().name == _hubScene && newSceneName.Equals(_gameScene))
+            {
+                //Change lobby players to game players
+                foreach (var conn in NetworkServer.connections.Values)
+                {
+                    var newPlayer = ReplaceGamePlayer(conn);
+                    newPlayer.name = $"{_gamePlayerPrefab.name} [connId={conn.connectionId}]";
+                }
+            }
             
-            OnServerDisconnected?.Invoke();
+            base.ServerChangeScene(newSceneName);
+        }
+
+        public override void OnServerAddPlayer(NetworkConnectionToClient conn)
+        {
+            var activeSceneName = SceneManager.GetActiveScene().path;
+            
+            var prefab = activeSceneName == _hubScene
+                ? _lobbyPlayerPrefab
+                : _gamePlayerPrefab;
+            
+            var player = Instantiate(prefab);
+            
+            player.name = $"{prefab.name} [connId={conn.connectionId}]";
+
+            NetworkServer.AddPlayerForConnection(conn, player);
         }
 
         #endregion
@@ -81,17 +111,12 @@ namespace _Project.Scripts.Network.Managers
         {
             base.OnClientConnect();
 
-            //var playerNetwork = NetworkClient.localPlayer.GetComponent<Player_NETWORK>();
-            SpaceRoomManager.Singleton.OnClientConnect();
-            
-            OnConnectedClient?.Invoke();
+            OnClientConnected?.Invoke();
         }
 
         public override void OnClientDisconnect()
         {
-            SpaceRoomManager.Singleton.OnClientDisconnect();
-            
-            OnDisconnectedClient?.Invoke();
+            OnClientDisconnected?.Invoke();
         }
 
         #endregion
@@ -100,68 +125,52 @@ namespace _Project.Scripts.Network.Managers
 
         public override void OnStartServer()
         {
-            SpaceRoomManager.Singleton.OnStartServer();
         }
 
         public override void OnStartClient()
         {
-            SpaceRoomManager.Singleton.OnStartClient();
+            var spawnablePrefabs = Resources.LoadAll<GameObject>("SpawnablePrefabs");
+
+            foreach (var spawnablePrefab in spawnablePrefabs)
+            {
+                NetworkClient.RegisterPrefab(spawnablePrefab);
+            }
         }
 
         public override void OnStopServer()
         {
-            SpaceRoomManager.Singleton.OnStopServer();
         }
 
         public override void OnStopClient()
         {
-            SpaceRoomManager.Singleton.OnStartClient();   
+            ServerChangeScene(_hubScene);
         }
 
         #endregion
         
         public void ConnectOpenWorld()
         {
-            var scene = GetGameScene("OpenWorld_Scene");
-            
-            ServerChangeScene(scene);
+            ServerChangeScene(_gameScene);
         }
 
-        public void ReplacePlayer(NetworkConnectionToClient conn)
+        public GameObject ReplaceGamePlayer(NetworkConnectionToClient conn, GameObject playerObj = null)
         {
             var oldPlayer = conn.identity.gameObject;
-            
-            var spaceshipObj = Instantiate(_gamePlayerPrefab);
-            
-            NetworkServer.Spawn(spaceshipObj, conn);
-            NetworkServer.ReplacePlayerForConnection(conn, spaceshipObj);
-            
-            if (!spaceshipObj.TryGetComponent(out SpaceshipManager manager)) return;
 
-            var networkMatch = conn.identity.GetComponent<NetworkMatch>();
+            var newPlayer = Instantiate(playerObj == null ? _gamePlayerPrefab : playerObj);
             
-            manager.Init(networkMatch.matchId);
-            manager.CreateSpaceship(Vector3.zero, Quaternion.identity);
+            NetworkServer.Destroy(oldPlayer);
             
-            Destroy(oldPlayer);
+            NetworkServer.ReplacePlayerForConnection(conn, newPlayer, true);
+
+            return newPlayer;
         }
-        
-        public void CreatePlayer(NetworkConnectionToClient conn)
+
+        public void CreateGamePlayer(NetworkConnectionToClient conn)
         {
             var spaceshipObj = Instantiate(playerPrefab);
-            
-            NetworkServer.Spawn(spaceshipObj, conn);
 
             NetworkServer.AddPlayerForConnection(conn, spaceshipObj);
-            
-            if (!spaceshipObj.TryGetComponent(out SpaceshipManager manager)) return;
-            
-            manager.CreateSpaceship(Vector3.zero, Quaternion.identity);
         }
-    }
-
-    public struct CreateSpaceshipMessage : NetworkMessage
-    {
-        public GameObject SpaceshipPrefab;
     }
 }

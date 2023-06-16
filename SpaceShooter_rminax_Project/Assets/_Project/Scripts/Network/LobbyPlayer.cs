@@ -1,4 +1,5 @@
 ﻿using System;
+using _Project.Scripts.Network.Managers;
 using Mirror;
 using UnityEngine;
 
@@ -14,7 +15,7 @@ namespace _Project.Scripts.Network
         [SyncVar] public string Username;
         
         public Guid RoomID;
-
+        
         [Command]
         public void CMD_SetRoomID(Guid roomID) => RPC_SetRoomID(roomID);
 
@@ -35,10 +36,5 @@ namespace _Project.Scripts.Network
 
             _networkMatch = GetComponent<NetworkMatch>();
         }
-    }
-
-    public class GuidData
-    {
-        
     }
 }

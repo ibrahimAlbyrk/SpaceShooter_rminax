@@ -6,6 +6,8 @@ namespace _Project.Scripts.Network.Connection
     
     public class AutoNetworkConnector : MonoBehaviour
     {
+        [SerializeField] private bool isLocal;
+        [SerializeField] private string networkAddress = "13.50.196.147";
         [SerializeField] private GameObject _connectingPanel;
         
         public void HostLocal()
@@ -24,11 +26,11 @@ namespace _Project.Scripts.Network.Connection
         {
             OpenConnectionPanel();
             
-            SpaceNetworkManager.OnConnectedClient += CloseConnectionPanel;
+            SpaceNetworkManager.OnClientConnected += CloseConnectionPanel;
             
             if (!Application.isBatchMode) //Headless build
             {
-                SpaceNetworkManager.singleton.networkAddress = "13.50.196.147";
+                SpaceNetworkManager.singleton.networkAddress = isLocal ? "localhost" : networkAddress;
                 SpaceNetworkManager.singleton.StartClient();
                 
                 Debug.Log("<color=green>=====Client Connected===</color>");

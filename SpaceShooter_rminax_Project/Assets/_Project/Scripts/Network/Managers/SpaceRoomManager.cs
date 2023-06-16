@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Mirror;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace _Project.Scripts.Network.Managers
@@ -514,9 +515,6 @@ namespace _Project.Scripts.Network.Managers
             {
                 playerConn.Send(new ClientRoomMessage{ClientRoomOperation = ClientRoomOperation.Started});
                 
-                //Create Player
-                SpaceNetworkManager.singleton.ReplacePlayer(conn);
-                
                 //Reset ready state for after the room
                 var playerInfo = playerInfos[playerConn];
                 playerInfo.IsReady = false;
@@ -534,8 +532,6 @@ namespace _Project.Scripts.Network.Managers
         {
             if (!roomConnections.ContainsKey(roomID) || !openRooms.ContainsKey(roomID)) return;
             
-            print("deneme");
-
             var roomInfo = openRooms[roomID];
             roomInfo.Players++;
             openRooms[roomID] = roomInfo;
@@ -658,6 +654,15 @@ namespace _Project.Scripts.Network.Managers
                 {
                     _lobbyView.SetActive(false);
                     _roomView.SetActive(false);
+                    
+                    //Create Player
+
+                    SceneManager.LoadSceneAsync("OpenWorld_Scene", LoadSceneMode.Additive).completed += delegate
+                    {
+                        var player = SpaceNetworkManager.singleton.ReplaceGamePlayer(LobbyPlayer.localLobbyPlayer.connectionToClient);
+                        SceneManager.MoveGameObjectToScene(player, SceneManager.GetSceneByName("OpenWorld_Scene"));
+                    };
+                    
                     break;
                 }
             }
