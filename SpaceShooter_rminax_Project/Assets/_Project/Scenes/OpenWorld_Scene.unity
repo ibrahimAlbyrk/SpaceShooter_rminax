@@ -7856,7 +7856,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: health
+  m_Text: Health
 --- !u!222 &573209091
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -17478,7 +17478,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: enemies
+  m_Text: Kills
 --- !u!222 &1254542855
 CanvasRenderer:
   m_ObjectHideFlags: 0

@@ -3203,7 +3203,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1746127332
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3217,6 +3217,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isLocal: 1
+  isHost: 1
   networkAddress: 13.50.196.147
   _connectingPanel: {fileID: 1688722245}
 --- !u!4 &1746127333

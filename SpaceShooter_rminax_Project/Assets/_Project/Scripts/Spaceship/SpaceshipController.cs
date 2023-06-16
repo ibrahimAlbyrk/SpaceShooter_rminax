@@ -87,10 +87,6 @@ namespace _Project.Scripts.Spaceship
             MaxBankAngleSideways = 30f,
             SidewaysSpeed = 25f,
             SpeedRange = new Vector2(30.0f, 600.0f),
-            HP = 150,
-            HP_text = null,
-            enemies = new List<GameObject>(),
-            enemies_text = null
         };
 
         [SerializeField, Tooltip("Shooting options.")]
@@ -190,21 +186,22 @@ namespace _Project.Scripts.Spaceship
         {
             if (!isOwned) return;
             
-            if (m_spaceship.HP_text != null) m_spaceship.HP_text.text = m_spaceship.HP.ToString();
-            if (m_spaceship.enemies_text != null) m_spaceship.enemies_text.text = m_spaceship.enemies.Count.ToString();
-
-            if (m_spaceship.enemies.Count == 0)
-            {
-                UIcoroutines.instance?.GameOver(false);
-            }
-
-            if (m_spaceship.HP <= 0)
-            {
-                UIcoroutines.instance?.GameOver(true);
-                gameObject.SetActive(false);
-            }
+            //if (m_spaceship.HP_text != null) m_spaceship.HP_text.text = m_spaceship.HP.ToString();
+            //if (m_spaceship.enemies_text != null) m_spaceship.enemies_text.text = m_spaceship.enemies.Count.ToString();
+            //
+            //if (m_spaceship.enemies.Count == 0)
+            //{
+            //    UIcoroutines.instance?.GameOver(false);
+            //}
+            //
+            //if (m_spaceship.HP <= 0)
+            //{
+            //    UIcoroutines.instance?.GameOver(true);
+            //    gameObject.SetActive(false);
+            //}
 
             //Bullets on LMB
+            
             if (Input.GetMouseButtonDown(0) && !isShooting)
             {
                 shooting = StartCoroutine(BulletShooting(m_shooting));
@@ -758,12 +755,6 @@ namespace _Project.Scripts.Spaceship
 
             [Tooltip("Minimum and maximum speed of the spaceship.")]
             public Vector2 SpeedRange;
-
-            [Tooltip("Ship HP")] public int HP;
-            [Tooltip("Text displaying ship HP")] public Text HP_text;
-            [Tooltip("Text displaying ship HP")] public List<GameObject> enemies;
-            [Tooltip("Text displaying ship HP")] public Text enemies_text;
-
         }
 
         [Serializable]
@@ -819,6 +810,5 @@ namespace _Project.Scripts.Spaceship
             public Vector3 RocketOffsetLimit;
 
         }
-
     }
 }

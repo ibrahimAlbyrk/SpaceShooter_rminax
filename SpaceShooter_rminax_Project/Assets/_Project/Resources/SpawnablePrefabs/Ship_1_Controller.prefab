@@ -19623,15 +19623,11 @@ MonoBehaviour:
     MaxBankAngleSideways: 30
     SidewaysSpeed: 25
     SpeedRange: {x: 10, y: 500}
-    HP: 150
-    HP_text: {fileID: 0}
-    enemies: []
-    enemies_text: {fileID: 0}
   m_shooting:
     mode2D: 0
     bulletSettings:
       BulletBarrels: []
-      Bullet: {fileID: 0}
+      Bullet: {fileID: 1169261860770638, guid: 6a77cc242c19ed6448f7384c04e1f41f, type: 3}
       BulletSpeed: 300
       BulletFireDelay: 0.15
       BulletDamage: 15
@@ -19639,7 +19635,7 @@ MonoBehaviour:
       TargetDistance: 300
     rocketSettings:
       RocketBarrels: []
-      Rocket: {fileID: 0}
+      Rocket: {fileID: 1929121146815076, guid: 83c0180dc3670d748b77cd4effdb13bc, type: 3}
       RocketInitialSpeed: 175
       RocketSpeed: 3.5
       RocketFireDelay: 1

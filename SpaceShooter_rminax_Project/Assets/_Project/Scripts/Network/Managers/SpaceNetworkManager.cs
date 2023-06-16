@@ -6,12 +6,10 @@ using UnityEngine.SceneManagement;
 
 namespace _Project.Scripts.Network.Managers
 {
-    using Spaceship;
-
     public class SpaceNetworkManager : NetworkManager
     {
         public static event Action OnServerConnected;
-        public static event Action OnServerRedied;
+        public static event Action<NetworkConnection> OnServerRedied;
         public static event Action OnServerDisconnected;
         public static event Action OnClientConnected;
         public static event Action OnClientDisconnected;
@@ -28,12 +26,7 @@ namespace _Project.Scripts.Network.Managers
 
         public new static SpaceNetworkManager singleton { get; private set; }
 
-        public string GetGameScene(string sceneName)
-        {
-            var gameScene = _gameScenes.FirstOrDefault(gameSceneName => gameSceneName == sceneName);
-
-            return gameScene ?? string.Empty;
-        }
+        #region Base methods
 
         public override void Awake()
         {
@@ -42,6 +35,8 @@ namespace _Project.Scripts.Network.Managers
 
             maxConnections = _maxConnection;
         }
+
+        #endregion
 
         #region Server System Callbacks
 
@@ -62,7 +57,7 @@ namespace _Project.Scripts.Network.Managers
         {
             base.OnServerReady(conn);
 
-            OnServerRedied?.Invoke();
+            OnServerRedied?.Invoke(conn);
         }
 
         public override void OnServerDisconnect(NetworkConnectionToClient conn)
@@ -81,13 +76,14 @@ namespace _Project.Scripts.Network.Managers
                 foreach (var conn in NetworkServer.connections.Values)
                 {
                     var newPlayer = ReplaceGamePlayer(conn);
+                    newPlayer.transform.position = SpawnUtilities.GetSpawnPosition(100);
                     newPlayer.name = $"{_gamePlayerPrefab.name} [connId={conn.connectionId}]";
                 }
             }
             
             base.ServerChangeScene(newSceneName);
         }
-
+        
         public override void OnServerAddPlayer(NetworkConnectionToClient conn)
         {
             var activeSceneName = SceneManager.GetActiveScene().path;
@@ -153,6 +149,8 @@ namespace _Project.Scripts.Network.Managers
             ServerChangeScene(_gameScene);
         }
 
+        #region Player Methods
+
         public GameObject ReplaceGamePlayer(NetworkConnectionToClient conn, GameObject playerObj = null)
         {
             var oldPlayer = conn.identity.gameObject;
@@ -172,5 +170,18 @@ namespace _Project.Scripts.Network.Managers
 
             NetworkServer.AddPlayerForConnection(conn, spaceshipObj);
         }
+
+        #endregion
+
+        #region Utilities
+
+        public string GetGameScene(string sceneName)
+        {
+            var gameScene = _gameScenes.FirstOrDefault(gameSceneName => gameSceneName == sceneName);
+
+            return gameScene ?? string.Empty;
+        }
+
+        #endregion
     }
 }
