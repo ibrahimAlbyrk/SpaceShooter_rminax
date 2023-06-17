@@ -1,11 +1,14 @@
 ﻿using System.Collections;
 using _Project.Scripts.Spaceship;
+using Mirror;
 using UnityEngine;
+using UnityEngine.Serialization;
 
-public class BulletScript : MonoBehaviour
+public class BulletScript : NetworkBehaviour
 {
     [SerializeField] private float _bulletDamage;
     [SerializeField] private float _bulletLifeTime;
+    [SerializeField] private float _bulletSpeed = 300f;
 
     [Tooltip("The particle effect of hitting something.")]
     public GameObject HitEffect;
@@ -19,26 +22,27 @@ public class BulletScript : MonoBehaviour
 
     //float lifetime;
 
-    void Start()
+    private void Start()
     {
         StartCoroutine(Lifetime());
     }
 
-    void Awake()
+    [Client]
+    private void Awake()
     {
-        if (SpaceshipController.instance != null)
-        {
-            player = SpaceshipController.instance.transform;
-            ship = SpaceshipController.instance.transform.root;
-        }
-        else
-        {
-            player = SpaceshipController2D.instance.transform;
-            ship = SpaceshipController2D.instance.transform.root;
-        }
+        if (SpaceshipController.instance == null) return;
+        player = SpaceshipController.instance.transform;
+        ship = SpaceshipController.instance.transform.root;
     }
 
-    void OnTriggerEnter(Collider col)
+    [Client]
+    private void Update()
+    {
+        transform.position += transform.forward * (_bulletSpeed * Time.fixedDeltaTime);
+    }
+
+    [Client]
+    private void OnTriggerEnter(Collider col)
     {
         if (col.transform.root == ship) return;
 
@@ -62,9 +66,16 @@ public class BulletScript : MonoBehaviour
         if (col.GetComponent<BasicAI>() != null)
             col.GetComponent<BasicAI>().threat();
 
-        StartCoroutine(DestroySequence());
+        CMD_DestroySequence();
     }
 
+    
+    [Command]
+    private void CMD_DestroySequence() => RPC_DestroySequence();
+    
+    [ClientRpc]
+    private void RPC_DestroySequence() =>StartCoroutine(DestroySequence());
+    
     private IEnumerator DestroySequence()
     {
         GetComponent<Rigidbody>().velocity = Vector3.zero;

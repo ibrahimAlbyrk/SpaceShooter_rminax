@@ -504,34 +504,30 @@ namespace _Project.Scripts.Spaceship
 
         private IEnumerator BulletShooting(ShootingSettings settings)
         {
-            GameObject bullet;
-            Vector3 p;
             while (true)
             {
-                for (int i = b; i < settings.bulletSettings.BulletBarrels.Count; i++)
+                for (var i = b; i < settings.bulletSettings.BulletBarrels.Count; i++)
                 {
-                    bullet = (GameObject)Instantiate(settings.bulletSettings.Bullet,
+                    var bullet = Instantiate(settings.bulletSettings.Bullet,
                         settings.bulletSettings.BulletBarrels[i].transform.position,
                         Quaternion.LookRotation(transform.forward, transform.up));
+                    
+                    NetworkServer.Spawn(bullet);
+                    
                     if (settings.bulletSettings.BulletBarrels.Count > 1)
                     {
-                        if (b == 0)
-                        {
-                            b = 1;
-                        }
-                        else
-                        {
-                            b = 0;
-                        }
+                        b = b == 0 ? 1 : 0;
                     }
 
-                    if (settings.bulletSettings.BulletBarrels[i].GetComponent<ParticleSystem>() != null)
+
+                    var bulletParticle = settings.bulletSettings.BulletBarrels[i].GetComponent<ParticleSystem>();
+                    
+                    if (bulletParticle != null)
                     {
-
-                        settings.bulletSettings.BulletBarrels[i].GetComponent<ParticleSystem>().Play();
-
+                        bulletParticle.Play();
                     }
 
+                    Vector3 p;
                     if (m_camera.TargetCamera.targetTexture == null)
                     {
                         p = m_camera.TargetCamera.ScreenToWorldPoint(new Vector3(Input.mousePosition.x,
@@ -541,21 +537,12 @@ namespace _Project.Scripts.Spaceship
                     {
                         //EVERYTHING MUST BE A FLOAT
                         p = m_camera.TargetCamera.ScreenToWorldPoint(new Vector3(
-                            (float)Input.mousePosition.x /
-                            (float)((float)Screen.height / (float)m_camera.TargetCamera.pixelHeight),
-                            (float)Input.mousePosition.y /
-                            (float)((float)Screen.height / (float)m_camera.TargetCamera.pixelHeight),
+                            Input.mousePosition.x / (Screen.height / (float)m_camera.TargetCamera.pixelHeight),
+                            Input.mousePosition.y / (Screen.height / (float) m_camera.TargetCamera.pixelHeight),
                             settings.bulletSettings.TargetDistance));
                     }
 
-                    if (m_shooting.mode2D)
-                    {
-                        p.y = 0f;
-                    }
-
                     bullet.transform.LookAt(p);
-                    bullet.GetComponent<Rigidbody>()
-                        .AddForce(bullet.transform.forward * settings.bulletSettings.BulletSpeed, ForceMode.Impulse);
                     yield return new WaitForSeconds(settings.bulletSettings.BulletFireDelay);
                 }
 
