@@ -26,11 +26,13 @@ namespace _Project.Scripts.Spaceship
 
         private Transform m_cachedCameraTransform;
 
+        private bool _isEnableControl = true;
+
         [Header("Network options.")]
         [SerializeField] private GameObject[] NetworkObjects;
 
-        [SerializeField, Tooltip("Camera options.")]
-        private CameraSettings m_camera = new()
+        //[SerializeField, Tooltip("Camera options.")]
+        public CameraSettings m_camera = new()
         {
             Angle = 18.0f,
             Offset = 44.0f,
@@ -180,12 +182,14 @@ namespace _Project.Scripts.Spaceship
 
         //global bullet barrel variable
         int b = 0;
+
+        private float _fireDelayTimer;
         
         [Client]
         private void LateUpdate()
         {
-            if (!isOwned) return;
-            
+            if (!isOwned || !_isEnableControl) return;
+
             //if (m_spaceship.HP_text != null) m_spaceship.HP_text.text = m_spaceship.HP.ToString();
             //if (m_spaceship.enemies_text != null) m_spaceship.enemies_text.text = m_spaceship.enemies.Count.ToString();
             //
@@ -202,17 +206,17 @@ namespace _Project.Scripts.Spaceship
 
             //Bullets on LMB
             
-            if (Input.GetMouseButtonDown(0) && !isShooting)
-            {
-                shooting = StartCoroutine(BulletShooting(m_shooting));
-                isShooting = true;
-            }
-
-            if (Input.GetMouseButtonUp(0) && isShooting)
-            {
-                StopCoroutine(shooting);
-                isShooting = false;
-            }
+            //if (Input.GetMouseButtonDown(0) && !isShooting)
+            //{
+            //    CMD_BulletShooting(m_shooting);
+            //    isShooting = true;
+            //}
+            //
+            //if (Input.GetMouseButtonUp(0) && isShooting)
+            //{
+            //    CMD_StopBulletShooting(shooting);
+            //    isShooting = false;
+            //}
 
             //Rockets on RMB
 
@@ -282,7 +286,7 @@ namespace _Project.Scripts.Spaceship
         [Client]
         private void FixedUpdate()
         {
-            if (!isOwned) return;
+            if (!isOwned || !_isEnableControl) return;
             
             UpdateCamera();
             UpdateOrientationAndPosition();
@@ -291,7 +295,7 @@ namespace _Project.Scripts.Spaceship
         [Client]
         private void Update()
         {
-            if (!isOwned) return;
+            if (!isOwned || !_isEnableControl) return;
             
             UpdateInput();
         }
@@ -458,6 +462,11 @@ namespace _Project.Scripts.Spaceship
             }
         }
 
+        private void OnApplicationFocus(bool hasFocus)
+        {
+            _isEnableControl = hasFocus;
+        }
+
         public void Shake()
         {
 
@@ -500,54 +509,6 @@ namespace _Project.Scripts.Spaceship
             m_camera.shakeAmount = startAmount;
             m_camera.shakeDuration = startDuration;
             isRunning = false;
-        }
-
-        private IEnumerator BulletShooting(ShootingSettings settings)
-        {
-            while (true)
-            {
-                for (var i = b; i < settings.bulletSettings.BulletBarrels.Count; i++)
-                {
-                    var bullet = Instantiate(settings.bulletSettings.Bullet,
-                        settings.bulletSettings.BulletBarrels[i].transform.position,
-                        Quaternion.LookRotation(transform.forward, transform.up));
-                    
-                    NetworkServer.Spawn(bullet);
-                    
-                    if (settings.bulletSettings.BulletBarrels.Count > 1)
-                    {
-                        b = b == 0 ? 1 : 0;
-                    }
-
-
-                    var bulletParticle = settings.bulletSettings.BulletBarrels[i].GetComponent<ParticleSystem>();
-                    
-                    if (bulletParticle != null)
-                    {
-                        bulletParticle.Play();
-                    }
-
-                    Vector3 p;
-                    if (m_camera.TargetCamera.targetTexture == null)
-                    {
-                        p = m_camera.TargetCamera.ScreenToWorldPoint(new Vector3(Input.mousePosition.x,
-                            Input.mousePosition.y, settings.bulletSettings.TargetDistance));
-                    }
-                    else
-                    {
-                        //EVERYTHING MUST BE A FLOAT
-                        p = m_camera.TargetCamera.ScreenToWorldPoint(new Vector3(
-                            Input.mousePosition.x / (Screen.height / (float)m_camera.TargetCamera.pixelHeight),
-                            Input.mousePosition.y / (Screen.height / (float) m_camera.TargetCamera.pixelHeight),
-                            settings.bulletSettings.TargetDistance));
-                    }
-
-                    bullet.transform.LookAt(p);
-                    yield return new WaitForSeconds(settings.bulletSettings.BulletFireDelay);
-                }
-
-                yield return null;
-            }
         }
 
         private IEnumerator RocketFiring(ShootingSettings settings, Transform target)
@@ -605,7 +566,7 @@ namespace _Project.Scripts.Spaceship
         }
 
         [Serializable]
-        private struct CameraLookAtPointOffsetSettings
+        public struct CameraLookAtPointOffsetSettings
         {
             [Tooltip(
                 "Offset of the look-at point (relative to the spaceship) when flying straight with a minimum speed.")]
@@ -623,7 +584,7 @@ namespace _Project.Scripts.Spaceship
         }
 
         [Serializable]
-        private struct CameraSettings
+        public struct CameraSettings
         {
             [Tooltip("Angle of the camera. 0 = behind, 90 = top-down.")]
             public float Angle;
