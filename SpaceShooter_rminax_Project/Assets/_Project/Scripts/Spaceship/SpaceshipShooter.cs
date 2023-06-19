@@ -33,6 +33,11 @@ namespace _Project.Scripts.Spaceship
                 else
                     _fireDelayTimer += Time.fixedDeltaTime;
             }
+
+            if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonUp(0))
+            {
+                _fireDelayTimer = m_shooting.bulletSettings.BulletFireDelay;
+            }
         }
 
         private Vector3 ScreenMousePosition()
