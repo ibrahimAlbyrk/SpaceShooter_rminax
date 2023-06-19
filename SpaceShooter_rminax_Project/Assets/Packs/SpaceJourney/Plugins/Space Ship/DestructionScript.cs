@@ -66,6 +66,5 @@ public class DestructionScript : MonoBehaviour
         }
         else
             Destroy(gameObject);
-            
     }
 }

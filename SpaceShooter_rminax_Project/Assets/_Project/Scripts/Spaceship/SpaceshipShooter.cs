@@ -5,6 +5,9 @@ namespace _Project.Scripts.Spaceship
 {
     public class SpaceshipShooter : NetworkBehaviour
     {
+        [SerializeField] private float _shaneAmount = .1f;
+        [SerializeField] private float _shaneDuration = .1f;
+        
         int b = 0;
 
         private float _fireDelayTimer;
@@ -58,6 +61,8 @@ namespace _Project.Scripts.Spaceship
                 var bullet = Instantiate(m_shooting.bulletSettings.Bullet,
                     m_shooting.bulletSettings.BulletBarrels[i].transform.position,
                     Quaternion.LookRotation(transform.forward, transform.up));
+                
+                bullet.GetComponent<BulletScript>().Init();
 
                 if (m_shooting.bulletSettings.BulletBarrels.Count > 1)
                 {

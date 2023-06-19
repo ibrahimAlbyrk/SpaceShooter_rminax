@@ -257,6 +257,7 @@ MonoBehaviour:
     dynamicAdjustmentTolerance: 1
     deliveryTimeEmaDuration: 2
   timeInterpolationGui: 0
+  _gameUI: {fileID: 4754988786037736927, guid: 268a1d685b056bf45b9afdacaf5b5724, type: 3}
   _hubScene: Assets/_Project/Scenes/Hub_Scene.unity
   _gameScene: Assets/_Project/Scenes/OpenWorld_Scene.unity
   _lobbyPlayerPrefab: {fileID: 6547834403345332842, guid: 6131550e707c922419740e6db502fd1c,

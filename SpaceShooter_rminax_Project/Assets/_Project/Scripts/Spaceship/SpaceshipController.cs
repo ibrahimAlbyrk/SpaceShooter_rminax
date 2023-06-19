@@ -28,6 +28,8 @@ namespace _Project.Scripts.Spaceship
 
         private bool _isEnableControl = true;
 
+        [field:SerializeField] public Health Health { get; private set; }
+        
         [Header("Network options.")]
         [SerializeField] private GameObject[] NetworkObjects;
 
@@ -144,6 +146,7 @@ namespace _Project.Scripts.Spaceship
                 if (instance == null)
                 {
                     instance = this;
+                    print("singleton");
                 }
                 else
                 {
@@ -269,24 +272,12 @@ namespace _Project.Scripts.Spaceship
 
                 rocket_target = null;
             }
-
-            if (Input.GetMouseButtonDown(1) && !isFiring)
-            {
-
-                firing = StartCoroutine(RocketFiring(m_shooting, rocket_target));
-                isFiring = true;
-
-            }
-            /*if (Input.GetMouseButtonUp (1) && isFiring) {
-			StopCoroutine (firing);
-			isFiring = false;
-		}*/
         }
 
         [Client]
         private void FixedUpdate()
         {
-            if (!isOwned || !_isEnableControl) return;
+            if (!isOwned) return;
             
             UpdateCamera();
             UpdateOrientationAndPosition();
@@ -465,18 +456,15 @@ namespace _Project.Scripts.Spaceship
         private void OnApplicationFocus(bool hasFocus)
         {
             _isEnableControl = hasFocus;
+            
+            RawInput = Vector4.zero;
+            SmoothedInput = Vector4.zero;
         }
 
-        public void Shake()
-        {
-
-            if (!isRunning)
-            {
-
-                StartCoroutine(shaking());
-            }
-
-        }
+        private Coroutine _shakeCor;
+        
+        [Command]
+        public void CMD_Shake() => RPC_Shaking();
 
         float shakePercentage;
         float startAmount;
@@ -484,7 +472,56 @@ namespace _Project.Scripts.Spaceship
 
         bool isRunning = false;
 
-        IEnumerator shaking()
+        public void Shake(float amount, float duration)
+        {
+            if (isRunning)
+            {
+                m_camera.TargetCamera.transform.localRotation = Quaternion.identity;
+                StopCoroutine(_shakeCor);
+            }
+            
+            _shakeCor = StartCoroutine(Shaking(amount, duration));
+        }
+
+        private IEnumerator Shaking(float amount, float duration)
+        {
+            isRunning = true;
+
+            startAmount = amount;
+            startDuration = duration;
+
+            var originalPos = m_camera.TargetCamera.transform.localPosition;
+            
+            while (duration > 0.01f)
+            {
+                duration -= Time.fixedDeltaTime;
+
+                m_camera.TargetCamera.transform.localPosition = new Vector3(
+                    originalPos.x + Random.Range(-1, 1) * amount,
+                    originalPos.y + Random.Range(-1, 1) * amount,
+                    originalPos.z);
+
+                yield return null;
+            }
+
+            m_camera.TargetCamera.transform.localPosition = originalPos;
+            
+            isRunning = false;
+        }
+
+        [ClientRpc]
+        private void RPC_Shaking()
+        {
+            if (isRunning)
+            {
+                m_camera.TargetCamera.transform.localRotation = Quaternion.identity;
+                StopCoroutine(_shakeCor);
+            }
+            
+            _shakeCor = StartCoroutine(Shaking());
+        }
+
+        private IEnumerator Shaking()
         {
 
             isRunning = true;

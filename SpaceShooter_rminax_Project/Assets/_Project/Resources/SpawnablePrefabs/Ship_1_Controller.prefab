@@ -4912,10 +4912,9 @@ GameObject:
   - component: {fileID: 5153055843658974444}
   - component: {fileID: 1585283891695946097}
   - component: {fileID: 7717009810105795232}
-  - component: {fileID: 1880813721162409430}
   m_Layer: 0
   m_Name: Ship_1_Mesh
-  m_TagString: Untagged
+  m_TagString: Spaceship
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -4989,28 +4988,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!64 &1880813721162409430
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2067013456832422387}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 4300000, guid: cc2a9593af8b4484c92c0d9fdd3de6bc, type: 3}
 --- !u!1 &2108541811707840995
 GameObject:
   m_ObjectHideFlags: 0
@@ -5035,7 +5012,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2108541811707840995}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -4.94, y: -1.84, z: 4.12}
+  m_LocalPosition: {x: -4.94, y: -1.84, z: 5.31}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5151,9 +5128,11 @@ GameObject:
   - component: {fileID: 5101263299969506541}
   - component: {fileID: 400247354897441118}
   - component: {fileID: -8113844069598724678}
-  m_Layer: 0
+  - component: {fileID: 8583351345877889846}
+  - component: {fileID: 4569868236134856480}
+  m_Layer: 3
   m_Name: Ship_1_Controller
-  m_TagString: Untagged
+  m_TagString: Spaceship
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -5243,6 +5222,7 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0
+  <Health>k__BackingField: {fileID: 8583351345877889846}
   NetworkObjects:
   - {fileID: 7064142423694180481}
   - {fileID: 4116887963354288990}
@@ -5319,10 +5299,10 @@ MonoBehaviour:
       - {fileID: 2108541811707840995}
       - {fileID: 6708122613074038300}
       Bullet: {fileID: 1169261860770638, guid: 6a77cc242c19ed6448f7384c04e1f41f, type: 3}
-      BulletSpeed: 300
-      BulletFireDelay: 0.15
+      BulletSpeed: 500
+      BulletFireDelay: 0.1
       BulletDamage: 15
-      BulletLifetime: 7
+      BulletLifetime: 5
       TargetDistance: 300
     rocketSettings:
       RocketBarrels: []
@@ -5357,9 +5337,9 @@ MonoBehaviour:
       - {fileID: 2108541811707840995}
       - {fileID: 6708122613074038300}
       Bullet: {fileID: 1169261860770638, guid: 6a77cc242c19ed6448f7384c04e1f41f, type: 3}
-      BulletSpeed: 300
-      BulletFireDelay: 0.15
-      BulletDamage: 15
+      BulletSpeed: 100
+      BulletFireDelay: 0.5
+      BulletDamage: 10
       BulletLifetime: 7
       TargetDistance: 300
     rocketSettings:
@@ -5389,6 +5369,43 @@ MonoBehaviour:
     aimingCursor: {fileID: 0}
     shakeAmount: 0.75
     shakeDuration: 0.02
+--- !u!114 &8583351345877889846
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2456435341267794021}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 001890d1830c475b870a834ac2407e78, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  _maxHealth: 100
+--- !u!65 &4569868236134856480
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2456435341267794021}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 21.778536, y: 7.7491293, z: 20.199646}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &3620006584476187255
 GameObject:
   m_ObjectHideFlags: 0
@@ -24852,7 +24869,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6708122613074038300}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 4.94, y: -1.84, z: 4.12}
+  m_LocalPosition: {x: 4.94, y: -1.84, z: 5.31}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

@@ -1,95 +1,104 @@
-﻿using _Project.Scripts.Spaceship;
+﻿using System.Collections;
+using System.Linq;
 using Mirror;
 using UnityEngine;
 
-public class BulletScript : NetworkBehaviour
+namespace _Project.Scripts.Spaceship
 {
-    [SerializeField] private float _bulletDamage;
-    [SerializeField] private float _bulletLifeTime;
-    [SerializeField] private float _bulletSpeed = 300f;
-
-    [Tooltip("The particle effect of hitting something.")]
-    public GameObject HitEffect;
-
-    public ParticleSystem Trail;
-    public Transform ship;
-
-    Transform player;
-
-    //float Damage;
-
-    //float lifetime;
-    
-    private void Start()
+    public class BulletScript : NetworkBehaviour
     {
-        Invoke(nameof(CMD_Lifetime), _bulletLifeTime);
-        
-        if (SpaceshipController.instance == null) return;
-        player = SpaceshipController.instance.transform;
-        ship = SpaceshipController.instance.transform.root;
-    }
-    
-    private void Update()
-    {
-        transform.position += transform.forward * (_bulletSpeed * Time.fixedDeltaTime);
-    }
-    
-    private void CMD_DestroySequence() => RPC_DestroySequence();
+        [SerializeField] private LayerMask _obstacleLayer;
 
-    private void RPC_DestroySequence() => DestroySequence();
-    
-    private void DestroySequence()
-    {
-        GetComponent<Rigidbody>().velocity = Vector3.zero;
-        GetComponent<Renderer>().enabled = false;
+        [Tooltip("The particle effect of hitting something.")]
+        public GameObject HitEffect;
 
-        if (Trail != null)
+        public ParticleSystem Trail;
+        public Transform ship;
+
+        private Transform _player;
+
+        //float Damage;
+
+        //float lifetime;
+
+        private bool _isHit;
+        private bool _isMove = true;
+
+        private SpaceshipController.BulletSettings _settings;
+
+        public void Init()
         {
-            Trail.gameObject.SetActive(false);
+            _settings = SpaceshipController.instance.m_shooting.bulletSettings;
+            
+            Invoke(nameof(CMD_Lifetime),
+                _settings.BulletLifetime);
+
+            if (SpaceshipController.instance == null) return;
+            _player = SpaceshipController.instance.transform;
+            ship = SpaceshipController.instance.transform.root;
         }
 
-        if (HitEffect != null)
+        private void Update()
         {
-            var position = transform.GetChild(1).gameObject.transform.position;
+            if (!_isMove) return;
 
-            var firework = Instantiate(HitEffect, position, Quaternion.identity);
-            firework.transform.parent = gameObject.transform;
+            transform.position += transform.forward * (_settings.BulletSpeed * Time.fixedDeltaTime);
 
-            var fireworkPS = GetComponent<ParticleSystem>();
-            if (fireworkPS != null) fireworkPS.Play();
+            var colls = Physics.OverlapBox(transform.position, transform.localScale, transform.rotation,
+                _obstacleLayer);
 
-            Destroy(firework);
+            if (colls.Length < 1 || _isHit) return;
+
+            if (colls.Any(coll => coll.gameObject == SpaceshipController.instance.gameObject)) return;
+
+            _isHit = true;
+
+            TakeDamageToObstacle(colls.FirstOrDefault());
+
+            StartCoroutine(DestroySequence());
         }
 
-        Destroy(gameObject);
+        private void TakeDamageToObstacle(Component coll)
+        {
+            var spaceship = SpaceshipController.instance;
+            
+            if (coll.transform.root == ship) return;
+
+            if (coll.TryGetComponent(out Damageable damageable))
+            {
+                damageable.DealDamage(_settings.BulletDamage);
+            }
+
+            if (coll.TryGetComponent(out DestructionScript destructionScript))
+            {
+                if (spaceship != null)
+                    destructionScript.HP -= _settings.BulletDamage;
+            }
+
+            if (coll.TryGetComponent(out BasicAI ai))
+                ai.threat();
+        }
+
+        private IEnumerator DestroySequence()
+        {
+            _isMove = false;
+
+            if (Trail != null)
+                Trail.gameObject.SetActive(false);
+
+            if (HitEffect != null)
+            {
+                var firework = Instantiate(HitEffect, transform.position, Quaternion.identity);
+                firework.transform.parent = gameObject.transform;
+
+                yield return new WaitForSeconds(1f);
+
+                Destroy(firework);
+            }
+
+            Destroy(gameObject);
+        }
+
+        private void CMD_Lifetime() => Destroy(gameObject);
     }
-    
-    private void CMD_Lifetime() => Destroy(gameObject);
-    
-    //private void OnTriggerEnter(Collider col)
-    //{
-    //    if (col.transform.root == ship) return;
-    //
-    //    if (col.transform.parent != player) return;
-    //
-    //    if (SpaceshipController.instance != null)
-    //        SpaceshipController.instance.Shake();
-    //
-    //    if (col.GetComponent<DestructionScript>() != null)
-    //    {
-    //        if (SpaceshipController.instance != null)
-    //            col.GetComponent<DestructionScript>().HP -=
-    //                SpaceshipController.instance.m_shooting.bulletSettings.BulletDamage;
-    //    }
-    //
-    //    if (col.transform.parent != null)
-    //        if (col.transform.parent.GetComponent<SpaceshipController>() != null)
-    //        {
-    //        } //TODO Give Damage to player
-    //
-    //    if (col.GetComponent<BasicAI>() != null)
-    //        col.GetComponent<BasicAI>().threat();
-    //
-    //    CMD_DestroySequence();
-    //}
 }

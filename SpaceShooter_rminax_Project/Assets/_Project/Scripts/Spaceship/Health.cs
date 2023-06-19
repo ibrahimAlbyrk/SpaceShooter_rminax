@@ -7,7 +7,7 @@ namespace _Project.Scripts.Spaceship
     public class Health : NetworkBehaviour
     {
         public event EventHandler<DeathEventArgs> OnDeath; 
-        public event EventHandler<HealthChangedEventArgs> OnHealthChanged; 
+        public event EventHandler<HealthChangedEventArgs> OnHealthChanged;
         
         [SerializeField] private float _maxHealth = 100;
 
@@ -68,7 +68,7 @@ namespace _Project.Scripts.Spaceship
 
         #region Base methods
 
-        [ServerCallback]
+        [Client]
         private void OnDestroy()
         {
             OnDeath?.Invoke(this, new DeathEventArgs{ConnectionToClient = connectionToClient});
