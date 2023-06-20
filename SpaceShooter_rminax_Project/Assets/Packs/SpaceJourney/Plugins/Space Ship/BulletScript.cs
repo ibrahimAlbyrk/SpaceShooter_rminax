@@ -26,8 +26,14 @@ namespace _Project.Scripts.Spaceship
 
         private SpaceshipController.BulletSettings _settings;
 
-        public void Init()
+        private GameObject _ownerPlayer;
+
+        public void Init(GameObject ownerPlayer)
         {
+            print("worked");
+            
+            _ownerPlayer = ownerPlayer;
+            
             _settings = SpaceshipController.instance.m_shooting.bulletSettings;
             
             Invoke(nameof(CMD_Lifetime),
@@ -37,7 +43,7 @@ namespace _Project.Scripts.Spaceship
             _player = SpaceshipController.instance.transform;
             ship = SpaceshipController.instance.transform.root;
         }
-
+        
         private void Update()
         {
             if (!_isMove) return;
@@ -49,34 +55,44 @@ namespace _Project.Scripts.Spaceship
 
             if (colls.Length < 1 || _isHit) return;
 
-            if (colls.Any(coll => coll.gameObject == SpaceshipController.instance.gameObject)) return;
+            if (colls.Any(coll => coll.gameObject == _ownerPlayer)) return;
 
+            print($"owner: __* {_ownerPlayer.name} *__");
+            
             _isHit = true;
 
-            TakeDamageToObstacle(colls.FirstOrDefault());
+            var obstacle = colls.FirstOrDefault()?.gameObject;
+            
+            CMD_TakeDamageToObstacle(_ownerPlayer, obstacle);
 
             StartCoroutine(DestroySequence());
         }
-
-        private void TakeDamageToObstacle(Component coll)
+        
+        [Command(requiresAuthority = false)]
+        private void CMD_TakeDamageToObstacle(GameObject ownerPlayer, GameObject obstacle)
         {
             var spaceship = SpaceshipController.instance;
             
-            if (coll.transform.root == ship) return;
+            if (obstacle == ownerPlayer) return;
 
-            if (coll.TryGetComponent(out Damageable damageable))
+            var damageable = obstacle.GetComponent<Damageable>();
+            if (damageable != null)
             {
                 damageable.DealDamage(_settings.BulletDamage);
             }
 
-            if (coll.TryGetComponent(out DestructionScript destructionScript))
+            var destructionScript = obstacle.GetComponent<DestructionScript>();
+            if (destructionScript != null)
             {
                 if (spaceship != null)
                     destructionScript.HP -= _settings.BulletDamage;
             }
 
-            if (coll.TryGetComponent(out BasicAI ai))
+            var ai = obstacle.GetComponent<BasicAI>();
+            if (ai != null)
+            {
                 ai.threat();
+            }
         }
 
         private IEnumerator DestroySequence()
@@ -99,6 +115,7 @@ namespace _Project.Scripts.Spaceship
             Destroy(gameObject);
         }
 
-        private void CMD_Lifetime() => Destroy(gameObject);
+        [Command(requiresAuthority = false)]
+        private void CMD_Lifetime() => NetworkServer.Destroy(gameObject);
     }
 }

@@ -1,7 +1,8 @@
 ﻿using System.Collections;
+using Mirror;
 using UnityEngine;
 
-public class DestructionScript : MonoBehaviour
+public class DestructionScript : NetworkBehaviour
 {
     public GameObject Explosion;
     public float HP;

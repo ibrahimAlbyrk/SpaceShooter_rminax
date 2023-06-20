@@ -463,7 +463,7 @@ namespace _Project.Scripts.Spaceship
 
         private Coroutine _shakeCor;
         
-        [Command]
+        [Command(requiresAuthority = false)]
         public void CMD_Shake() => RPC_Shaking();
 
         float shakePercentage;

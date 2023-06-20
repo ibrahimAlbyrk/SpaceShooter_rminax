@@ -15,6 +15,13 @@ namespace _Project.Scripts.Spaceship
         [SerializeField] private SpaceshipController.ShootingSettings m_shooting;
         [SerializeField] private SpaceshipController.CameraSettings m_camera;
         
+        [Client]
+        private void Start()
+        {
+            _fireDelayTimer = m_shooting.bulletSettings.BulletFireDelay;
+        }
+        
+        [Client]
         private void Update()
         {
             if (!isOwned) return;
@@ -28,18 +35,14 @@ namespace _Project.Scripts.Spaceship
 
                     var mousePos = ScreenMousePosition();
                     
-                    CMD_BulletShooting(mousePos);
+                    CMD_BulletShooting(gameObject, mousePos);
                 }
                 else
                     _fireDelayTimer += Time.fixedDeltaTime;
             }
-
-            if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonUp(0))
-            {
-                _fireDelayTimer = m_shooting.bulletSettings.BulletFireDelay;
-            }
         }
 
+        [Client]
         private Vector3 ScreenMousePosition()
         {
             if (m_camera.TargetCamera.targetTexture == null)
@@ -56,18 +59,17 @@ namespace _Project.Scripts.Spaceship
         }
 
         [Command]
-        private void CMD_BulletShooting(Vector3 mousePos) => RPC_BulletShooting(mousePos);
-        
-        [ClientRpc]
-        private void RPC_BulletShooting(Vector3 mousePos)
-        {
+        private void CMD_BulletShooting(GameObject owner, Vector3 mousePos)
+        { 
             for (var i = b; i < m_shooting.bulletSettings.BulletBarrels.Count; i++)
             {
                 var bullet = Instantiate(m_shooting.bulletSettings.Bullet,
                     m_shooting.bulletSettings.BulletBarrels[i].transform.position,
                     Quaternion.LookRotation(transform.forward, transform.up));
+
+                bullet.GetComponent<BulletScript>().Init(owner);
                 
-                bullet.GetComponent<BulletScript>().Init();
+                NetworkServer.Spawn(bullet, gameObject);
 
                 if (m_shooting.bulletSettings.BulletBarrels.Count > 1)
                 {
@@ -75,7 +77,7 @@ namespace _Project.Scripts.Spaceship
                 }
 
                 var bulletParticle = m_shooting.bulletSettings.BulletBarrels[i].GetComponent<ParticleSystem>();
-                    
+
                 if (bulletParticle != null)
                 {
                     bulletParticle.Play();

@@ -16,7 +16,7 @@ namespace _Project.Scripts.Spaceship
         #region Sync Variables
 
         [SyncVar(hook = nameof(OnHealthUpdated))]
-        private float _currentHealth;
+        [SerializeField] private float _currentHealth;
         
         private void OnHealthUpdated(float _, float newHealth)
         {
@@ -38,7 +38,7 @@ namespace _Project.Scripts.Spaceship
 
         #endregion
 
-        [Server]
+        [Command]
         public void Add(float value)
         {
             value = Mathf.Max(value, 0);
@@ -46,12 +46,14 @@ namespace _Project.Scripts.Spaceship
             _currentHealth = Mathf.Min(_currentHealth + value, _maxHealth);
         }
         
-        [Server]
+        [Command(requiresAuthority = false)]
         public void Remove(float value)
         {
             value = Mathf.Max(value, 0);
 
-            _currentHealth = Mathf.Max(_currentHealth - 0, 0);
+            _currentHealth = Mathf.Max(_currentHealth - value, 0);
+            
+            print($"damage: {value}, health: {_currentHealth}");
 
             if (_currentHealth <= 0)
             {
