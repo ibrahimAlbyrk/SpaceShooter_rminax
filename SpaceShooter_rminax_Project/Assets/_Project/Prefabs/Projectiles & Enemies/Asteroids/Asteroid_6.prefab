@@ -106,7 +106,7 @@ MonoBehaviour:
     type: 3}
   HP: 200
   particleParent: {fileID: 0}
-  ExplosionScale: 10
+  ExplosionScale: 7
   Asteroid: 1
   Metal: 0
 --- !u!64 &64123360322477186

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using _Project.Scripts.Network.Managers;
 using Mirror;
 using UnityEngine;
 using UnityEngine.UI;
@@ -27,7 +28,7 @@ namespace _Project.Scripts.Spaceship
         private Transform m_cachedCameraTransform;
 
         private bool _isEnableControl = true;
-
+        
         [field:SerializeField] public Health Health { get; private set; }
         
         [Header("Network options.")]
@@ -152,6 +153,8 @@ namespace _Project.Scripts.Spaceship
                 {
                     Debug.LogError("Singleton pattern violated! Two player controled spaceships present in the scene");
                 }
+                
+                SpaceLobbyManager.Instance.AddGamePlayer(connectionToClient);
             }
 
             if (!isOwned) return;
@@ -187,7 +190,15 @@ namespace _Project.Scripts.Spaceship
         int b = 0;
 
         private float _fireDelayTimer;
-        
+
+        [Client]
+        private void OnDestroy()
+        {
+            if (!isOwned) return;
+            
+            SpaceLobbyManager.Instance.RemoveGamePlayer(connectionToClient);
+        }
+
         [Client]
         private void LateUpdate()
         {
@@ -509,13 +520,13 @@ namespace _Project.Scripts.Spaceship
             isRunning = false;
         }
 
-        [ClientRpc]
+        [TargetRpc]
         private void RPC_Shaking()
         {
             if (isRunning)
             {
                 m_camera.TargetCamera.transform.localRotation = Quaternion.identity;
-                StopCoroutine(_shakeCor);
+                if(_shakeCor != null) StopCoroutine(_shakeCor);
             }
             
             _shakeCor = StartCoroutine(Shaking());

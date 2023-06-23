@@ -6,19 +6,19 @@ namespace _Project.Scripts.Spaceship
 {
     public class Health : NetworkBehaviour
     {
-        public event EventHandler<DeathEventArgs> OnDeath; 
+        public event EventHandler<DeathEventArgs> OnDeath;
         public event EventHandler<HealthChangedEventArgs> OnHealthChanged;
-        
+
         [SerializeField] private float _maxHealth = 100;
 
         public bool IsDead => _currentHealth <= 0f;
 
         #region Sync Variables
 
-        [SyncVar(hook = nameof(OnHealthUpdated))]
-        [SerializeField] private float _currentHealth;
-        
-        private void OnHealthUpdated(float _, float newHealth)
+        [SyncVar(hook = nameof(OnHealthUpdated))] [SerializeField]
+        private float _currentHealth;
+
+        private void OnHealthUpdated(float _, float __)
         {
             OnHealthChanged?.Invoke(this, new HealthChangedEventArgs
             {
@@ -38,34 +38,32 @@ namespace _Project.Scripts.Spaceship
 
         #endregion
 
-        [Command]
+        [Command(requiresAuthority = false)]
         public void Add(float value)
         {
             value = Mathf.Max(value, 0);
 
             _currentHealth = Mathf.Min(_currentHealth + value, _maxHealth);
         }
-        
+
         [Command(requiresAuthority = false)]
         public void Remove(float value)
         {
             value = Mathf.Max(value, 0);
 
             _currentHealth = Mathf.Max(_currentHealth - value, 0);
+
+            if (_currentHealth > 0) return;
             
-            print($"damage: {value}, health: {_currentHealth}");
+            OnDeath?.Invoke(this, new DeathEventArgs { ConnectionToClient = connectionToClient });
 
-            if (_currentHealth <= 0)
-            {
-                OnDeath?.Invoke(this, new DeathEventArgs{ConnectionToClient = connectionToClient});
-
-                RPC_HandleDeath();
-            }
+            RPC_HandleDeath();
         }
 
+        [ClientRpc]
         private void RPC_HandleDeath()
         {
-            gameObject.SetActive(false);
+            gameObject.transform.GetChild(0).gameObject.SetActive(false);
         }
 
         #region Base methods
@@ -73,7 +71,7 @@ namespace _Project.Scripts.Spaceship
         [Client]
         private void OnDestroy()
         {
-            OnDeath?.Invoke(this, new DeathEventArgs{ConnectionToClient = connectionToClient});
+            OnDeath?.Invoke(this, new DeathEventArgs { ConnectionToClient = connectionToClient });
         }
 
         #endregion

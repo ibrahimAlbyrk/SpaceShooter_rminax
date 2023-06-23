@@ -9,8 +9,9 @@ namespace _Project.Scripts.Spaceship
 
         public void DealDamage(float dealToDamage)
         {
-            if(TryGetComponent(out SpaceshipController controller))
-                controller.CMD_Shake();
+            var controller = GetComponent<SpaceshipController>();
+            
+            if(controller != null) controller.CMD_Shake();
             
             _health.Remove(dealToDamage);
         }

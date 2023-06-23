@@ -16,7 +16,7 @@ namespace _Project.Scripts.Network.Managers
 
         [Scene] [SerializeField] private string _hubScene;
         [Scene] [SerializeField] private string _gameScene;
-        
+
         [SerializeField] private GameObject _lobbyPlayerPrefab;
         [SerializeField] private GameObject _gamePlayerPrefab;
 
@@ -47,7 +47,7 @@ namespace _Project.Scripts.Network.Managers
                 conn.Disconnect();
                 return;
             }
-            
+
             base.OnServerConnect(conn);
 
             OnServerConnected?.Invoke();
@@ -57,12 +57,16 @@ namespace _Project.Scripts.Network.Managers
         {
             base.OnServerReady(conn);
 
+            SpaceLobbyManager.Instance.AddNetworkPlayer(conn);
+            
             OnServerRedied?.Invoke(conn);
         }
 
         public override void OnServerDisconnect(NetworkConnectionToClient conn)
         {
             base.OnServerDisconnect(conn);
+
+            SpaceLobbyManager.Instance.RemoveNetworkPlayer(conn);
 
             OnServerDisconnected?.Invoke();
         }
@@ -81,19 +85,30 @@ namespace _Project.Scripts.Network.Managers
                 }
             }
             
+            //If from the gameScene to the hubScene
+            if (SceneManager.GetActiveScene().name == _gameScene && newSceneName.Equals(_hubScene))
+            {
+                //Change lobby players to game players
+                foreach (var conn in NetworkServer.connections.Values)
+                {
+                    var newPlayer = ReplaceLobbyPlayer(conn);
+                    newPlayer.name = $"{_lobbyPlayerPrefab.name} [connId={conn.connectionId}]";
+                }
+            }
+
             base.ServerChangeScene(newSceneName);
         }
-        
+
         public override void OnServerAddPlayer(NetworkConnectionToClient conn)
         {
             var activeSceneName = SceneManager.GetActiveScene().path;
-            
+
             var prefab = activeSceneName == _hubScene
                 ? _lobbyPlayerPrefab
                 : _gamePlayerPrefab;
-            
+
             var player = Instantiate(prefab);
-            
+
             player.name = $"{prefab.name} [connId={conn.connectionId}]";
 
             NetworkServer.AddPlayerForConnection(conn, player);
@@ -139,11 +154,12 @@ namespace _Project.Scripts.Network.Managers
 
         public override void OnStopClient()
         {
-            ServerChangeScene(_hubScene);
+            if(!SceneManager.GetActiveScene().path.Equals(_hubScene))
+                ServerChangeScene(_hubScene);
         }
 
         #endregion
-        
+
         public void ConnectOpenWorld()
         {
             ServerChangeScene(_gameScene);
@@ -156,9 +172,22 @@ namespace _Project.Scripts.Network.Managers
             var oldPlayer = conn.identity.gameObject;
 
             var newPlayer = Instantiate(playerObj == null ? _gamePlayerPrefab : playerObj);
-            
+
             NetworkServer.Destroy(oldPlayer);
-            
+
+            NetworkServer.ReplacePlayerForConnection(conn, newPlayer, true);
+
+            return newPlayer;
+        }
+        
+        public GameObject ReplaceLobbyPlayer(NetworkConnectionToClient conn, GameObject playerObj = null)
+        {
+            var oldPlayer = conn.identity.gameObject;
+
+            var newPlayer = Instantiate(playerObj == null ? _lobbyPlayerPrefab : playerObj);
+
+            NetworkServer.Destroy(oldPlayer);
+
             NetworkServer.ReplacePlayerForConnection(conn, newPlayer, true);
 
             return newPlayer;

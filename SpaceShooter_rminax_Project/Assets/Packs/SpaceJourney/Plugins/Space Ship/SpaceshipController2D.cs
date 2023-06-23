@@ -177,15 +177,6 @@ public sealed class SpaceshipController2D : MonoBehaviour
 		m_spaceship.HP_text.text = m_spaceship.HP.ToString();
 		m_spaceship.enemies_text.text = m_spaceship.enemies.Count.ToString();
 
-		if(m_spaceship.enemies.Count==0){
-			UIcoroutines.instance.GameOver(false);
-		}
-
-		if(m_spaceship.HP<=0){
-			UIcoroutines.instance.GameOver(true);
-			gameObject.SetActive(false);
-		}
-
 			//Bullets on LMB
 		if (Input.GetMouseButtonDown (0) && !isShooting) {
 			shooting =  StartCoroutine (BulletShooting(m_shooting));
