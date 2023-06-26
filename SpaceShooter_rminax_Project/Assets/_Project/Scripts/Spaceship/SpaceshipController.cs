@@ -128,6 +128,8 @@ namespace _Project.Scripts.Spaceship
         
         #region Client Callbacks
 
+        private bool _isInitialized;
+
         public override void OnStartClient()
         {
             Init();
@@ -153,8 +155,6 @@ namespace _Project.Scripts.Spaceship
                 {
                     Debug.LogError("Singleton pattern violated! Two player controled spaceships present in the scene");
                 }
-                
-                SpaceLobbyManager.Instance.AddGamePlayer(connectionToClient);
             }
 
             if (!isOwned) return;
@@ -176,6 +176,8 @@ namespace _Project.Scripts.Spaceship
             m_lookAtPointOffset = m_camera.LookAtPointOffset.OnIdle;
 
             m_cachedCameraTransform.position = CachedTransform.position + CameraOffsetVector;
+
+            _isInitialized = true;
         }
 
         Coroutine shooting = null;
@@ -195,8 +197,7 @@ namespace _Project.Scripts.Spaceship
         private void OnDestroy()
         {
             if (!isOwned) return;
-            
-            SpaceLobbyManager.Instance.RemoveGamePlayer(connectionToClient);
+           
         }
 
         [Client]
@@ -288,7 +289,7 @@ namespace _Project.Scripts.Spaceship
         [Client]
         private void FixedUpdate()
         {
-            if (!isOwned) return;
+            if (!isOwned || !_isInitialized) return;
             
             UpdateCamera();
             UpdateOrientationAndPosition();
@@ -297,7 +298,7 @@ namespace _Project.Scripts.Spaceship
         [Client]
         private void Update()
         {
-            if (!isOwned || !_isEnableControl) return;
+            if (!isOwned || !_isEnableControl || !_isInitialized) return;
             
             UpdateInput();
         }

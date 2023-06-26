@@ -56,8 +56,6 @@ namespace _Project.Scripts.Network.Managers
         public override void OnServerReady(NetworkConnectionToClient conn)
         {
             base.OnServerReady(conn);
-
-            SpaceLobbyManager.Instance.AddNetworkPlayer(conn);
             
             OnServerRedied?.Invoke(conn);
         }
@@ -65,8 +63,6 @@ namespace _Project.Scripts.Network.Managers
         public override void OnServerDisconnect(NetworkConnectionToClient conn)
         {
             base.OnServerDisconnect(conn);
-
-            SpaceLobbyManager.Instance.RemoveNetworkPlayer(conn);
 
             OnServerDisconnected?.Invoke();
         }

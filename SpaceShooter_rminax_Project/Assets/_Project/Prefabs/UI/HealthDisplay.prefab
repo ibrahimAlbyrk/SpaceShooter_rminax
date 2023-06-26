@@ -209,8 +209,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _identity: {fileID: 0}
   targetTransform: {fileID: 0}
-  _lookAtCamera: {fileID: 0}
-  _height: 4
+  _height: 15
   _health: {fileID: 0}
   _healthBarImage: {fileID: 8191619195309279807}
   _healthShowTime: 3
