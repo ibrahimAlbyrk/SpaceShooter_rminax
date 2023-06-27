@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using _Project.Scripts.Game;
 using _Project.Scripts.Network.Managers;
 using Mirror;
 using UnityEngine;
@@ -130,9 +131,24 @@ namespace _Project.Scripts.Spaceship
 
         private bool _isInitialized;
 
+        private string _username;
+        
         public override void OnStartClient()
         {
             Init();
+
+            if (!isOwned) return;
+
+            _username = $"Username_{Random.Range(0, 1000)}";
+            
+            if(LeaderboardManager.Instance != null)
+                LeaderboardManager.Instance.CMD_AddPlayer(_username);
+        }
+
+        public override void OnStopClient()
+        {
+            if(LeaderboardManager.Instance != null)
+                LeaderboardManager.Instance.CMD_RemovePlayer(_username);
         }
 
         #endregion

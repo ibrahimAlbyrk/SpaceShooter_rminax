@@ -261,7 +261,7 @@ MonoBehaviour:
   _gameScene: Assets/_Project/Scenes/OpenWorld_Scene.unity
   _lobbyPlayerPrefab: {fileID: 6547834403345332842, guid: 6131550e707c922419740e6db502fd1c,
     type: 3}
-  _gamePlayerPrefab: {fileID: 6563795264223217717, guid: 34a9267cc7acc7d44b97789354cba91f,
+  _gamePlayerPrefab: {fileID: 544465889819110809, guid: 34a9267cc7acc7d44b97789354cba91f,
     type: 3}
   _maxConnection: 100
   _gameScenes:
@@ -3150,7 +3150,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1746127332
 MonoBehaviour:
   m_ObjectHideFlags: 0

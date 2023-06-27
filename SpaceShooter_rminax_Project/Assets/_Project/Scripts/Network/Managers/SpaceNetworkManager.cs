@@ -132,13 +132,19 @@ namespace _Project.Scripts.Network.Managers
 
         public override void OnStartServer()
         {
+            spawnPrefabs.Clear();
+            
+            spawnPrefabs = Resources.LoadAll<GameObject>("SpawnablePrefabs").ToList();
         }
 
         public override void OnStartClient()
         {
-            var spawnablePrefabs = Resources.LoadAll<GameObject>("SpawnablePrefabs");
+            spawnPrefabs.Clear();
+            spawnPrefabs = Resources.LoadAll<GameObject>("SpawnablePrefabs").ToList();
 
-            foreach (var spawnablePrefab in spawnablePrefabs)
+            NetworkClient.ClearSpawners();
+
+            foreach (var spawnablePrefab in spawnPrefabs)
             {
                 NetworkClient.RegisterPrefab(spawnablePrefab);
             }

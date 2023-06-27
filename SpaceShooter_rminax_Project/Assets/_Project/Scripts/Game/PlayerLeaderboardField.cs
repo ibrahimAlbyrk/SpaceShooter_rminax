@@ -7,22 +7,22 @@ namespace _Project.Scripts.Game
     {
         [SerializeField] private TMP_Text _usernameText;
         [SerializeField] private TMP_Text _scoreText;
+
+        private string Username;
+        private int Score;
         
-        public string Username { get; private set; }
-        public int Score { get; private set; }
-        
-        public void Init(string username)
+        public void Init(string username, int score)
         {
             Username = username;
-            Score = 0;
+            Score = score;
+
+            UpdateUI();
         }
 
-        public void UpdateUI()
+        private void UpdateUI()
         {
             _usernameText.text = Username;
             _scoreText.text = $"{Score}";
         }
-
-        public void SetScore(int score) => Score = score;
     }
 }
