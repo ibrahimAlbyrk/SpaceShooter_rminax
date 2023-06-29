@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Linq;
+using _Project.Scripts.Game;
 using Mirror;
 using UnityEngine;
 
@@ -14,8 +15,6 @@ namespace _Project.Scripts.Spaceship
 
         public ParticleSystem Trail;
         public Transform ship;
-
-        private Transform _player;
 
         //float Damage;
 
@@ -39,7 +38,6 @@ namespace _Project.Scripts.Spaceship
                 _settings.BulletLifetime);
 
             if (SpaceshipController.instance == null) return;
-            _player = SpaceshipController.instance.transform;
             ship = SpaceshipController.instance.transform.root;
 
             _init = true;
@@ -71,26 +69,39 @@ namespace _Project.Scripts.Spaceship
         private void TakeDamageToObstacle(GameObject owner, GameObject obstacle)
         {
             if (obstacle.gameObject == owner) return;
+            
+            StartCoroutine(DestroySequence());
+            
+            var username = owner.GetComponent<SpaceshipController>().Username;
 
             var Damageable = obstacle.GetComponent<Damageable>();
-            Damageable?.DealDamage(_settings.BulletDamage);
 
+            if (Damageable != null)
+            {
+                LeaderboardManager.Instance.CMD_AddScore(username, 30);
+                
+                Damageable.DealDamage(_settings.BulletDamage);
+                return;
+            }
+            
             var basicAI = obstacle.GetComponent<BasicAI>();
-            basicAI?.threat();
+            if (basicAI != null)
+            {
+                LeaderboardManager.Instance.CMD_AddScore(username, 30);
+                
+                basicAI.threat();
+                return;
+            }
 
             var destructionScript = obstacle.GetComponent<DestructionScript>();
             if (destructionScript != null)
             {
                 destructionScript.HP -= _settings.BulletDamage;
+                if (destructionScript.HP <= 0)
+                {
+                    LeaderboardManager.Instance.CMD_AddScore(username, 1);
+                }
             }
-
-            var ai = obstacle.GetComponent<BasicAI>();
-            if (ai != null)
-            {
-                ai.threat();
-            }
-            
-            StartCoroutine(DestroySequence());
         }
 
         private IEnumerator DestroySequence()

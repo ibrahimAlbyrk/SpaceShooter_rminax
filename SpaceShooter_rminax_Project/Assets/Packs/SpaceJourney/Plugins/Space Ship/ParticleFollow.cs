@@ -7,7 +7,7 @@ public sealed class ParticleFollow : MonoBehaviour
 	private ParticleSystemRenderer m_particleRenderer;
 	[SerializeField] private Vector2 m_particleScaleRange;
 	[SerializeField] private float m_positionSmooth;
-	[SerializeField] private float m_rotatoionSmooth;
+	[SerializeField] private float m_rotationSmooth = 50f;
 	[SerializeField] private SpaceshipController m_target;
 
 	private void Awake()
@@ -18,11 +18,13 @@ public sealed class ParticleFollow : MonoBehaviour
 
 	private void Update()
 	{
+		if (!m_target.IsInitialized) return;
+		
 		m_cachedTransform.position = Vector3.Lerp(m_cachedTransform.position,
 			m_target.CachedTransform.position, Time.deltaTime * m_positionSmooth);
 
 		m_cachedTransform.rotation = Quaternion.Slerp(m_cachedTransform.rotation,
-			m_target.CachedTransform.rotation, Time.deltaTime * m_rotatoionSmooth);
+			m_target.CachedTransform.rotation, Time.deltaTime * m_rotationSmooth);
 		
 		m_particleRenderer.lengthScale =
 			Mathf.Lerp(m_particleScaleRange.x, m_particleScaleRange.y, Input.GetAxis("Stop") == 0f

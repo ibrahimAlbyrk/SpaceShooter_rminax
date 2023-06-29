@@ -5,6 +5,7 @@ using _Project.Scripts.Game;
 using _Project.Scripts.Network.Managers;
 using Mirror;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
@@ -129,9 +130,9 @@ namespace _Project.Scripts.Spaceship
         
         #region Client Callbacks
 
-        private bool _isInitialized;
+        public bool IsInitialized;
 
-        private string _username;
+        public string Username;
         
         public override void OnStartClient()
         {
@@ -139,16 +140,16 @@ namespace _Project.Scripts.Spaceship
 
             if (!isOwned) return;
 
-            _username = $"Username_{Random.Range(0, 1000)}";
+            Username = $"Username_{Random.Range(0, 1000)}";
             
             if(LeaderboardManager.Instance != null)
-                LeaderboardManager.Instance.CMD_AddPlayer(_username);
+                LeaderboardManager.Instance.CMD_AddPlayer(Username);
         }
 
         public override void OnStopClient()
         {
             if(LeaderboardManager.Instance != null)
-                LeaderboardManager.Instance.CMD_RemovePlayer(_username);
+                LeaderboardManager.Instance.CMD_RemovePlayer(Username);
         }
 
         #endregion
@@ -193,7 +194,7 @@ namespace _Project.Scripts.Spaceship
 
             m_cachedCameraTransform.position = CachedTransform.position + CameraOffsetVector;
 
-            _isInitialized = true;
+            IsInitialized = true;
         }
 
         Coroutine shooting = null;
@@ -305,7 +306,7 @@ namespace _Project.Scripts.Spaceship
         [Client]
         private void FixedUpdate()
         {
-            if (!isOwned || !_isInitialized) return;
+            if (!isOwned || !IsInitialized) return;
             
             UpdateCamera();
             UpdateOrientationAndPosition();
@@ -314,7 +315,7 @@ namespace _Project.Scripts.Spaceship
         [Client]
         private void Update()
         {
-            if (!isOwned || !_isEnableControl || !_isInitialized) return;
+            if (!isOwned || !_isEnableControl || !IsInitialized) return;
             
             UpdateInput();
         }
