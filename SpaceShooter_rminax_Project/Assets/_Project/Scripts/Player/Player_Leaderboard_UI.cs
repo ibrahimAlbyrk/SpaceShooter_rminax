@@ -1,4 +1,5 @@
-﻿using Mirror;
+﻿using System;
+using Mirror;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -60,7 +61,19 @@ namespace _Project.Scripts.Player
             _leaderboardContent.gameObject.SetActive(false);
         }
 
-        private void Start() => CloseLeaderboard();
+        [Client]
+        private void OnDestroy()
+        {
+            LeaderboardManager.Instance.OnLeaderboardUpdated -= CMD_RequestLeaderboard;
+        }
+
+        [Client]
+        private void Start()
+        {
+            CloseLeaderboard();
+
+            LeaderboardManager.Instance.OnLeaderboardUpdated += CMD_RequestLeaderboard;
+        }
 
         [Client]
         private void Update()

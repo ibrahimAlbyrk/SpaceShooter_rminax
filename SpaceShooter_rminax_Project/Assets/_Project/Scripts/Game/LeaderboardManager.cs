@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Mirror;
 using UnityEngine;
 using System.Collections.Generic;
@@ -8,6 +9,8 @@ namespace _Project.Scripts.Game
     [RequireComponent(typeof(NetworkIdentity))]
     public class LeaderboardManager : NetworkBehaviour
     {
+        public event Action OnLeaderboardUpdated;
+        
         [SerializeField] private int maxRanking = 10;
         
         private List<PlayerScoreData> scoreEntries = new();
@@ -49,23 +52,27 @@ namespace _Project.Scripts.Game
         #region Server methods
 
         [Server]
-        public void AddPlayer(string username)
+        private void AddPlayer(string username)
         {
-            if (CheckEntry(username, out _)) return;
+            if (CheckEntry(username)) return;
             
             scoreEntries.Add(new PlayerScoreData{Username = username, Score =  0});
             
             OrderToScoreEntries();
+            
+            OnLeaderboardUpdated?.Invoke();
         }
         
         [Server]
-        public void RemovePlayer(string username)
+        private void RemovePlayer(string username)
         {
             if (!CheckEntry(username, out var data)) return;
 
             scoreEntries.Remove(data);
             
             OrderToScoreEntries();
+            
+            OnLeaderboardUpdated?.Invoke();
         }
 
         [Server]
@@ -81,6 +88,8 @@ namespace _Project.Scripts.Game
             };
 
             OrderToScoreEntries();
+            
+            OnLeaderboardUpdated?.Invoke();
         }
 
         [Server]
@@ -96,6 +105,8 @@ namespace _Project.Scripts.Game
             };
 
             OrderToScoreEntries();
+            
+            OnLeaderboardUpdated?.Invoke();
         }
 
         [Server]
@@ -111,12 +122,19 @@ namespace _Project.Scripts.Game
             };
             
             OrderToScoreEntries();
+            
+            OnLeaderboardUpdated?.Invoke();
         }
 
         #endregion
 
         #region Utilities
 
+        private bool CheckEntry(string username)
+        {
+            return CheckEntry(username, out _);
+        }
+        
         private bool CheckEntry(string username, out PlayerScoreData data)
         {
             data = scoreEntries.FirstOrDefault(entry => entry.Username == username);
