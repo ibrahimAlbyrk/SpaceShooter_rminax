@@ -61,10 +61,17 @@ namespace _Project.Scripts.Player
             _leaderboardContent.gameObject.SetActive(false);
         }
 
+        private void UpdateLeaderboard()
+        {
+            if (!_leaderboardContent.gameObject.activeSelf) return;
+            
+            CMD_RequestLeaderboard();
+        }
+        
         [Client]
         private void OnDestroy()
         {
-            LeaderboardManager.Instance.OnLeaderboardUpdated -= CMD_RequestLeaderboard;
+            LeaderboardManager.Instance.OnLeaderboardUpdated -= UpdateLeaderboard;
         }
 
         [Client]
@@ -72,7 +79,7 @@ namespace _Project.Scripts.Player
         {
             CloseLeaderboard();
 
-            LeaderboardManager.Instance.OnLeaderboardUpdated += CMD_RequestLeaderboard;
+            LeaderboardManager.Instance.OnLeaderboardUpdated += UpdateLeaderboard;
         }
 
         [Client]
