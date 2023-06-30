@@ -11,6 +11,8 @@ namespace _Project.Scripts.Spaceship
 
         [SerializeField] private float _maxHealth = 100;
 
+        public bool isDamageable = true;
+        
         public bool IsDead => _currentHealth <= 0f;
 
         #region Sync Variables
@@ -49,6 +51,8 @@ namespace _Project.Scripts.Spaceship
         [Command(requiresAuthority = false)]
         public void Remove(float value)
         {
+            if (!isDamageable) return;
+            
             value = Mathf.Max(value, 0);
 
             _currentHealth = Mathf.Max(_currentHealth - value, 0);

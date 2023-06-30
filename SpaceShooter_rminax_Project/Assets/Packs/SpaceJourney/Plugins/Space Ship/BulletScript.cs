@@ -23,8 +23,6 @@ namespace _Project.Scripts.Spaceship
         private bool _isHit;
         private bool _isMove = true;
 
-        private SpaceshipController.BulletSettings _settings;
-
         private GameObject _owner;
 
         private bool _init;
@@ -32,8 +30,9 @@ namespace _Project.Scripts.Spaceship
         public void Init(GameObject owner)
         {
             _owner = owner;
-            _settings = SpaceshipController.instance.m_shooting.bulletSettings;
-
+            
+            var _settings = SpaceshipController.instance.m_shooting.bulletSettings;
+            
             Invoke(nameof(CMD_Lifetime),
                 _settings.BulletLifetime);
 
@@ -48,6 +47,8 @@ namespace _Project.Scripts.Spaceship
         {
             if (!_init) return;
             if (!_isMove) return;
+            
+            var _settings = SpaceshipController.instance.m_shooting.bulletSettings;
 
             transform.position += transform.forward * (_settings.BulletSpeed * Time.fixedDeltaTime);
 
@@ -69,6 +70,8 @@ namespace _Project.Scripts.Spaceship
         private void TakeDamageToObstacle(GameObject owner, GameObject obstacle)
         {
             if (obstacle.gameObject == owner) return;
+            
+            var _settings = SpaceshipController.instance.m_shooting.bulletSettings;
             
             StartCoroutine(DestroySequence());
             

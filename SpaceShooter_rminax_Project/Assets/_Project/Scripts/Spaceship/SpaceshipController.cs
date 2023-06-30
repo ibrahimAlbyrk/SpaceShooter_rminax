@@ -1,16 +1,14 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using _Project.Scripts.Game;
-using _Project.Scripts.Network.Managers;
 using Mirror;
 using UnityEngine;
-using UnityEngine.Serialization;
-using UnityEngine.UI;
+using System.Collections;
+using System.Collections.Generic;
 using Random = UnityEngine.Random;
 
 namespace _Project.Scripts.Spaceship
 {
+    using Game;
+    
     public sealed class SpaceshipController : NetworkBehaviour
     {
         private const float IdleCameraDistanceSmooth = 0.85f;
@@ -30,6 +28,8 @@ namespace _Project.Scripts.Spaceship
         private Transform m_cachedCameraTransform;
 
         private bool _isEnableControl = true;
+        
+        [field:SerializeField] public SpaceshipShooter Shooter { get; private set; }
         
         [field:SerializeField] public Health Health { get; private set; }
         

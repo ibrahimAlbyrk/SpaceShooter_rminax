@@ -12,7 +12,7 @@ namespace _Project.Scripts.Spaceship
 
         private float _fireDelayTimer;
 
-        [SerializeField] private SpaceshipController.ShootingSettings m_shooting;
+        [field: SerializeField] public SpaceshipController.ShootingSettings m_shooting;
         [SerializeField] private SpaceshipController.CameraSettings m_camera;
 
         private bool _isFiring;
