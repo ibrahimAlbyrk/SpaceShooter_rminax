@@ -9815,6 +9815,7 @@ MonoBehaviour:
       Bullet: {fileID: 1169261860770638, guid: 6a77cc242c19ed6448f7384c04e1f41f, type: 3}
       BulletSpeed: 500
       BulletFireDelay: 2
+      BulletCount: 1
       BulletDamage: 15
       BulletLifetime: 1
       TargetDistance: 300
@@ -9858,6 +9859,7 @@ MonoBehaviour:
         type: 3}
       BulletSpeed: 100
       BulletFireDelay: 1
+      BulletCount: 1
       BulletDamage: 10
       BulletLifetime: 7
       TargetDistance: 300

@@ -174,15 +174,6 @@ namespace _Project.Scripts.Spaceship
                 }
             }
 
-            if (!isOwned) return;
-
-            if (m_camera.normalCursor != null)
-            {
-                Cursor.SetCursor(m_camera.normalCursor,
-                    new Vector2(m_camera.normalCursor.width * 0.5f, m_camera.normalCursor.height * 0.5f),
-                    CursorMode.Auto);
-            }
-
             RawInput = Vector4.zero;
             SmoothedInput = Vector4.zero;
             CachedTransform = transform;
@@ -191,8 +182,17 @@ namespace _Project.Scripts.Spaceship
             m_initialAvatarRotation = m_spaceship.Avatar.localRotation;
             m_initialCameraFOV = m_camera.TargetCamera.fieldOfView;
             m_lookAtPointOffset = m_camera.LookAtPointOffset.OnIdle;
-
+            
             m_cachedCameraTransform.position = CachedTransform.position + CameraOffsetVector;
+            
+            if (!isOwned) return;
+
+            if (m_camera.normalCursor != null)
+            {
+                Cursor.SetCursor(m_camera.normalCursor,
+                    new Vector2(m_camera.normalCursor.width * 0.5f, m_camera.normalCursor.height * 0.5f),
+                    CursorMode.Auto);
+            }
 
             IsInitialized = true;
         }
@@ -789,6 +789,7 @@ namespace _Project.Scripts.Spaceship
             [Tooltip("The bullet prefab.")] public GameObject Bullet;
             [Tooltip("The bullet speed.")] public float BulletSpeed;
             [Tooltip("The bullet firing delay.")] public float BulletFireDelay;
+            [Tooltip("The bullet count for each fire.")] public float BulletCount;
             [Tooltip("The bullet damage.")] public float BulletDamage;
 
             [Tooltip("How long before the bullet disappears.")]
