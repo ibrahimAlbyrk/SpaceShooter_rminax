@@ -166,7 +166,6 @@ namespace _Project.Scripts.Spaceship
                 if (instance == null)
                 {
                     instance = this;
-                    print("singleton");
                 }
                 else
                 {
@@ -210,14 +209,14 @@ namespace _Project.Scripts.Spaceship
 
         private float _fireDelayTimer;
 
-        [Client]
+        [ClientCallback]
         private void OnDestroy()
         {
             if (!isOwned) return;
            
         }
 
-        [Client]
+        [ClientCallback]
         private void LateUpdate()
         {
             if (!isOwned || !_isEnableControl) return;

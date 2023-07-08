@@ -34,6 +34,8 @@ namespace _Project.Scripts.Features
 
             if (featureHandler == null || feature == null) return;
 
+            featureHandler.Destroy();
+            
             if (_features.ContainsKey(feature))
             {
                 CMD_UpdateFeatureTime(feature.Name);

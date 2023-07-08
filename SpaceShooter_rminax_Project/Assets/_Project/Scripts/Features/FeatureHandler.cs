@@ -1,11 +1,17 @@
-﻿using UnityEngine;
+﻿using Mirror;
+using UnityEngine;
 
 namespace _Project.Scripts.Features
 {
-    public class FeatureHandler : MonoBehaviour
+    public class FeatureHandler : NetworkBehaviour
     {
         [SerializeField] private Feature_SO _feature;
 
         public Feature_SO GetFeature() => _feature;
+        
+        public void Destroy() => CMD_Destroy();
+
+        [Command(requiresAuthority = false)]
+        private void CMD_Destroy() => NetworkServer.Destroy(gameObject);
     }
 }
