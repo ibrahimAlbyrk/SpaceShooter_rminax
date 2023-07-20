@@ -3,13 +3,15 @@ using Mirror;
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using _Project.Scripts.Game.Mod.ShrinkingArea;
 using Random = UnityEngine.Random;
 
 namespace _Project.Scripts.Spaceship
 {
     using Game;
-    
-    public sealed class SpaceshipController : NetworkBehaviour
+    using Network;
+
+    public sealed class SpaceshipController : NetIdentity
     {
         private const float IdleCameraDistanceSmooth = 0.85f;
         private static readonly Vector3[] RotationDirections = { Vector3.right, Vector3.up, Vector3.forward };
@@ -27,14 +29,15 @@ namespace _Project.Scripts.Spaceship
 
         private Transform m_cachedCameraTransform;
 
-        private bool _isEnableControl = true;
-        
-        [field:SerializeField] public SpaceshipShooter Shooter { get; private set; }
-        
-        [field:SerializeField] public Health Health { get; private set; }
-        
-        [Header("Network options.")]
-        [SerializeField] private GameObject[] NetworkObjects;
+        public bool IsEnableControl = true;
+        public bool IsRunningMotor = true;
+
+        [field: SerializeField] public SpaceshipShooter Shooter { get; private set; }
+
+        [field: SerializeField] public Health Health { get; private set; }
+
+        [Header("Network options.")] [SerializeField]
+        private GameObject[] NetworkObjects;
 
         //[SerializeField, Tooltip("Camera options.")]
         public CameraSettings m_camera = new()
@@ -127,13 +130,13 @@ namespace _Project.Scripts.Spaceship
 
         //singleton
         public static SpaceshipController instance;
-        
+
         #region Client Callbacks
 
         public bool IsInitialized;
 
         public string Username;
-        
+
         public override void OnStartClient()
         {
             Init();
@@ -141,15 +144,21 @@ namespace _Project.Scripts.Spaceship
             if (!isOwned) return;
 
             Username = $"Username_{Random.Range(0, 1000)}";
-            
-            if(LeaderboardManager.Instance != null)
+
+            if (LeaderboardManager.Instance != null)
                 LeaderboardManager.Instance.CMD_AddPlayer(Username);
+            
+            if (ShrinkingAreaSystem.Instance != null)
+                ShrinkingAreaSystem.Instance.CMD_AddPlayer(this);
         }
 
         public override void OnStopClient()
         {
-            if(LeaderboardManager.Instance != null)
+            if (LeaderboardManager.Instance != null)
                 LeaderboardManager.Instance.CMD_RemovePlayer(Username);
+            
+            if (ShrinkingAreaSystem.Instance != null)
+                ShrinkingAreaSystem.Instance.CMD_RemovePlayer(this);
         }
 
         #endregion
@@ -181,9 +190,9 @@ namespace _Project.Scripts.Spaceship
             m_initialAvatarRotation = m_spaceship.Avatar.localRotation;
             m_initialCameraFOV = m_camera.TargetCamera.fieldOfView;
             m_lookAtPointOffset = m_camera.LookAtPointOffset.OnIdle;
-            
+
             m_cachedCameraTransform.position = CachedTransform.position + CameraOffsetVector;
-            
+
             if (!isOwned) return;
 
             if (m_camera.normalCursor != null)
@@ -213,43 +222,12 @@ namespace _Project.Scripts.Spaceship
         private void OnDestroy()
         {
             if (!isOwned) return;
-           
         }
 
         [ClientCallback]
         private void LateUpdate()
         {
-            if (!isOwned || !_isEnableControl) return;
-
-            //if (m_spaceship.HP_text != null) m_spaceship.HP_text.text = m_spaceship.HP.ToString();
-            //if (m_spaceship.enemies_text != null) m_spaceship.enemies_text.text = m_spaceship.enemies.Count.ToString();
-            //
-            //if (m_spaceship.enemies.Count == 0)
-            //{
-            //    UIcoroutines.instance?.GameOver(false);
-            //}
-            //
-            //if (m_spaceship.HP <= 0)
-            //{
-            //    UIcoroutines.instance?.GameOver(true);
-            //    gameObject.SetActive(false);
-            //}
-
-            //Bullets on LMB
-            
-            //if (Input.GetMouseButtonDown(0) && !isShooting)
-            //{
-            //    CMD_BulletShooting(m_shooting);
-            //    isShooting = true;
-            //}
-            //
-            //if (Input.GetMouseButtonUp(0) && isShooting)
-            //{
-            //    CMD_StopBulletShooting(shooting);
-            //    isShooting = false;
-            //}
-
-            //Rockets on RMB
+            if (!isOwned || !IsEnableControl || !IsRunningMotor) return;
 
             Ray ray;
             if (m_camera.TargetCamera.targetTexture == null)
@@ -305,8 +283,8 @@ namespace _Project.Scripts.Spaceship
         [Client]
         private void FixedUpdate()
         {
-            if (!isOwned || !IsInitialized) return;
-            
+            if (!isOwned || !IsInitialized || !IsRunningMotor) return;
+
             UpdateCamera();
             UpdateOrientationAndPosition();
         }
@@ -314,7 +292,15 @@ namespace _Project.Scripts.Spaceship
         [Client]
         private void Update()
         {
-            if (!isOwned || !_isEnableControl || !IsInitialized) return;
+            if (!isOwned || !IsEnableControl || !IsInitialized) return;
+
+            if (!IsRunningMotor)
+            {
+                RawInput = Vector4.zero;
+                SmoothedInput = Vector4.zero;
+
+                return;
+            }
             
             UpdateInput();
         }
@@ -483,14 +469,14 @@ namespace _Project.Scripts.Spaceship
 
         private void OnApplicationFocus(bool hasFocus)
         {
-            _isEnableControl = hasFocus;
-            
+            IsEnableControl = hasFocus;
+
             RawInput = Vector4.zero;
             SmoothedInput = Vector4.zero;
         }
 
         private Coroutine _shakeCor;
-        
+
         [Command(requiresAuthority = false)]
         public void CMD_Shake() => RPC_Shaking();
 
@@ -507,7 +493,7 @@ namespace _Project.Scripts.Spaceship
                 m_camera.TargetCamera.transform.localRotation = Quaternion.identity;
                 StopCoroutine(_shakeCor);
             }
-            
+
             _shakeCor = StartCoroutine(Shaking(amount, duration));
         }
 
@@ -519,7 +505,7 @@ namespace _Project.Scripts.Spaceship
             startDuration = duration;
 
             var originalPos = m_camera.TargetCamera.transform.localPosition;
-            
+
             while (duration > 0.01f)
             {
                 duration -= Time.fixedDeltaTime;
@@ -533,7 +519,7 @@ namespace _Project.Scripts.Spaceship
             }
 
             m_camera.TargetCamera.transform.localPosition = originalPos;
-            
+
             isRunning = false;
         }
 
@@ -543,15 +529,14 @@ namespace _Project.Scripts.Spaceship
             if (isRunning)
             {
                 m_camera.TargetCamera.transform.localRotation = Quaternion.identity;
-                if(_shakeCor != null) StopCoroutine(_shakeCor);
+                if (_shakeCor != null) StopCoroutine(_shakeCor);
             }
-            
+
             _shakeCor = StartCoroutine(Shaking());
         }
 
         private IEnumerator Shaking()
         {
-
             isRunning = true;
             startAmount = m_camera.shakeAmount;
             startDuration = m_camera.shakeDuration;
@@ -574,60 +559,6 @@ namespace _Project.Scripts.Spaceship
             m_camera.shakeAmount = startAmount;
             m_camera.shakeDuration = startDuration;
             isRunning = false;
-        }
-
-        private IEnumerator RocketFiring(ShootingSettings settings, Transform target)
-        {
-            int barrel;
-            GameObject rocket;
-            Vector3 p;
-            barrel = Random.Range(0, settings.rocketSettings.RocketBarrels.Count - 1);
-            rocket = (GameObject)Instantiate(settings.rocketSettings.Rocket,
-                settings.rocketSettings.RocketBarrels[barrel].transform.position,
-                Quaternion.LookRotation(transform.forward, transform.up));
-            if (m_camera.TargetCamera.targetTexture == null)
-            {
-                p = m_camera.TargetCamera.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y,
-                    settings.bulletSettings.TargetDistance));
-            }
-            else
-            {
-                //EVERYTHING MUST BE A FLOAT
-                p = m_camera.TargetCamera.ScreenToWorldPoint(new Vector3(
-                    (float)Input.mousePosition.x /
-                    (float)((float)Screen.height / (float)m_camera.TargetCamera.pixelHeight),
-                    (float)Input.mousePosition.y /
-                    (float)((float)Screen.height / (float)m_camera.TargetCamera.pixelHeight),
-                    settings.bulletSettings.TargetDistance));
-            }
-
-            if (rocket.GetComponent<RocketScript>() != null && target != null)
-            {
-                rocket.transform.LookAt(target.position + new Vector3(
-                    Random.Range(-m_shooting.rocketSettings.RocketOffsetLimit.x,
-                        m_shooting.rocketSettings.RocketOffsetLimit.x),
-                    Random.Range(-m_shooting.rocketSettings.RocketOffsetLimit.y,
-                        m_shooting.rocketSettings.RocketOffsetLimit.y),
-                    Random.Range(-m_shooting.rocketSettings.RocketOffsetLimit.z,
-                        m_shooting.rocketSettings.RocketOffsetLimit.z)));
-                //rocket.GetComponent<Rigidbody>().AddForce(rocket.transform.forward * settings.rocketSettings.RocketInitialSpeed, ForceMode.Impulse);
-                rocket.GetComponent<RocketScript>().StartChase(target, settings.rocketSettings.RocketSpeed,
-                    settings.rocketSettings.RocketInitialSpeed);
-            }
-            else
-            {
-                if (m_shooting.mode2D)
-                {
-                    p.y = 0f;
-                }
-
-                rocket.transform.LookAt(p);
-                rocket.GetComponent<Rigidbody>()
-                    .AddForce(rocket.transform.forward * settings.rocketSettings.RocketInitialSpeed, ForceMode.Impulse);
-            }
-
-            yield return new WaitForSeconds(settings.rocketSettings.RocketFireDelay);
-            isFiring = false;
         }
 
         [Serializable]
@@ -776,7 +707,6 @@ namespace _Project.Scripts.Spaceship
             [Tooltip("2D shooting mode")] public bool mode2D;
             [Tooltip("The bullet settings.")] public BulletSettings bulletSettings;
             [Tooltip("The rocket settings.")] public RocketSettings rocketSettings;
-
         }
 
         [Serializable]
@@ -788,7 +718,10 @@ namespace _Project.Scripts.Spaceship
             [Tooltip("The bullet prefab.")] public GameObject Bullet;
             [Tooltip("The bullet speed.")] public float BulletSpeed;
             [Tooltip("The bullet firing delay.")] public float BulletFireDelay;
-            [Tooltip("The bullet count for each fire.")] public float BulletCount;
+
+            [Tooltip("The bullet count for each fire.")]
+            public float BulletCount;
+
             [Tooltip("The bullet damage.")] public float BulletDamage;
 
             [Tooltip("How long before the bullet disappears.")]
@@ -796,7 +729,6 @@ namespace _Project.Scripts.Spaceship
 
             [Tooltip("The dostance from the cursors position on the screen in 3D space.")]
             public float TargetDistance;
-
         }
 
         [Serializable]
@@ -822,7 +754,6 @@ namespace _Project.Scripts.Spaceship
 
             [Tooltip("Rocket start offset, random range")]
             public Vector3 RocketOffsetLimit;
-
         }
     }
 }

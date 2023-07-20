@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: FireFeature_01
   m_EditorClassIdentifier: 
   Name: FireFeature_01
-  Duration: 5
+  Duration: 10
   _increaseBulletCount: 2
   _increaseSpeed: 50

@@ -22,8 +22,6 @@ namespace _Project.Scripts.Network.Managers
 
         [SerializeField] private int _maxConnection;
 
-        [Scene] [SerializeField] private string[] _gameScenes;
-
         public new static SpaceNetworkManager singleton { get; private set; }
 
         #region Base methods
@@ -194,25 +192,7 @@ namespace _Project.Scripts.Network.Managers
 
             return newPlayer;
         }
-
-        public void CreateGamePlayer(NetworkConnectionToClient conn)
-        {
-            var spaceshipObj = Instantiate(playerPrefab);
-
-            NetworkServer.AddPlayerForConnection(conn, spaceshipObj);
-        }
-
-        #endregion
-
-        #region Utilities
-
-        public string GetGameScene(string sceneName)
-        {
-            var gameScene = _gameScenes.FirstOrDefault(gameSceneName => gameSceneName == sceneName);
-
-            return gameScene ?? string.Empty;
-        }
-
+        
         #endregion
     }
 }

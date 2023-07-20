@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using _Project.Scripts.Utilities;
 using UnityEngine;
 
 [ExecuteInEditMode]
@@ -49,7 +50,7 @@ public class AsteroidSpawner : MonoBehaviour {
 		if(Asteroids.Count!=0 || AsteroidClumps.Count!=0){
 		
 			for (int i = 0; i < AsteroidNumber; i++) {
-				GameObject asteroid = (GameObject) Instantiate (Asteroids [Random.Range (0, Asteroids.Count-1)],transform.position + Random.insideUnitSphere * Range, Quaternion.identity);
+				GameObject asteroid = (GameObject) Instantiate (Asteroids.GetRandomElement(),transform.position + Random.insideUnitSphere * Range, Quaternion.identity);
 				if(mode2D){
 					asteroid.transform.position = new Vector3(asteroid.transform.position.x, 0, asteroid.transform.position.z);
 					asteroid.AddComponent<Rigidbody>();

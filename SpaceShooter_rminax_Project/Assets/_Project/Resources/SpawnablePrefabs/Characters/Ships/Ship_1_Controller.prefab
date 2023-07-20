@@ -9631,13 +9631,14 @@ GameObject:
   - component: {fileID: 3164700862329443618}
   - component: {fileID: 1075526022222242420}
   - component: {fileID: 7993615738656822281}
+  - component: {fileID: 6943557605643097745}
   - component: {fileID: 6254194927010901699}
   - component: {fileID: 8300754483112600035}
   - component: {fileID: 2265203002651105715}
   - component: {fileID: 5298720918139510101}
-  - component: {fileID: 6943557605643097745}
   - component: {fileID: 2474870716431055026}
   - component: {fileID: 3517109262812312108}
+  - component: {fileID: -6636324538456624472}
   m_Layer: 3
   m_Name: Ship_1_Controller
   m_TagString: Spaceship
@@ -9665,7 +9666,7 @@ Transform:
   - {fileID: 8597684704693025886}
   - {fileID: 9208348941543739980}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
+  m_RootOrder: 9
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1075526022222242420
 MonoBehaviour:
@@ -9718,6 +9719,27 @@ MonoBehaviour:
   compressRotation: 0
   positionPrecision: 0.01
   scalePrecision: 0.01
+--- !u!65 &6943557605643097745
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 544465889819110809}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 21.778536, y: 7.7491293, z: 20.199646}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &6254194927010901699
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9733,6 +9755,7 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0
+  IsEnableControl: 1
   <Shooter>k__BackingField: {fileID: 8300754483112600035}
   <Health>k__BackingField: {fileID: 2265203002651105715}
   NetworkObjects:
@@ -9847,8 +9870,6 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0
-  _shaneAmount: 0.1
-  _shaneDuration: 0.1
   m_shooting:
     mode2D: 0
     bulletSettings:
@@ -9924,27 +9945,6 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0
   _health: {fileID: 2265203002651105715}
---- !u!65 &6943557605643097745
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 544465889819110809}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 21.778536, y: 7.7491293, z: 20.199646}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &2474870716431055026
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9982,6 +9982,31 @@ MonoBehaviour:
   _detectionLayer:
     serializedVersion: 2
     m_Bits: 64
+--- !u!114 &-6636324538456624472
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 544465889819110809}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7fb83025913487ca24cd53e595a3fba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  _stationLayer:
+    serializedVersion: 2
+    m_Bits: 128
+  _stationDetectionRange: 10
+  _maxFuel: 100
+  _fuelDrainAmount: 0.3
+  _fuelFastDrainAmount: 1
+  _fuelAddAmount: 5
+  _currentFuel: 0
+  _barUI: {fileID: 7310120691213433688}
 --- !u!1 &708387771408688142
 GameObject:
   m_ObjectHideFlags: 0
@@ -44665,7 +44690,7 @@ ParticleSystem:
     startLifetime:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 1
+      scalar: 0.5
       minScalar: 5
       maxCurve:
         serializedVersion: 2
@@ -44870,7 +44895,7 @@ ParticleSystem:
         m_RotationOrder: 4
     startSizeY:
       serializedVersion: 2
-      minMaxState: 0
+      minMaxState: 3
       scalar: 1
       minScalar: 1
       maxCurve:
@@ -44923,7 +44948,7 @@ ParticleSystem:
         m_RotationOrder: 4
     startSizeZ:
       serializedVersion: 2
-      minMaxState: 0
+      minMaxState: 3
       scalar: 1
       minScalar: 1
       maxCurve:
@@ -45401,7 +45426,7 @@ ParticleSystem:
     rateOverTime:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 5000
+      scalar: 1000
       minScalar: 10
       maxCurve:
         serializedVersion: 2
@@ -49588,6 +49613,18 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 542539481534134281}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &7310120691213433688 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7130808724221133649, guid: 268a1d685b056bf45b9afdacaf5b5724,
+    type: 3}
+  m_PrefabInstance: {fileID: 542539481534134281}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4a117a9e5264e76aba359a8056b8b5f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!224 &8597684704693025886 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8130792172954715223, guid: 268a1d685b056bf45b9afdacaf5b5724,

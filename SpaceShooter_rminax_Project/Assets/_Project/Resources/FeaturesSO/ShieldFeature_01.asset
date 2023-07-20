@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: ShieldFeature_01
   m_EditorClassIdentifier: 
   Name: ShieldFeature_01
-  Duration: 5
+  Duration: 10

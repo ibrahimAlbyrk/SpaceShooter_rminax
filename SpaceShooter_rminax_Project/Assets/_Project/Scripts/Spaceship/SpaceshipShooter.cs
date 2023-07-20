@@ -12,17 +12,23 @@ namespace _Project.Scripts.Spaceship
         [field: SerializeField] public SpaceshipController.ShootingSettings m_shooting;
         [SerializeField] private SpaceshipController.CameraSettings m_camera;
 
+        private SpaceshipController _controller;
+
         private bool _isFiring;
 
         [Client]
         private void Start()
         {
             _fireDelayTimer = m_shooting.bulletSettings.BulletFireDelay;
+
+            _controller = GetComponent<SpaceshipController>();
         }
 
         [Client]
         private void Update()
         {
+            if (!_controller.IsRunningMotor || !_controller.IsEnableControl) return;
+            
             _isFiring = Input.GetMouseButton(0);
         }
 
@@ -31,6 +37,8 @@ namespace _Project.Scripts.Spaceship
         {
             if (!isOwned) return;
             if (!_isFiring) return;
+            
+            if (!_controller.IsRunningMotor || !_controller.IsEnableControl) return;
 
             var delay = m_shooting.bulletSettings.BulletFireDelay;
             if (_fireDelayTimer >= delay)

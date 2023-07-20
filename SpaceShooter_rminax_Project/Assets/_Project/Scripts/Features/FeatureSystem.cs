@@ -15,7 +15,7 @@ namespace _Project.Scripts.Features
         [SerializeField] private float _featureDetectionRange = 20f;
 
         [SerializeField] private LayerMask _detectionLayer;
-
+        
         private event Action<Collider> OnEntered;
 
         private readonly Dictionary<Feature_SO, float> _features = new();

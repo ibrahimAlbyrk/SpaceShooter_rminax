@@ -1,0 +1,387 @@
+﻿using Mirror;
+using UnityEngine;
+using System.Linq;
+using System.Collections.Generic;
+
+namespace _Project.Scripts.Game.Mod
+{
+    using AI;
+    using Utilities;
+
+    [System.Serializable]
+    public class OpenWorldMod : GameMod
+    {
+        //TODO: Spawn features
+        
+        [Space(10), Header("Content Settings"), SerializeField]
+        private string[] _contentNames;
+
+        [Space(10), Header("Iterator Settings")] [SerializeField]
+        private float _iteratorInterval = 10;
+
+        [Header("Debug")]
+        [SerializeField] private float _iteratorTimer;
+
+        private Dictionary<string, Transform> _contents = new();
+
+        private SyncList<Transform> _spawnedMeteors = new();
+        private SyncList<Transform> _spawnedFuelStations = new();
+        private SyncList<Transform> _spawnedFeatures = new();
+        private SyncDictionary<Transform, Transform> _spawnedFuelStationAIs = new();
+        private SyncList<Transform> _spawnedAreaAIs = new();
+
+        public override void Start()
+        {
+            CreateContents();
+
+            SpawnHandler();
+        }
+
+        public override void FixedRun()
+        {
+            IteratorHandler();
+        }
+
+        private void CreateContents()
+        {
+            foreach (var contentName in _contentNames)
+            {
+                var content = CreateContent(contentName);
+
+                _contents.Add(contentName, content);
+            }
+        }
+
+        private void IteratorHandler()
+        {
+            if (_iteratorTimer >= _iteratorInterval)
+            {
+                _iteratorTimer = 0f;
+
+                CheckAllSpawnedObjects();
+            }
+            else _iteratorTimer += Time.fixedDeltaTime;
+        }
+
+        #region Spawn Check Methods
+
+        private void CheckAllSpawnedObjects()
+        {
+            CheckMeteors();
+            CheckFuelStations();
+            CheckAIs();
+            CheckFeatures();
+        }
+
+        private void CheckMeteors()
+        {
+            var count = 0;
+
+            foreach (var _spawnedMeteor in _spawnedMeteors.ToList().Where(_spawnedMeteor => _spawnedMeteor == null))
+            {
+                _spawnedMeteors.Remove(_spawnedMeteor);
+
+                count++;
+            }
+
+            SpawnMeteor(count);
+        }
+
+        private void CheckFuelStations()
+        {
+            var count = 0;
+
+            foreach (var _spawnedFuelStation in _spawnedFuelStations.ToList()
+                         .Where(_spawnedFuelStation => _spawnedFuelStation == null))
+            {
+                _spawnedFuelStations.Remove(_spawnedFuelStation);
+
+                count++;
+            }
+
+            SpawnFuelStation(count);
+        }
+
+        private void CheckAIs()
+        {
+            CheckFuelStationAI();
+            CheckAreaAI();
+        }
+
+        private void CheckFuelStationAI()
+        {
+            foreach (var (ai, fuelStation) in _spawnedFuelStationAIs)
+            {
+                if (ai != null) continue;
+
+                SpawnAIsToFuelStation();
+
+                _spawnedFuelStationAIs[fuelStation] = ai;
+            }
+        }
+
+        private void CheckAreaAI()
+        {
+            var count = 0;
+
+            foreach (var _spawnedAreaAI in _spawnedAreaAIs.ToList().Where(_spawnedAreaAI => _spawnedAreaAI == null))
+            {
+                _spawnedFuelStations.Remove(_spawnedAreaAI);
+
+                count++;
+            }
+
+            SpawnAIToArea(count);
+        }
+
+        private void CheckFeatures()
+        {
+            var count = 0;
+
+            foreach (var _spawnedFeature in _spawnedFeatures.ToList().Where(_spawnedFeature => _spawnedFeature == null))
+            {
+                _spawnedFeatures.Remove(_spawnedFeature);
+
+                count++;
+            }
+
+            SpawnFeature(count);
+        }
+
+        #endregion
+        
+        #region Spawn Methods
+        
+        private void SpawnHandler()
+        {
+            SpawnMeteors();
+
+            SpawnFuelStations();
+
+            SpawnAIs();
+
+            SpawnFeatures();
+        }
+
+        #region Props
+
+        private void SpawnMeteors()
+        {
+            _spawnedMeteors = SpawnWithConfigurations(
+                    _mapGeneratorData.MeteorPrefabs,
+                    _contents["Meteor"],
+                    _mapGeneratorData.GameAreaRadius,
+                    _mapGeneratorData.MeteorCount)
+                .ToSyncList();
+        }
+
+        private void SpawnMeteor(int count)
+        {
+            var spawned = SpawnWithConfigurations(
+                _mapGeneratorData.MeteorPrefabs,
+                _contents["Meteor"],
+                _mapGeneratorData.GameAreaRadius,
+                count);
+
+            foreach (var t in spawned)
+            {
+                _spawnedMeteors.Add(t);
+            }
+        }
+
+        private void SpawnFuelStations()
+        {
+            _spawnedFuelStations = SpawnWithConfigurations(
+                    _mapGeneratorData.FuelStationPrefabs,
+                    _contents["FuelStation"],
+                    _mapGeneratorData.GameAreaRadius,
+                    _mapGeneratorData.FuelStationCount)
+                .ToSyncList();
+        }
+
+        private void SpawnFuelStation(int count)
+        {
+            var spawned = SpawnWithConfigurations(
+                _mapGeneratorData.FuelStationPrefabs,
+                _contents["FuelStation"],
+                _mapGeneratorData.GameAreaRadius,
+                count);
+
+            foreach (var t in spawned)
+            {
+                _spawnedFuelStations.Add(t);
+            }
+        }
+
+        private void SpawnFeatures()
+        {
+            _spawnedFeatures = SpawnWithConfigurations(
+                    _mapGeneratorData.FeaturePrefabs,
+                    _contents["Feature"],
+                    _mapGeneratorData.GameAreaRadius,
+                    _mapGeneratorData.FeatureCount)
+                .ToSyncList();
+        }
+
+        private void SpawnFeature(int count)
+        {
+            var spawned = SpawnWithConfigurations(
+                _mapGeneratorData.FeaturePrefabs,
+                _contents["Feature"],
+                _mapGeneratorData.GameAreaRadius,
+                count);
+
+            foreach (var t in spawned)
+            {
+                _spawnedFeatures.Add(t);
+            }
+        }
+
+        #endregion
+
+        #region AI
+
+        private void SpawnAIs()
+        {
+            SpawnAIsToFuelStation();
+
+            SpawnAIsToArea();
+        }
+
+        private void SpawnAIsToFuelStation()
+        {
+            foreach (var fuelStation in _spawnedFuelStations)
+            {
+                var fuelStationCount = Random.Range(
+                    _mapGeneratorData.AIFuelStationCountRange.x,
+                    _mapGeneratorData.AIFuelStationCountRange.y);
+
+                var prefabs = _mapGeneratorData.AIPrefabs;
+
+                for (var i = 0; i < fuelStationCount; i++)
+                {
+                    var pos = fuelStation.position +
+                              Random.insideUnitSphere * _mapGeneratorData.AIFuelStationSpawnRange;
+
+                    var selectedAI = prefabs.GetRandomElement();
+
+                    var spawnedAI = SpawnObjectWithNetwork(selectedAI, _contents["AI"], pos);
+
+                    CMD_SetSpawnedAIConfiguration(spawnedAI, _mapGeneratorData.AIFuelStationPatronRange);
+
+                    _spawnedFuelStationAIs.Add(fuelStation, spawnedAI.transform);
+                }
+            }
+        }
+
+        private Transform SpawnAIToFuelStation(Vector3 stationPos)
+        {
+            var prefabs = _mapGeneratorData.AIPrefabs;
+
+            var pos = stationPos +
+                      Random.insideUnitSphere * _mapGeneratorData.AIFuelStationSpawnRange;
+
+            var selectedAI = prefabs.GetRandomElement();
+
+            var spawnedAI = SpawnObjectWithNetwork(selectedAI, _contents["AI"], pos);
+
+            CMD_SetSpawnedAIConfiguration(spawnedAI, _mapGeneratorData.AIFuelStationPatronRange);
+
+            return spawnedAI.transform;
+        }
+
+        private void SpawnAIsToArea()
+        {
+            var areaCount = Random.Range(
+                _mapGeneratorData.AIAreaCountRange.x,
+                _mapGeneratorData.AIAreaCountRange.y);
+
+            var spawnedAIs = SpawnWithConfigurations(_mapGeneratorData.AIPrefabs, _contents["AI"],
+                _mapGeneratorData.GameAreaRadius, areaCount);
+
+            foreach (var spawnedAI in spawnedAIs)
+            {
+                CMD_SetSpawnedAIConfiguration(spawnedAI.gameObject, _mapGeneratorData.AIAreaPatronRange);
+
+                _spawnedAreaAIs.Add(spawnedAI);
+            }
+        }
+
+        private void SpawnAIToArea(int count)
+        {
+            var spawnedAIs = SpawnWithConfigurations(_mapGeneratorData.AIPrefabs, _contents["AI"],
+                _mapGeneratorData.GameAreaRadius, count);
+
+            foreach (var spawnedAI in spawnedAIs)
+            {
+                CMD_SetSpawnedAIConfiguration(spawnedAI.gameObject, _mapGeneratorData.AIAreaPatronRange);
+
+                _spawnedAreaAIs.Add(spawnedAI);
+            }
+        }
+
+        private void CMD_SetSpawnedAIConfiguration(GameObject ai, float patronRange) =>
+            RPC_SetSpawnedAIConfiguration(ai, patronRange);
+
+        private void RPC_SetSpawnedAIConfiguration(GameObject ai, float patronRange)
+        {
+            ai.GetComponent<BasicAI>().patrolRange = patronRange;
+        }
+
+        #endregion
+
+        #endregion
+
+        #region Utilities
+
+        private Transform CreateContent(string contentName, Transform parent = default)
+        {
+            var currentContent = _manager.transform.Find($"{contentName}Content");
+
+            if (currentContent != null)
+                return currentContent;
+
+            var content = new GameObject($"{contentName}Content").transform;
+            content.SetParent(parent ? parent : _manager.transform);
+
+            return content;
+        }
+
+        private Vector3 GetRandomPointInGameArea()
+        {
+            return Random.insideUnitSphere * _mapGeneratorData.GameAreaRadius;
+        }
+
+        private List<Transform> SpawnWithConfigurations(IReadOnlyList<GameObject> objs, Transform content, float radius,
+            float count)
+        {
+            var list = new List<Transform>();
+
+            for (var i = 0; i < count; i++)
+            {
+                var meteorPrefab = objs.GetRandomElement();
+
+                var pos = Random.insideUnitSphere * radius;
+                var rot = Random.rotation;
+
+                var spawnedObject = SpawnObjectWithNetwork(meteorPrefab, content, pos, rot);
+
+                list.Add(spawnedObject.transform);
+            }
+
+            return list;
+        }
+
+        private GameObject SpawnObjectWithNetwork(GameObject obj, Transform content = default,
+            Vector3 position = default,
+            Quaternion rotation = default)
+        {
+            var instant_obj = Object.Instantiate(obj, position, rotation, content);
+            NetworkServer.Spawn(instant_obj);
+
+            return instant_obj;
+        }
+
+        #endregion
+    }
+}
