@@ -267,7 +267,7 @@ namespace _Project.Scripts.Game.Mod
 
                     var spawnedAI = SpawnObjectWithNetwork(selectedAI, _contents["AI"], pos);
 
-                    CMD_SetSpawnedAIConfiguration(spawnedAI, _mapGeneratorData.AIFuelStationPatronRange);
+                    CMD_SetSpawnedAIConfiguration(spawnedAI, _mapGeneratorData.AIFuelStationPatrolRange, _mapGeneratorData.AIFuelStationDetectionRange);
 
                     _spawnedFuelStationAIs.Add(fuelStation, spawnedAI.transform);
                 }
@@ -285,7 +285,7 @@ namespace _Project.Scripts.Game.Mod
 
             var spawnedAI = SpawnObjectWithNetwork(selectedAI, _contents["AI"], pos);
 
-            CMD_SetSpawnedAIConfiguration(spawnedAI, _mapGeneratorData.AIFuelStationPatronRange);
+            CMD_SetSpawnedAIConfiguration(spawnedAI, _mapGeneratorData.AIFuelStationPatrolRange, _mapGeneratorData.AIFuelStationDetectionRange);
 
             return spawnedAI.transform;
         }
@@ -301,7 +301,7 @@ namespace _Project.Scripts.Game.Mod
 
             foreach (var spawnedAI in spawnedAIs)
             {
-                CMD_SetSpawnedAIConfiguration(spawnedAI.gameObject, _mapGeneratorData.AIAreaPatronRange);
+                CMD_SetSpawnedAIConfiguration(spawnedAI.gameObject, _mapGeneratorData.AIAreaPatronRange, _mapGeneratorData.AIAreaDetectionRange);
 
                 _spawnedAreaAIs.Add(spawnedAI);
             }
@@ -314,18 +314,21 @@ namespace _Project.Scripts.Game.Mod
 
             foreach (var spawnedAI in spawnedAIs)
             {
-                CMD_SetSpawnedAIConfiguration(spawnedAI.gameObject, _mapGeneratorData.AIAreaPatronRange);
+                CMD_SetSpawnedAIConfiguration(spawnedAI.gameObject, _mapGeneratorData.AIAreaPatronRange, _mapGeneratorData.AIAreaDetectionRange);
 
                 _spawnedAreaAIs.Add(spawnedAI);
             }
         }
 
-        private void CMD_SetSpawnedAIConfiguration(GameObject ai, float patronRange) =>
-            RPC_SetSpawnedAIConfiguration(ai, patronRange);
+        private void CMD_SetSpawnedAIConfiguration(GameObject ai, float patronRange, float detectionRange) =>
+            RPC_SetSpawnedAIConfiguration(ai, patronRange, detectionRange);
 
-        private void RPC_SetSpawnedAIConfiguration(GameObject ai, float patronRange)
+        private void RPC_SetSpawnedAIConfiguration(GameObject ai, float patronRange, float detectionRange)
         {
-            ai.GetComponent<BasicAI>().patrolRange = patronRange;
+            var aiScript = ai.GetComponent<BasicAI>();
+            
+            aiScript.patrolRange = patronRange;
+            aiScript.DetectionRange = detectionRange;
         }
 
         #endregion

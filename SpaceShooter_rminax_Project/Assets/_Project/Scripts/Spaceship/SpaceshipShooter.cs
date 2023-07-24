@@ -27,8 +27,10 @@ namespace _Project.Scripts.Spaceship
         [Client]
         private void Update()
         {
+            if (_controller.Health.IsDead) return;
+
             if (!_controller.IsRunningMotor || !_controller.IsEnableControl) return;
-            
+
             _isFiring = Input.GetMouseButton(0);
         }
 
@@ -37,7 +39,9 @@ namespace _Project.Scripts.Spaceship
         {
             if (!isOwned) return;
             if (!_isFiring) return;
-            
+
+            if (_controller.Health.IsDead) return;
+
             if (!_controller.IsRunningMotor || !_controller.IsEnableControl) return;
 
             var delay = m_shooting.bulletSettings.BulletFireDelay;
@@ -76,14 +80,16 @@ namespace _Project.Scripts.Spaceship
                 for (var i = b; i < m_shooting.bulletSettings.BulletBarrels.Count; i++)
                 {
                     var barrelTransform = m_shooting.bulletSettings.BulletBarrels[i].transform;
-                    
+
                     var bullet = Instantiate(m_shooting.bulletSettings.Bullet,
                         barrelTransform.position + barrelTransform.forward * (x * 50),
                         Quaternion.LookRotation(transform.forward, transform.up));
 
                     NetworkServer.Spawn(bullet, gameObject);
 
-                    RPC_SetBulletConfiguration(owner, bullet, mousePos);
+                    RPC_SetBulletConfiguration(owner, bullet, mousePos,
+                        m_shooting.bulletSettings.BulletLifetime,
+                        m_shooting.bulletSettings.BulletSpeed);
 
                     if (m_shooting.bulletSettings.BulletBarrels.Count > 1)
                     {
@@ -101,9 +107,10 @@ namespace _Project.Scripts.Spaceship
         }
 
         [ClientRpc]
-        private void RPC_SetBulletConfiguration(GameObject owner, GameObject bullet, Vector3 mousePos)
+        private void RPC_SetBulletConfiguration(GameObject owner, GameObject bullet, Vector3 mousePos,
+            float bulletLifeTime, float bulletSpeed)
         {
-            bullet.GetComponent<BulletScript>().Init(owner);
+            bullet.GetComponent<BulletScript>().Init(owner, isEnemy: false, bulletLifeTime, bulletSpeed);
 
             bullet.transform.LookAt(mousePos);
         }

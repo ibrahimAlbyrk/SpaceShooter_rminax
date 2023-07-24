@@ -14,6 +14,8 @@ namespace _Project.Scripts.Game
         [SerializeField] private ModManager _modManager;
         [SerializeField] private ModType _modType;
 
+        public ModType GetModType() => _modType;
+        
         public MapGeneratorData GetData() => _modManager?.GetMapData();
         
         public override void OnStartServer()

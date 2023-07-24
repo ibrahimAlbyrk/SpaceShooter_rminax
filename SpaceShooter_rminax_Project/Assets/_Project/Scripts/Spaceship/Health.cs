@@ -12,6 +12,8 @@ namespace _Project.Scripts.Spaceship
         [SerializeField] private float _maxHealth = 100;
 
         public bool isDamageable = true;
+
+        public float GetHealth() => _currentHealth;
         
         public bool IsDead => _currentHealth <= 0f;
 
@@ -41,6 +43,12 @@ namespace _Project.Scripts.Spaceship
         #endregion
 
         [Command(requiresAuthority = false)]
+        public void Reset()
+        {
+            _currentHealth = _maxHealth;
+        }
+        
+        [Command(requiresAuthority = false)]
         public void Add(float value)
         {
             value = Mathf.Max(value, 0);
@@ -60,14 +68,6 @@ namespace _Project.Scripts.Spaceship
             if (_currentHealth > 0) return;
             
             OnDeath?.Invoke(this, new DeathEventArgs { ConnectionToClient = connectionToClient });
-
-            RPC_HandleDeath();
-        }
-
-        [ClientRpc]
-        private void RPC_HandleDeath()
-        {
-            gameObject.transform.GetChild(0).gameObject.SetActive(false);
         }
 
         #region Base methods

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 770b51866a01443895ef45cc17779e76, type: 3}
   m_Name: OpenWorld_MapGenerator_SO
   m_EditorClassIdentifier: Assembly-CSharp:_Project.Scripts.Game:MapGeneratorData
-  GameAreaRadius: 1500
+  GameAreaRadius: 2500
   AIPrefabs:
   - {fileID: 3415335726005022911, guid: bd96e4e9d82995a4cb006ced5eb303f1, type: 3}
   - {fileID: 8732073677464986696, guid: 585081a074f72b84493f1b20cbb37738, type: 3}
@@ -20,8 +20,10 @@ MonoBehaviour:
   AIFuelStationCountRange: {x: 1, y: 1}
   AIFuelStationSpawnRange: 50
   AIAreaCountRange: {x: 10, y: 20}
-  AIAreaPatronRange: 500
-  AIFuelStationPatronRange: 200
+  AIAreaPatronRange: 700
+  AIAreaDetectionRange: 300
+  AIFuelStationPatrolRange: 250
+  AIFuelStationDetectionRange: 200
   MeteorPrefabs:
   - {fileID: 1169622286159614, guid: b3c31f6b19e12ab43af383150930c5d2, type: 3}
   - {fileID: 1112909584421644, guid: e768d9e8bea187b4d85e4021e33af962, type: 3}
@@ -37,11 +39,11 @@ MonoBehaviour:
   - {fileID: 1529249800494676, guid: 4d5c26a5782d9294eaed6fbde168b364, type: 3}
   - {fileID: 1105936014474974, guid: 355f948f54645f0499d065bc17bf24d4, type: 3}
   - {fileID: 1949323900672932, guid: 7ae9a9e82126e9444a612c9d396a18be, type: 3}
-  MeteorCount: 300
+  MeteorCount: 450
   FuelStationPrefabs:
   - {fileID: 4849306525670135010, guid: a2643645ab2aa54458be7c9f4ace3792, type: 3}
   FuelStationCount: 10
   FeaturePrefabs:
   - {fileID: 1155164465232224481, guid: 7e5e551eb4e439e4fa8f96f4e5e55e23, type: 3}
   - {fileID: 5665443610472335024, guid: 881c7fc28d0887149a1e01059df07b19, type: 3}
-  FeatureCount: 10
+  FeatureCount: 30

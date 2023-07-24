@@ -7,6 +7,8 @@ namespace _Project.Scripts.Spaceship
     {
         [SerializeField] private Health _health;
 
+        public float GetHealth() => _health.GetHealth();
+        
         public void DealDamage(float dealToDamage)
         {
             var controller = GetComponent<SpaceshipController>();

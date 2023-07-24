@@ -15,7 +15,9 @@ namespace _Project.Scripts.Game.Data
         public float AIFuelStationSpawnRange;
         public Vector2 AIAreaCountRange = new (10, 20);
         public float AIAreaPatronRange = 200f;
-        public float AIFuelStationPatronRange = 100f;
+        public float AIAreaDetectionRange = 300f;
+        public float AIFuelStationPatrolRange = 100f;
+        public float AIFuelStationDetectionRange = 200f;
 
         [Space(10)]
         [Header("Meteor Settings")]

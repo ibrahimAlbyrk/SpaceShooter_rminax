@@ -30,14 +30,17 @@ namespace _Project.Scripts.Spaceship
 
         private bool _isEnemy;
 
-        public void Init(GameObject owner, bool isEnemy = false)
+        private float _bulletLifeTime;
+        private float _bulletSpeed;
+
+        public void Init(GameObject owner, bool isEnemy = false, float bulletLifeTime = 3f, float bulletSpeed = 100f)
         {
             _owner = owner;
+
+            _bulletLifeTime = bulletLifeTime;
+            _bulletSpeed = bulletSpeed;
             
-            var _settings = SpaceshipController.instance.m_shooting.bulletSettings;
-            
-            Invoke(nameof(CMD_Lifetime),
-                _settings.BulletLifetime);
+            Invoke(nameof(CMD_Lifetime), _bulletLifeTime);
 
             _init = true;
 
@@ -49,10 +52,8 @@ namespace _Project.Scripts.Spaceship
         {
             if (!_init) return;
             if (!_isMove) return;
-            
-            var _settings = SpaceshipController.instance.m_shooting.bulletSettings;
 
-            transform.position += transform.forward * (_settings.BulletSpeed * Time.fixedDeltaTime);
+            transform.position += transform.forward * (_bulletSpeed * Time.fixedDeltaTime);
 
             var colls = Physics.OverlapBox(transform.position, transform.localScale, transform.rotation,
                 _obstacleLayer);
@@ -86,28 +87,43 @@ namespace _Project.Scripts.Spaceship
 
             if (Damageable != null)
             {
-                AddScore(username, 30);
-                
-                Damageable.DealDamage(_settings.BulletDamage);
-                return;
-            }
-            
-            var basicAI = obstacle.GetComponent<BasicAI>();
-            if (basicAI != null)
-            {
-                AddScore(username, 30);
-                
-                basicAI.Threat();
+                if (Damageable.GetHealth() <= 0)
+                {
+                    AddScore(username, 30);
+                }
+                else
+                {
+                    Damageable.DealDamage(_settings.BulletDamage);   
+                }
                 return;
             }
 
             var destructionScript = obstacle.GetComponent<DestructionScript>();
             if (destructionScript != null)
             {
+                if (destructionScript.HP <= 0) return;
+                
                 destructionScript.HP -= _settings.BulletDamage;
-                if (destructionScript.HP <= 0)
+                
+                var basicAI = destructionScript.GetComponent<BasicAI>();
+
+                var isDead = destructionScript.HP <= 0;
+
+                if (basicAI != null)
                 {
-                    AddScore(username, 1);
+                    basicAI.Threat();
+                    
+                    if (isDead)
+                    {
+                        AddScore(username, 30);
+                    }
+                }
+                else
+                {
+                    if (isDead)
+                    {
+                        AddScore(username, 1);
+                    }
                 }
             }
         }

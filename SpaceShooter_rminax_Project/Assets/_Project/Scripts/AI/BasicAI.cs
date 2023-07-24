@@ -3,6 +3,8 @@ using System.Linq;
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using _Project.Scripts.Utilities;
 
 namespace _Project.Scripts.AI
 {
@@ -34,9 +36,12 @@ namespace _Project.Scripts.AI
         [Header("Detection Settings")] [SerializeField]
         private LayerMask _detectionLayer;
 
-        [SerializeField] private float _detectionRange = 150f;
+        [SerializeField] public float DetectionRange = 150f;
         [SerializeField] private float _stopRange = 20f;
 
+        [SerializeField] private float _bulletLifeTime = 5f;
+        [SerializeField] private float _bulletSpeed = 150f;
+        
         #endregion
 
         #region Private Vars
@@ -123,7 +128,7 @@ namespace _Project.Scripts.AI
 
         private Transform FindPlayer()
         {
-            var colls = Physics.OverlapSphere(origin.position, _detectionRange, _detectionLayer);
+            var colls = Physics.OverlapSphere(origin.position, DetectionRange, _detectionLayer);
 
             return (from coll in colls
                     where coll.CompareTag("Spaceship")
@@ -133,11 +138,11 @@ namespace _Project.Scripts.AI
 
         private void Chase()
         {
-            var distance = Vector3.Distance(transform.position, _targetPlayer.position);
+            var distance = (transform.position - _targetPlayer.position).sqrMagnitude;
 
             var dir = transform.forward * aggresiveSpeed;
 
-            if (distance <= _stopRange)
+            if (distance <= _stopRange * _stopRange)
                 dir = Vector3.zero;
 
             transform.Translate(dir, Space.World);
@@ -157,7 +162,9 @@ namespace _Project.Scripts.AI
         {
             var _currentMovePosition = _points[_pointIndex];
 
-            if (Vector3.Distance(transform.position, _currentMovePosition) > 15f)
+            var outDistance = MathUtilities.OutDistance(transform.position, _currentMovePosition, 15);
+            
+            if (outDistance)
             {
                 transform.Translate(transform.forward * normalSpeed, Space.World);
                 transform.rotation = Quaternion.Lerp(transform.rotation,
@@ -176,26 +183,28 @@ namespace _Project.Scripts.AI
 
         #region Fire Methods
 
-        private void Fire()
+        private async void Fire()
         {
             var bulletObj = Instantiate(bullet, barrel.position,
                 Quaternion.LookRotation(transform.forward, transform.up));
 
             NetworkServer.Spawn(bulletObj);
 
-            CMD_SetBulletSettings(gameObject, bulletObj);
+            await Task.Delay(100);
 
-            //bulletObj.GetComponent<Rigidbody>().AddForce(bulletObj.transform.forward * 450f, ForceMode.Impulse);
+            if (gameObject == null) return;
+
+            RPC_SetBulletSettings(gameObject, bulletObj, _bulletLifeTime, _bulletSpeed);
         }
 
         [Command(requiresAuthority = false)]
-        private void CMD_SetBulletSettings(GameObject owner, GameObject bulletObj) =>
-            RPC_SetBulletSettings(owner, bulletObj);
+        private void CMD_SetBulletSettings(GameObject owner, GameObject bulletObj, float bulletLifeTime, float bulletSpeed) =>
+            RPC_SetBulletSettings(owner, bulletObj, bulletLifeTime, bulletSpeed);
 
         [ClientRpc]
-        private void RPC_SetBulletSettings(GameObject owner, GameObject bulletObj)
+        private void RPC_SetBulletSettings(GameObject owner, GameObject bulletObj, float bulletLifeTime, float bulletSpeed)
         {
-            bulletObj.GetComponent<BulletScript>().Init(owner, isEnemy: true);
+            bulletObj.GetComponent<BulletScript>().Init(owner, isEnemy: true, bulletLifeTime, bulletSpeed);
         }
 
         #endregion
@@ -203,13 +212,13 @@ namespace _Project.Scripts.AI
         private void OnDrawGizmosSelected()
         {
             if (origin == null) return;
+            
+            Gizmos.color = Color.red;
+
+            Gizmos.DrawWireSphere(origin.position, DetectionRange);
 
             if (!Application.isPlaying)
             {
-                Gizmos.color = Color.red;
-
-                Gizmos.DrawWireSphere(origin.position, _detectionRange);
-
                 Gizmos.color = Color.yellow;
 
                 Gizmos.DrawWireSphere(origin.position, _stopRange);   

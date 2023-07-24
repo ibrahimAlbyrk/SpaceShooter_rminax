@@ -20,8 +20,10 @@ MonoBehaviour:
   AIFuelStationCountRange: {x: 0, y: 0}
   AIFuelStationSpawnRange: 50
   AIAreaCountRange: {x: 10, y: 20}
-  AIAreaPatronRange: 500
-  AIFuelStationPatronRange: 200
+  AIAreaPatronRange: 700
+  AIAreaDetectionRange: 300
+  AIFuelStationPatrolRange: 250
+  AIFuelStationDetectionRange: 200
   MeteorPrefabs:
   - {fileID: 1169622286159614, guid: b3c31f6b19e12ab43af383150930c5d2, type: 3}
   - {fileID: 1112909584421644, guid: e768d9e8bea187b4d85e4021e33af962, type: 3}

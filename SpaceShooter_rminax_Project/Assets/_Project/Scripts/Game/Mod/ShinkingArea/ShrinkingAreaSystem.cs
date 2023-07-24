@@ -3,6 +3,7 @@ using System.Linq;
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using _Project.Scripts.PostProcess;
 
 namespace _Project.Scripts.Game.Mod.ShrinkingArea
 {
@@ -143,17 +144,19 @@ namespace _Project.Scripts.Game.Mod.ShrinkingArea
             foreach (var ship in _ships)
             {
                 var shipTransform = ship.transform;
-                var shipDistance = Vector3.Distance(Vector3.zero, shipTransform.position);
+                var shipDistance = (-shipTransform.position).sqrMagnitude;
 
-                if (shipDistance > _areaRange)
+                if (shipDistance > _areaRange * _areaRange)
                 {
                     _outsideShips.TryAdd(ship, Time.time + _outSideDetectTime);
+                    ship.PostProcessManager.SetPostProcess(PostProcessMode.ZoneArea);
                 }
                 else
                 {
                     if (_outsideShips.ContainsKey(ship))
                     {
                         _outsideShips.Remove(ship);
+                        ship.PostProcessManager.SetPostProcess(PostProcessMode.Global);
                     }
                 }
             }

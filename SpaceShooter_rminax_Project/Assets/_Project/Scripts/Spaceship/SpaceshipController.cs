@@ -4,6 +4,8 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using _Project.Scripts.Game.Mod.ShrinkingArea;
+using _Project.Scripts.PostProcess;
+using _Project.Scripts.Utilities;
 using Random = UnityEngine.Random;
 
 namespace _Project.Scripts.Spaceship
@@ -32,10 +34,20 @@ namespace _Project.Scripts.Spaceship
         public bool IsEnableControl = true;
         public bool IsRunningMotor = true;
 
+        [field:SerializeField] public PostProcessManager PostProcessManager { get; private set; }
+        [field:SerializeField] public FuelSystem FuelSystem { get; private set; }
+        [field:SerializeField] public SpawnSystem SpawnSystem { get; private set; }
+        
+        [field:SerializeField] public DeadManager DeadManager { get; private set; }
+        
         [field: SerializeField] public SpaceshipShooter Shooter { get; private set; }
 
         [field: SerializeField] public Health Health { get; private set; }
 
+        [SerializeField] private GameObject _particleFollow;
+        [SerializeField] private GameObject _explosionParticle;
+        [SerializeField] private float _explosionScale = 10;
+        
         [Header("Network options.")] [SerializeField]
         private GameObject[] NetworkObjects;
 
@@ -154,11 +166,11 @@ namespace _Project.Scripts.Spaceship
 
         public override void OnStopClient()
         {
-            if (LeaderboardManager.Instance != null)
-                LeaderboardManager.Instance.CMD_RemovePlayer(Username);
-            
-            if (ShrinkingAreaSystem.Instance != null)
-                ShrinkingAreaSystem.Instance.CMD_RemovePlayer(this);
+            //if (LeaderboardManager.Instance != null)
+            //    LeaderboardManager.Instance.CMD_RemovePlayer(Username);
+            //
+            //if (ShrinkingAreaSystem.Instance != null)
+            //    ShrinkingAreaSystem.Instance.CMD_RemovePlayer(this);
         }
 
         #endregion
@@ -178,7 +190,7 @@ namespace _Project.Scripts.Spaceship
                 }
                 else
                 {
-                    Debug.LogError("Singleton pattern violated! Two player controled spaceships present in the scene");
+                    Debug.LogError("Singleton pattern violated! Two player controlled spaceships present in the scene");
                 }
             }
 
@@ -194,6 +206,8 @@ namespace _Project.Scripts.Spaceship
             m_cachedCameraTransform.position = CachedTransform.position + CameraOffsetVector;
 
             if (!isOwned) return;
+
+            Health.OnDeath += OnDeath;
 
             if (m_camera.normalCursor != null)
             {
@@ -218,6 +232,62 @@ namespace _Project.Scripts.Spaceship
 
         private float _fireDelayTimer;
 
+        private void OnDeath(object sender, DeathEventArgs args)
+        {
+            if (args.ConnectionToClient != connectionToClient) return;
+
+            StartCoroutine(OnDeathCoroutine());
+        }
+
+        private IEnumerator OnDeathCoroutine()
+        {
+            var modType = GameManager.Instance.GetModType();
+            
+            DeadManager.ShowGameOver(modType);
+
+            SetShipActiveState(false);
+
+            OnExplosion();
+
+            if (modType == ModType.ShrinkingArea) yield break;
+            
+            yield return new WaitForSeconds(3f);
+            
+            SetShipActiveState(true);
+            
+            DeadManager.CloseGameOver();
+
+            Health.Reset();
+            
+            ResetFuel();
+            
+            SpawnSystem.SpawnPlayer();
+        }
+
+        [ClientRpc]
+        private void SetShipActiveState(bool state)
+        {
+            _particleFollow.SetActive(state);
+            
+            transform.GetChild(0).gameObject.SetActive(state);
+        }
+
+        [ClientRpc]
+        private void OnExplosion() => StartCoroutine(OnExplosionCor());
+
+        [ClientRpc]
+        private void ResetFuel() => FuelSystem.ResetFuel();
+        
+        private IEnumerator OnExplosionCor()
+        {
+            var particle = Instantiate(_explosionParticle, transform.position, Quaternion.identity);
+            particle.transform.localScale *= _explosionScale;
+
+            yield return new WaitForSeconds(2f);
+            
+            particle.Destroy();
+        }
+        
         [ClientCallback]
         private void OnDestroy()
         {
@@ -227,7 +297,7 @@ namespace _Project.Scripts.Spaceship
         [ClientCallback]
         private void LateUpdate()
         {
-            if (!isOwned || !IsEnableControl || !IsRunningMotor) return;
+            if (!isOwned || !IsEnableControl || !IsRunningMotor || Health.IsDead) return;
 
             Ray ray;
             if (m_camera.TargetCamera.targetTexture == null)
@@ -242,11 +312,11 @@ namespace _Project.Scripts.Spaceship
                                                                      (float)m_camera.TargetCamera.pixelHeight));
             }
 
-            RaycastHit hit;
-
-            if (Physics.Raycast(ray, out hit, m_shooting.rocketSettings.LockOnDistance))
+            if (Physics.Raycast(ray, out var hit, m_shooting.rocketSettings.LockOnDistance))
             {
-                if (hit.transform != transform && Vector3.Distance(transform.position, hit.point) > 10f)
+                var outDistance = MathUtilities.OutDistance(transform.position, hit.point, 10f);
+                
+                if (hit.transform != transform && outDistance)
                 {
                     rocket_target = hit.transform;
                     if (m_camera.aimingCursor != null)
@@ -292,7 +362,7 @@ namespace _Project.Scripts.Spaceship
         [Client]
         private void Update()
         {
-            if (!isOwned || !IsEnableControl || !IsInitialized) return;
+            if (!isOwned || !IsEnableControl || !IsInitialized || Health.IsDead) return;
 
             if (!IsRunningMotor)
             {
@@ -349,6 +419,7 @@ namespace _Project.Scripts.Spaceship
 
             m_idleCameraDistance = Mathf.Lerp(m_idleCameraDistance, idleCameraDistance,
                 IdleCameraDistanceSmooth * Time.deltaTime);
+            
             float baseFrustumHeight =
                 2.0f * m_idleCameraDistance * Mathf.Tan(m_initialCameraFOV * 0.5f * Mathf.Deg2Rad);
             m_camera.TargetCamera.fieldOfView = 2.0f * Mathf.Atan(baseFrustumHeight * 0.5f / Vector3.Distance(
@@ -427,9 +498,12 @@ namespace _Project.Scripts.Spaceship
                     RotationDirections[i]);
             }
 
-            if (Input.GetAxis("Stop") == 0f)
+            if (!Health.IsDead)
             {
-                CachedTransform.localPosition += CachedTransform.forward * CurrentSpeed * Time.deltaTime;
+                if (Input.GetAxis("Stop") == 0f)
+                {
+                    CachedTransform.localPosition += CachedTransform.forward * (CurrentSpeed * Time.deltaTime);
+                }   
             }
 
             //left right
@@ -453,6 +527,8 @@ namespace _Project.Scripts.Spaceship
                     Vector3.right),
                 m_spaceship.BankAngleSmooth * Time.deltaTime);
 
+            if (Health.IsDead) return;
+            
             if (Input.GetAxis("Sideways") != 0f && !m_shooting.mode2D)
             {
                 //CachedTransform.Translate(CachedTransform.right*Input.GetAxis("Sideways")/2f,Space.World);

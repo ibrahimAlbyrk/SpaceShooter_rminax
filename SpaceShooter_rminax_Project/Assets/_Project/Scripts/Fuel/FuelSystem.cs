@@ -116,6 +116,8 @@ namespace _Project.Scripts.Spaceship
 
         #region Fuel Methods
 
+        public void ResetFuel() => _currentFuel = _maxFuel;
+
         private void FuelHandler()
         {
             if(_onStation) OnRefuel();

@@ -74,7 +74,6 @@ namespace _Project.Scripts.Network.Managers
                 foreach (var conn in NetworkServer.connections.Values)
                 {
                     var newPlayer = ReplaceGamePlayer(conn);
-                    newPlayer.transform.position = SpawnUtilities.GetSpawnPosition(100);
                     newPlayer.name = $"{_gamePlayerPrefab.name} [connId={conn.connectionId}]";
                 }
             }
@@ -102,7 +101,6 @@ namespace _Project.Scripts.Network.Managers
                 : _gamePlayerPrefab;
 
             var player = Instantiate(prefab);
-
             player.name = $"{prefab.name} [connId={conn.connectionId}]";
 
             NetworkServer.AddPlayerForConnection(conn, player);
