@@ -1,4 +1,6 @@
 ﻿using Mirror;
+using MoreMountains.Feedbacks;
+using Sirenix.Utilities;
 using UnityEngine;
 
 namespace _Project.Scripts.Spaceship
@@ -11,6 +13,8 @@ namespace _Project.Scripts.Spaceship
 
         [field: SerializeField] public SpaceshipController.ShootingSettings m_shooting;
         [SerializeField] private SpaceshipController.CameraSettings m_camera;
+
+        [SerializeField] private MMShaker[] _shakers;
 
         private SpaceshipController _controller;
 
@@ -36,6 +40,8 @@ namespace _Project.Scripts.Spaceship
                 var mousePos = ScreenMousePosition();
                 
                 CMD_BulletShooting(gameObject, mousePos);
+
+                _shakers.ForEach(shaker => shaker?.Play());
             }
         }
 

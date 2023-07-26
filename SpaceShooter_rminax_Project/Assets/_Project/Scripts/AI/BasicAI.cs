@@ -215,10 +215,6 @@ namespace _Project.Scripts.AI
             RPC_SetBulletSettings(gameObject, bulletObj, _bulletLifeTime, _bulletSpeed);
         }
 
-        [Command(requiresAuthority = false)]
-        private void CMD_SetBulletSettings(GameObject owner, GameObject bulletObj, float bulletLifeTime, float bulletSpeed) =>
-            RPC_SetBulletSettings(owner, bulletObj, bulletLifeTime, bulletSpeed);
-
         [ClientRpc]
         private void RPC_SetBulletSettings(GameObject owner, GameObject bulletObj, float bulletLifeTime, float bulletSpeed)
         {

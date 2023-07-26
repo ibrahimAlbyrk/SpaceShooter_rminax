@@ -472,21 +472,6 @@ PrefabInstance:
       propertyPath: sceneId
       value: 1087689614
       objectReference: {fileID: 0}
-    - target: {fileID: 6886150743469750107, guid: 73f6c0b3016ba384f8890ec7a41168fd,
-        type: 3}
-      propertyPath: _openWorldMod._gpuPrefabManager
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 6886150743469750107, guid: 73f6c0b3016ba384f8890ec7a41168fd,
-        type: 3}
-      propertyPath: _shrinkingAreaMod._gpuPrefabManager
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 8206328668146939496, guid: 73f6c0b3016ba384f8890ec7a41168fd,
-        type: 3}
-      propertyPath: _gpuPrefabManager
-      value: 
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

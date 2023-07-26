@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 64123360322477186}
   - component: {fileID: -4987410479677768149}
   - component: {fileID: 159984948406925307}
+  - component: {fileID: 6174077911771924175}
   m_Layer: 3
   m_Name: Asteroid_6
   m_TagString: Untagged
@@ -161,3 +162,26 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   prefabPrototype: {fileID: 11400000, guid: f80ba453736077c49ad5c0df4d65989c, type: 2}
+--- !u!114 &6174077911771924175
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1760393968351504}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b699ddd1f7defa440946cd6feb5ce44e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  _detectionRange: 14
+  _detectionLayer:
+    serializedVersion: 2
+    m_Bits: 8
+  spaceshipPushDistance: 125
+  projectilePushDistance: 35
+  pushSpeedMod: 1.05
+  physics: 0

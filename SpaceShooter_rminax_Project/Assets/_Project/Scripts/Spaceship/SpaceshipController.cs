@@ -45,6 +45,8 @@ namespace _Project.Scripts.Spaceship
 
         [field: SerializeField] public Health Health { get; private set; }
 
+        [SerializeField] private LayerMask _environmentLayer;
+        
         [SerializeField] private GameObject _usernameCanvas;
         [SerializeField] private TMP_Text _usernameText;
 
@@ -520,7 +522,11 @@ namespace _Project.Scripts.Spaceship
             {
                 if (Input.GetAxis("Stop") == 0f && Input.GetKey(KeyCode.W))
                 {
-                    CachedTransform.localPosition += CachedTransform.forward * (CurrentSpeed * Time.deltaTime);
+                    var speed = CurrentSpeed * Time.deltaTime;
+                    var dir = CachedTransform.forward * speed;
+                    
+                    if(CanMove(dir, speed))
+                        CachedTransform.localPosition += dir;
                 }
             }
 
@@ -549,9 +555,12 @@ namespace _Project.Scripts.Spaceship
             
             if (Input.GetAxis("Sideways") != 0f && !m_shooting.mode2D)
             {
-                //CachedTransform.Translate(CachedTransform.right*Input.GetAxis("Sideways")/2f,Space.World);
-                CachedTransform.localPosition += CachedTransform.right * Input.GetAxis("Sideways") * Time.deltaTime *
-                                                 m_spaceship.SidewaysSpeed;
+                var speed = (Time.deltaTime * m_spaceship.SidewaysSpeed);
+                var dir = CachedTransform.right * Input.GetAxis("Sideways");
+
+                if (!CanMove(dir, speed)) return;
+
+                CachedTransform.localPosition += dir * speed;
                 m_spaceship.Avatar.localRotation = Quaternion.Slerp(
                     m_spaceship.Avatar.localRotation,
                     m_initialAvatarRotation *
@@ -559,6 +568,14 @@ namespace _Project.Scripts.Spaceship
                         Vector3.forward),
                     m_spaceship.BankAngleSmooth * Time.deltaTime);
             }
+        }
+
+        private bool CanMove(Vector3 dir, float distance)
+        {
+            DrawUtilities.DrawBoxCastBox(transform.position, new Vector3(3, 1, 3), transform.rotation, dir, distance, Color.cyan);
+            
+            return !Physics.BoxCast(transform.position, new Vector3(), dir, transform.rotation, distance,
+                _environmentLayer);
         }
 
         private void OnApplicationFocus(bool hasFocus)

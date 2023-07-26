@@ -25,30 +25,6 @@ MonoBehaviour:
   AIAreaPatronRange: 700
   AIAreaDetectionRange: 300
   EnvironmentPrefabs:
-  - {fileID: 125794, guid: 571c71c619df68e428dca394fe04afc0, type: 3}
-  - {fileID: 164086, guid: 81b343f1e36f4b947afba66b6d42ad5d, type: 3}
-  - {fileID: 107386, guid: 388de8c0fe6d5d647ad60a2edbeaa9b0, type: 3}
-  - {fileID: 151502, guid: b567e84af08f3e94393fdc5d1dcc1847, type: 3}
-  - {fileID: 150430, guid: 7e234645d756dad41b6c00960c68d43d, type: 3}
-  - {fileID: 106758, guid: bdd343e9d8897a74f82f8cd522d27f10, type: 3}
-  - {fileID: 174736, guid: f907f35449eeb524d82c8f55611cbfcc, type: 3}
-  - {fileID: 175744, guid: 898667385815b5d47a07039b5afcb069, type: 3}
-  - {fileID: 118968, guid: a4485567fe452b746bce194c0c22e722, type: 3}
-  - {fileID: 143098, guid: c7a2d1a92c72a654dab3a98731999420, type: 3}
-  - {fileID: 167308, guid: 174a4ccdfd6cde446a4676934ffc8ba9, type: 3}
-  - {fileID: 164564, guid: 0448e02254c9ec94fb44909f0c6dd3dc, type: 3}
-  - {fileID: 147736, guid: d637a0939d5f3894889718fe2cf8820f, type: 3}
-  - {fileID: 131766, guid: 88fcf1a6df9431545ad520c1547a201c, type: 3}
-  - {fileID: 107318, guid: c0ff8ad6a935d284bab209b75966eb4c, type: 3}
-  - {fileID: 178772, guid: ace9b8dd542d701498f41e3fae3e3d28, type: 3}
-  - {fileID: 164530, guid: 3f770adfdad31634591f2788171edeb1, type: 3}
-  - {fileID: 129982, guid: a5d965f7b6bbb4e4489f607b25cf9e64, type: 3}
-  - {fileID: 175540, guid: 956838de58c41034da3e72261fc527e1, type: 3}
-  - {fileID: 191612, guid: acf895cf276f8e04b8c4f7881fe774ab, type: 3}
-  - {fileID: 112780, guid: 03fce576e007c2e40a88e7da99ab076d, type: 3}
-  - {fileID: 107790, guid: d8b972661c5bc3f418842bee406d58b3, type: 3}
-  - {fileID: 148496, guid: 0dfe508f6201b0843be08dcc354c54cb, type: 3}
-  - {fileID: 150966, guid: d30fe61ab6e886f4483a7009e9478424, type: 3}
   - {fileID: 125574, guid: 85240cb408b344a4c830c41c36e22392, type: 3}
   - {fileID: 163558, guid: 785cf48db9ba80b46a9403cf63e231cd, type: 3}
   - {fileID: 175894, guid: 860ae3a79bc7a0a4aaf74841f1073076, type: 3}
@@ -71,6 +47,30 @@ MonoBehaviour:
   - {fileID: 137208, guid: 4d1fe716878bc194ca0ee3965fca5e88, type: 3}
   - {fileID: 187562, guid: 5ad61ddfa979772479cfa3b03c3111f0, type: 3}
   - {fileID: 123790, guid: d0f435515bf768f43afc556b90dd9521, type: 3}
+  - {fileID: 8725670374682692549, guid: 571c71c619df68e428dca394fe04afc0, type: 3}
+  - {fileID: 5388033370720159258, guid: 81b343f1e36f4b947afba66b6d42ad5d, type: 3}
+  - {fileID: 900044975746996619, guid: 388de8c0fe6d5d647ad60a2edbeaa9b0, type: 3}
+  - {fileID: 8303877132052296995, guid: b567e84af08f3e94393fdc5d1dcc1847, type: 3}
+  - {fileID: 1209070448634650712, guid: 7e234645d756dad41b6c00960c68d43d, type: 3}
+  - {fileID: 2191855906269552661, guid: bdd343e9d8897a74f82f8cd522d27f10, type: 3}
+  - {fileID: 8091529134347483872, guid: f907f35449eeb524d82c8f55611cbfcc, type: 3}
+  - {fileID: 8210952845433750504, guid: 898667385815b5d47a07039b5afcb069, type: 3}
+  - {fileID: 1600290737235821323, guid: a4485567fe452b746bce194c0c22e722, type: 3}
+  - {fileID: 4841292406373706413, guid: c7a2d1a92c72a654dab3a98731999420, type: 3}
+  - {fileID: 3184273266879857098, guid: 174a4ccdfd6cde446a4676934ffc8ba9, type: 3}
+  - {fileID: 2049238218590732256, guid: 0448e02254c9ec94fb44909f0c6dd3dc, type: 3}
+  - {fileID: 1018034526601464801, guid: d637a0939d5f3894889718fe2cf8820f, type: 3}
+  - {fileID: 2658409316744026851, guid: 88fcf1a6df9431545ad520c1547a201c, type: 3}
+  - {fileID: 3523926948420551541, guid: c0ff8ad6a935d284bab209b75966eb4c, type: 3}
+  - {fileID: 4023404594442945827, guid: ace9b8dd542d701498f41e3fae3e3d28, type: 3}
+  - {fileID: 1720868122143478213, guid: 3f770adfdad31634591f2788171edeb1, type: 3}
+  - {fileID: 3430900199479025634, guid: a5d965f7b6bbb4e4489f607b25cf9e64, type: 3}
+  - {fileID: 8432962828720354614, guid: 956838de58c41034da3e72261fc527e1, type: 3}
+  - {fileID: 6742149286357305063, guid: acf895cf276f8e04b8c4f7881fe774ab, type: 3}
+  - {fileID: 8555707277288464036, guid: 03fce576e007c2e40a88e7da99ab076d, type: 3}
+  - {fileID: 709151214647070393, guid: d8b972661c5bc3f418842bee406d58b3, type: 3}
+  - {fileID: 8685136786152644344, guid: 0dfe508f6201b0843be08dcc354c54cb, type: 3}
+  - {fileID: 505062923186893330, guid: d30fe61ab6e886f4483a7009e9478424, type: 3}
   EnvironmentMinSpawnRange: 2500
   EnvironmentMaxSpawnRange: 7000
   EnvironmentCount: 20
@@ -87,8 +87,6 @@ MonoBehaviour:
   - {fileID: 1212796926661636, guid: 61041b38478b1174383f35214324c3d1, type: 3}
   - {fileID: 1480290005869230, guid: e3d672f94c33fd845acc69356f3a1930, type: 3}
   - {fileID: 1529249800494676, guid: 4d5c26a5782d9294eaed6fbde168b364, type: 3}
-  - {fileID: 1105936014474974, guid: 355f948f54645f0499d065bc17bf24d4, type: 3}
-  - {fileID: 1949323900672932, guid: 7ae9a9e82126e9444a612c9d396a18be, type: 3}
   MeteorCount: 450
   FuelStationPrefabs:
   - {fileID: 4849306525670135010, guid: a2643645ab2aa54458be7c9f4ace3792, type: 3}

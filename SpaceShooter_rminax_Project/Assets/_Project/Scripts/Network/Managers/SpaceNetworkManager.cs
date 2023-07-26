@@ -1,6 +1,7 @@
 ﻿using Mirror;
 using System;
 using System.Linq;
+using _Project.Scripts.Network.Managers.Room;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -131,6 +132,10 @@ namespace _Project.Scripts.Network.Managers
             spawnPrefabs.Clear();
             
             spawnPrefabs = Resources.LoadAll<GameObject>("SpawnablePrefabs").ToList();
+
+            var roomInfo = new RoomInfo("testServerRoom", "testScene", 100);
+            
+            SpaceRoomManager.Instance.CreateRoom(roomInfo);
         }
 
         public override void OnStartClient()

@@ -12,7 +12,8 @@ GameObject:
   - component: {fileID: 3398450}
   - component: {fileID: 2300514}
   - component: {fileID: 3948453659749667898}
-  m_Layer: 0
+  - component: {fileID: 5349854506978782889}
+  m_Layer: 8
   m_Name: Scifi_Structure_17
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -101,3 +102,25 @@ MonoBehaviour:
   serverOnly: 0
   visible: 0
   hasSpawned: 0
+--- !u!64 &5349854506978782889
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 180906}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 4300000, guid: 59d9f74f02e6a2a4995b6849c10c15bc, type: 3}
