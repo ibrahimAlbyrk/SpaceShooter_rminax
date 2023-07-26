@@ -2,6 +2,7 @@
 using UnityEngine;
 using System.Linq;
 using System.Collections.Generic;
+using GPUInstancer;
 
 namespace _Project.Scripts.Game.Mod
 {
@@ -12,6 +13,8 @@ namespace _Project.Scripts.Game.Mod
     public class OpenWorldMod : GameMod
     {
         //TODO: Spawn features
+
+        [SerializeField] private GPUInstancerPrefabManager _gpuPrefabManager;
         
         [Space(10), Header("Content Settings"), SerializeField]
         private string[] _contentNames;
@@ -24,6 +27,7 @@ namespace _Project.Scripts.Game.Mod
 
         private Dictionary<string, Transform> _contents = new();
 
+        private SyncList<Transform> _spawnedEnvironments = new();
         private SyncList<Transform> _spawnedMeteors = new();
         private SyncList<Transform> _spawnedFuelStations = new();
         private SyncList<Transform> _spawnedFeatures = new();
@@ -35,6 +39,13 @@ namespace _Project.Scripts.Game.Mod
             CreateContents();
 
             SpawnHandler();
+            
+            //if (_gpuPrefabManager != null && _gpuPrefabManager.gameObject.activeSelf && _gpuPrefabManager.enabled)
+            //{
+            //    GPUInstancerAPI.RegisterPrefabInstanceList(_gpuPrefabManager, _spawnedEnvironments.ToList().Select(e => e.GetComponent<GPUInstancerPrefab>()));
+            //    GPUInstancerAPI.RegisterPrefabInstanceList(_gpuPrefabManager, _spawnedMeteors.ToList().Select(e => e.GetComponent<GPUInstancerPrefab>()));
+            //    GPUInstancerAPI.InitializeGPUInstancer(_gpuPrefabManager);
+            //}
         }
 
         public override void FixedRun()
@@ -154,6 +165,8 @@ namespace _Project.Scripts.Game.Mod
         
         private void SpawnHandler()
         {
+            SpawnEnvironments();
+            
             SpawnMeteors();
 
             SpawnFuelStations();
@@ -165,6 +178,16 @@ namespace _Project.Scripts.Game.Mod
 
         #region Props
 
+        private void SpawnEnvironments()
+        {
+            _spawnedEnvironments = SpawnWithConfigurations(
+                    _mapGeneratorData.EnvironmentPrefabs,
+                    _contents["Environment"],
+                    new Vector2(_mapGeneratorData.EnvironmentMinSpawnRange, _mapGeneratorData.EnvironmentMaxSpawnRange),
+                    _mapGeneratorData.EnvironmentCount)
+                .ToSyncList();
+        }
+        
         private void SpawnMeteors()
         {
             _spawnedMeteors = SpawnWithConfigurations(
@@ -358,13 +381,19 @@ namespace _Project.Scripts.Game.Mod
         private List<Transform> SpawnWithConfigurations(IReadOnlyList<GameObject> objs, Transform content, float radius,
             float count)
         {
+            return SpawnWithConfigurations(objs, content, new Vector2(radius, radius), count);
+        }
+        
+        private List<Transform> SpawnWithConfigurations(IReadOnlyList<GameObject> objs, Transform content, Vector2 radiusRange,
+            float count)
+        {
             var list = new List<Transform>();
 
             for (var i = 0; i < count; i++)
             {
                 var meteorPrefab = objs.GetRandomElement();
 
-                var pos = Random.insideUnitSphere * radius;
+                var pos = Random.insideUnitSphere * Random.Range(radiusRange.x, radiusRange.y);
                 var rot = Random.rotation;
 
                 var spawnedObject = SpawnObjectWithNetwork(meteorPrefab, content, pos, rot);

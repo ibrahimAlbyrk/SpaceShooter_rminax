@@ -16,6 +16,26 @@ namespace AmplifyShaderEditor
 		{
 			AmplifyShaderEditorWindow.CreateConfirmationTemplateShader( "32120270d1b3a8746af2aca8bc749736" );
 		}
+		[MenuItem( "Assets/Create/Amplify Shader/Impostors/Bake/Legacy", false, 85 )]
+		public static void ApplyTemplateImpostorsBakeLegacy()
+		{
+			AmplifyShaderEditorWindow.CreateConfirmationTemplateShader( "f53051a8190f7044fa936bd7fbe116c1" );
+		}
+		[MenuItem( "Assets/Create/Amplify Shader/Impostors/Bake/LightWeight", false, 85 )]
+		public static void ApplyTemplateImpostorsBakeLightWeight()
+		{
+			AmplifyShaderEditorWindow.CreateConfirmationTemplateShader( "e75047bd5b0726946918286370277647" );
+		}
+		[MenuItem( "Assets/Create/Amplify Shader/Impostors/Runtime/LightWeight PBR", false, 85 )]
+		public static void ApplyTemplateImpostorsRuntimeLightWeightPBR()
+		{
+			AmplifyShaderEditorWindow.CreateConfirmationTemplateShader( "7dd6f938788b45f45aa3a82f499e93a7" );
+		}
+		[MenuItem( "Assets/Create/Amplify Shader/Impostors/Runtime/Standard Legacy", false, 85 )]
+		public static void ApplyTemplateImpostorsRuntimeStandardLegacy()
+		{
+			AmplifyShaderEditorWindow.CreateConfirmationTemplateShader( "30a8e337ed84177439ca24b6a5c97cd1" );
+		}
 		[MenuItem( "Assets/Create/Amplify Shader/Legacy/Default Sprites", false, 85 )]
 		public static void ApplyTemplateLegacyDefaultSprites()
 		{

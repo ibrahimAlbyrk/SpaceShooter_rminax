@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using _Project.Scripts.Game.Mod.ShrinkingArea;
 using _Project.Scripts.PostProcess;
 using _Project.Scripts.Utilities;
+using TMPro;
 using Random = UnityEngine.Random;
 
 namespace _Project.Scripts.Spaceship
@@ -43,6 +44,9 @@ namespace _Project.Scripts.Spaceship
         [field: SerializeField] public SpaceshipShooter Shooter { get; private set; }
 
         [field: SerializeField] public Health Health { get; private set; }
+
+        [SerializeField] private GameObject _usernameCanvas;
+        [SerializeField] private TMP_Text _usernameText;
 
         [SerializeField] private GameObject _particleFollow;
         [SerializeField] private GameObject _explosionParticle;
@@ -147,15 +151,31 @@ namespace _Project.Scripts.Spaceship
 
         public bool IsInitialized;
 
+        [SyncVar(hook = nameof(OnChangedUsername))]
         public string Username;
 
+        private void OnChangedUsername(string _, string newValue)
+        {
+            _usernameText.text = newValue;
+        }
+
+        [Command]
+        private void CMD_SetUsername(string userName)
+        {
+            Username = userName;
+        }
+        
         public override void OnStartClient()
         {
             Init();
 
             if (!isOwned) return;
 
-            Username = $"Username_{Random.Range(0, 1000)}";
+            var username = PlayerPrefs.HasKey("username") ? PlayerPrefs.GetString("username") : "Undefined";
+            
+            CMD_SetUsername(username);
+            
+            _usernameCanvas.SetActive(false);
 
             if (LeaderboardManager.Instance != null)
                 LeaderboardManager.Instance.CMD_AddPlayer(Username);
@@ -207,7 +227,7 @@ namespace _Project.Scripts.Spaceship
 
             if (!isOwned) return;
 
-            Health.OnDeath += OnDeath;
+            //Health.OnDeath += CMD_OnDeath;
 
             if (m_camera.normalCursor != null)
             {
@@ -219,23 +239,21 @@ namespace _Project.Scripts.Spaceship
             IsInitialized = true;
         }
 
-        Coroutine shooting = null;
+        private Coroutine shooting = null;
         private bool isShooting = false;
 
-        Coroutine firing = null;
+        private Coroutine firing = null;
         private bool isFiring = false;
 
-        Transform rocket_target;
+        private Transform rocket_target;
 
         //global bullet barrel variable
-        int b = 0;
+        private int b = 0;
 
         private float _fireDelayTimer;
-
-        private void OnDeath(object sender, DeathEventArgs args)
+        
+        public void RPC_OnDeath()
         {
-            if (args.ConnectionToClient != connectionToClient) return;
-
             StartCoroutine(OnDeathCoroutine());
         }
 
@@ -261,14 +279,14 @@ namespace _Project.Scripts.Spaceship
             
             ResetFuel();
             
-            SpawnSystem.SpawnPlayer();
+            yield return new WaitForSeconds(.2f);
+            
+            SpawnSystem?.CMD_SpawnPlayer();
         }
 
         [ClientRpc]
         private void SetShipActiveState(bool state)
         {
-            _particleFollow.SetActive(state);
-            
             transform.GetChild(0).gameObject.SetActive(state);
         }
 
@@ -500,10 +518,10 @@ namespace _Project.Scripts.Spaceship
 
             if (!Health.IsDead)
             {
-                if (Input.GetAxis("Stop") == 0f)
+                if (Input.GetAxis("Stop") == 0f && Input.GetKey(KeyCode.W))
                 {
                     CachedTransform.localPosition += CachedTransform.forward * (CurrentSpeed * Time.deltaTime);
-                }   
+                }
             }
 
             //left right

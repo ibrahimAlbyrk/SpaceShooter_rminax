@@ -132,7 +132,7 @@ namespace _Project.Scripts.Features
             //check if expired
             foreach (var (feature, endTime) in _features)
             {
-                if (Time.time < endTime) return;
+                if (Time.time < endTime) continue;
                 
                 endedFeatures.Add(feature);
             }
@@ -145,7 +145,7 @@ namespace _Project.Scripts.Features
 
             //Check Colliders and do action
             var colls = Physics.OverlapSphere(transform.position, _featureDetectionRange, _detectionLayer);
-
+            
             foreach (var coll in colls)
             {
                 if (_collisions.Contains(coll)) continue;

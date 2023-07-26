@@ -6,12 +6,13 @@ namespace _Project.Scripts.Spaceship
 {
     public class Health : NetworkBehaviour
     {
-        public event EventHandler<DeathEventArgs> OnDeath;
-        public event EventHandler<HealthChangedEventArgs> OnHealthChanged;
+        public event Action<float, float> OnHealthChanged;
 
         [SerializeField] private float _maxHealth = 100;
 
-        public bool isDamageable = true;
+        [SyncVar] public bool isDamageable = true;
+
+        private SpaceshipController _controller;
 
         public float GetHealth() => _currentHealth;
         
@@ -24,11 +25,7 @@ namespace _Project.Scripts.Spaceship
 
         private void OnHealthUpdated(float _, float __)
         {
-            OnHealthChanged?.Invoke(this, new HealthChangedEventArgs
-            {
-                Health = _currentHealth,
-                MaxHealth = _maxHealth
-            });
+            OnHealthChanged?.Invoke(_currentHealth, _maxHealth);
         }
 
         #endregion
@@ -42,6 +39,9 @@ namespace _Project.Scripts.Spaceship
 
         #endregion
 
+        [Command(requiresAuthority = false)]
+        public void SetDamageable(bool state) => isDamageable = state;
+        
         [Command(requiresAuthority = false)]
         public void Reset()
         {
@@ -67,16 +67,12 @@ namespace _Project.Scripts.Spaceship
 
             if (_currentHealth > 0) return;
             
-            OnDeath?.Invoke(this, new DeathEventArgs { ConnectionToClient = connectionToClient });
+            _controller.RPC_OnDeath();
         }
 
         #region Base methods
 
-        [Client]
-        private void OnDestroy()
-        {
-            OnDeath?.Invoke(this, new DeathEventArgs { ConnectionToClient = connectionToClient });
-        }
+        private void Awake() => _controller = GetComponent<SpaceshipController>();
 
         #endregion
     }

@@ -87,17 +87,23 @@ MonoBehaviour:
     _mapGeneratorData: {fileID: 11400000, guid: a40daf6fa3dae6f4fbfbd16c0d362cf7,
       type: 2}
     _contentNames:
+    - Environment
     - Meteor
     - FuelStation
     - AI
     - Feature
     _iteratorInterval: 30
+    _iteratorTimer: 0
   _shrinkingAreaMod:
     _mapGeneratorData: {fileID: 11400000, guid: b505c12f4f99d224d9847b0dae3d9b6f,
       type: 2}
     _contentNames:
+    - Environment
     - Meteor
     - FuelStation
     - AI
     - Feature
     _iteratorInterval: 15
+    _iteratorTimer: 0
+    _shrinkingAreaSystem: {fileID: 2300649255512792729, guid: f95e39f01bb72b142897581fe459d219,
+      type: 3}

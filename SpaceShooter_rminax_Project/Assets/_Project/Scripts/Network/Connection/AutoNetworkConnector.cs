@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Mirror;
+using UnityEngine;
 
 namespace _Project.Scripts.Network.Connection
 {
@@ -26,9 +27,15 @@ namespace _Project.Scripts.Network.Connection
         private void Start()
         {
             OpenConnectionPanel();
+
+            if (NetworkServer.active)
+            {
+                CloseConnectionPanel();
+                return;
+            }
             
             SpaceNetworkManager.OnClientConnected += CloseConnectionPanel;
-
+            
             if (isHost)
             {
                 SpaceNetworkManager.singleton.networkAddress = isLocal ? "localhost" : networkAddress;

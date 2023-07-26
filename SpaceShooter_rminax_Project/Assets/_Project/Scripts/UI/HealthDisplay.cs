@@ -25,6 +25,8 @@ namespace _Project.Scripts.UI
 
         private Coroutine _showCor;
 
+        private Camera _cam;
+        
         private void Awake()
         {
             _health.OnHealthChanged += OnHealthUpdated;
@@ -34,8 +36,8 @@ namespace _Project.Scripts.UI
         private void Update()
         {
             var cam = Camera.current;
-            
-            if (cam == null) return;
+
+            if (_cam == null) return;
             
             transform.position = targetTransform.position + cam.transform.up * _height;
         }
@@ -45,11 +47,11 @@ namespace _Project.Scripts.UI
             _health.OnHealthChanged -= OnHealthUpdated;
         }
 
-        private void OnHealthUpdated(object sender,HealthChangedEventArgs args)
+        private void OnHealthUpdated(float health, float maxHealth)
         {
             if (_identity.isOwned) return;
             
-            _healthBarImage.fillAmount = args.Health / args.MaxHealth;
+            _healthBarImage.fillAmount = health / maxHealth;
             
             if(_showCor != null)
                 StopCoroutine(_showCor);

@@ -1,10 +1,13 @@
-﻿using Mirror;
+﻿using System;
+using Mirror;
 using System.Linq;
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using _Project.Scripts.Utilities;
+using Random = UnityEngine.Random;
 
 namespace _Project.Scripts.AI
 {
@@ -60,6 +63,8 @@ namespace _Project.Scripts.AI
         
         private float prevturn;
 
+        private CancellationTokenSource _destroyCancellationTokenSource;
+
         #endregion
 
         #region Base Methods
@@ -92,6 +97,11 @@ namespace _Project.Scripts.AI
             else Go();
         }
 
+        private void OnDestroy()
+        {
+            _destroyCancellationTokenSource?.Cancel();
+        }
+        
         #endregion
 
         #region Threat Methods
@@ -190,9 +200,17 @@ namespace _Project.Scripts.AI
 
             NetworkServer.Spawn(bulletObj);
 
-            await Task.Delay(100);
-
-            if (gameObject == null) return;
+            _destroyCancellationTokenSource = new CancellationTokenSource();
+            
+            try
+            {
+                await Task.Delay(100, _destroyCancellationTokenSource.Token);
+            }
+            catch (TaskCanceledException)
+            {
+                // GameObject has been destroyed, so we stop here
+                return;
+            }
 
             RPC_SetBulletSettings(gameObject, bulletObj, _bulletLifeTime, _bulletSpeed);
         }
@@ -204,6 +222,8 @@ namespace _Project.Scripts.AI
         [ClientRpc]
         private void RPC_SetBulletSettings(GameObject owner, GameObject bulletObj, float bulletLifeTime, float bulletSpeed)
         {
+            if (owner == null || bulletObj == null) return;
+            
             bulletObj.GetComponent<BulletScript>().Init(owner, isEnemy: true, bulletLifeTime, bulletSpeed);
         }
 

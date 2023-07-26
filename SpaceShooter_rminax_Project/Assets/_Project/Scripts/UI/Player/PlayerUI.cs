@@ -19,9 +19,9 @@ namespace _Project.Scripts.UI.Player
             _health.OnHealthChanged += HealthOnOnHealthChanged;
         }
 
-        private void HealthOnOnHealthChanged(object sender, HealthChangedEventArgs args)
+        private void HealthOnOnHealthChanged(float health, float maxHealth)
         {
-            _healthText.text = $"{args.Health}";
+            _healthText.text = $"{health}";
         }
     }
 }

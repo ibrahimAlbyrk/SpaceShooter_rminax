@@ -14,8 +14,6 @@ namespace _Project.Scripts.Spaceship
 
         private SpaceshipController _controller;
 
-        private bool _isFiring;
-
         [Client]
         private void Start()
         {
@@ -27,33 +25,18 @@ namespace _Project.Scripts.Spaceship
         [Client]
         private void Update()
         {
-            if (_controller.Health.IsDead) return;
-
-            if (!_controller.IsRunningMotor || !_controller.IsEnableControl) return;
-
-            _isFiring = Input.GetMouseButton(0);
-        }
-
-        [Client]
-        private void FixedUpdate()
-        {
             if (!isOwned) return;
-            if (!_isFiring) return;
-
+            
             if (_controller.Health.IsDead) return;
 
             if (!_controller.IsRunningMotor || !_controller.IsEnableControl) return;
 
-            var delay = m_shooting.bulletSettings.BulletFireDelay;
-            if (_fireDelayTimer >= delay)
+            if (Input.GetMouseButtonDown(0))
             {
-                _fireDelayTimer = 0f;
                 var mousePos = ScreenMousePosition();
-
+                
                 CMD_BulletShooting(gameObject, mousePos);
             }
-            else
-                _fireDelayTimer += Time.fixedDeltaTime;
         }
 
         [Client]

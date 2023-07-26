@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 23399255014103114}
   - component: {fileID: 114935572791615382}
   - component: {fileID: 64071256278059268}
-  - component: {fileID: 114861895493717230}
   - component: {fileID: -3382793630664236602}
   m_Layer: 3
   m_Name: Asteroid_clump_1
@@ -134,22 +133,6 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 4300000, guid: f8eac46a6de49aa439fac116d9d86d8d, type: 3}
---- !u!114 &114861895493717230
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1105936014474974}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b699ddd1f7defa440946cd6feb5ce44e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  spaceshipPushDistance: 125
-  projectilePushDistance: 35
-  pushSpeedMod: 1.05
-  physics: 0
 --- !u!114 &-3382793630664236602
 MonoBehaviour:
   m_ObjectHideFlags: 0

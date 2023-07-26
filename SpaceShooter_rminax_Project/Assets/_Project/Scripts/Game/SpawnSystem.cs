@@ -1,4 +1,7 @@
-﻿namespace _Project.Scripts.Game
+﻿using Mirror;
+using UnityEngine;
+
+namespace _Project.Scripts.Game
 {
     using Network;
     
@@ -8,21 +11,28 @@
         {
             if (!isOwned) return;
             
-            SpawnPlayer();
+            //CMD_SpawnPlayer();
         }
-
-        public void SpawnPlayer()
+        
+        [Command(requiresAuthority = false)]
+        public void CMD_SpawnPlayer()
         {
-            var playerTransform = transform;
-
             var spawnRange = GameManager.Instance.GetData().GameAreaRadius;
 
             var spawnPosition = SpawnUtilities.GetSpawnPosition(spawnRange);
 
             var spawnRotation = SpawnUtilities.GetSpawnRotation();
+            
+            RPC_SpawnPlayer(spawnPosition, spawnRotation);
+        }
 
-            playerTransform.position = spawnPosition;
-            playerTransform.rotation = spawnRotation;
+        [TargetRpc]
+        private void RPC_SpawnPlayer(Vector3 pos, Quaternion rot)
+        {
+            var playerTransform = transform;
+
+            playerTransform.position = pos;
+            playerTransform.rotation = rot;
         }
     }
 }

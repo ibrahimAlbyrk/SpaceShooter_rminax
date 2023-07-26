@@ -1,4 +1,5 @@
-﻿using Mirror;
+﻿using GPUInstancer;
+using Mirror;
 using UnityEngine;
 
 namespace _Project.Scripts.Game
