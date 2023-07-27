@@ -2,13 +2,27 @@
 
 namespace _Project.Scripts.Network.Managers.Room
 {
-    public struct RoomMessage : NetworkMessage
+    [System.Serializable]
+    public struct ServerRoomMessage : NetworkMessage
     {
-        public readonly RoomState RoomState;
+        public readonly ServerRoomState ServerRoomState;
+        public readonly RoomInfo RoomInfo;
 
-        public RoomMessage(RoomState roomState)
+        public ServerRoomMessage(ServerRoomState serverRoomState, RoomInfo roomInfo)
         {
-            RoomState = roomState;
+            ServerRoomState = serverRoomState;
+            RoomInfo = roomInfo;
+        }
+    }
+    
+    [System.Serializable]
+    public struct ClientRoomMessage : NetworkMessage
+    {
+        public readonly ClientRoomState ClientRoomState;
+
+        public ClientRoomMessage(ClientRoomState clientRoomState)
+        {
+            ClientRoomState = clientRoomState;
         }
     }
 }

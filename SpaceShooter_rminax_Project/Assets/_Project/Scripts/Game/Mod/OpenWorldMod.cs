@@ -3,6 +3,7 @@ using UnityEngine;
 using System.Linq;
 using System.Collections.Generic;
 using GPUInstancer;
+using UnityEngine.SceneManagement;
 
 namespace _Project.Scripts.Game.Mod
 {
@@ -409,6 +410,7 @@ namespace _Project.Scripts.Game.Mod
             Quaternion rotation = default)
         {
             var instant_obj = Object.Instantiate(obj, position, rotation, content);
+            Debug.Log(instant_obj != null ? instant_obj.scene.name : "not scene");
             NetworkServer.Spawn(instant_obj);
 
             return instant_obj;

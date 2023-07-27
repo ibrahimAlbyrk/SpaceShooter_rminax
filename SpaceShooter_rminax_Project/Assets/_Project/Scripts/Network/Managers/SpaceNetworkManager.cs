@@ -1,6 +1,7 @@
 ﻿using Mirror;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using _Project.Scripts.Network.Managers.Room;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -66,32 +67,32 @@ namespace _Project.Scripts.Network.Managers
             OnServerDisconnected?.Invoke();
         }
 
-        public override void ServerChangeScene(string newSceneName)
-        {
-            //If from the hubScene to the gameScene
-            if (SceneManager.GetActiveScene().name == _hubScene && newSceneName.Equals(_gameScene))
-            {
-                //Change lobby players to game players
-                foreach (var conn in NetworkServer.connections.Values)
-                {
-                    var newPlayer = ReplaceGamePlayer(conn);
-                    newPlayer.name = $"{_gamePlayerPrefab.name} [connId={conn.connectionId}]";
-                }
-            }
-            
-            //If from the gameScene to the hubScene
-            if (SceneManager.GetActiveScene().name == _gameScene && newSceneName.Equals(_hubScene))
-            {
-                //Change lobby players to game players
-                foreach (var conn in NetworkServer.connections.Values)
-                {
-                    var newPlayer = ReplaceLobbyPlayer(conn);
-                    newPlayer.name = $"{_lobbyPlayerPrefab.name} [connId={conn.connectionId}]";
-                }
-            }
-
-            base.ServerChangeScene(newSceneName);
-        }
+        // public override void ServerChangeScene(string newSceneName)
+        // {
+        //     //If from the hubScene to the gameScene
+        //     if (SceneManager.GetActiveScene().name == _hubScene && newSceneName.Equals(_gameScene))
+        //     {
+        //         //Change lobby players to game players
+        //         foreach (var conn in NetworkServer.connections.Values)
+        //         {
+        //             var newPlayer = ReplaceGamePlayer(conn);
+        //             newPlayer.name = $"{_gamePlayerPrefab.name} [connId={conn.connectionId}]";
+        //         }
+        //     }
+        //     
+        //     //If from the gameScene to the hubScene
+        //     if (SceneManager.GetActiveScene().name == _gameScene && newSceneName.Equals(_hubScene))
+        //     {
+        //         //Change lobby players to game players
+        //         foreach (var conn in NetworkServer.connections.Values)
+        //         {
+        //             var newPlayer = ReplaceLobbyPlayer(conn);
+        //             newPlayer.name = $"{_lobbyPlayerPrefab.name} [connId={conn.connectionId}]";
+        //         }
+        //     }
+        //
+        //     base.ServerChangeScene(newSceneName);
+        // }
 
         public override void OnServerAddPlayer(NetworkConnectionToClient conn)
         {
@@ -125,6 +126,17 @@ namespace _Project.Scripts.Network.Managers
 
         #endregion
 
+        [ServerCallback]
+        private void OnClientJoinedRoom(NetworkConnectionToClient conn)
+        {
+            var newPlayer = ReplaceGamePlayer(conn);
+            newPlayer.name = $"{_gamePlayerPrefab.name} [connId={conn.connectionId}]";
+
+            var playersRoom = SpaceRoomManager.Instance.GetPlayersRoom(conn);
+            
+            SceneManager.MoveGameObjectToScene(newPlayer, playersRoom.Scene);
+        }
+        
         #region Start & Stop Callbacks
 
         public override void OnStartServer()
@@ -132,10 +144,14 @@ namespace _Project.Scripts.Network.Managers
             spawnPrefabs.Clear();
             
             spawnPrefabs = Resources.LoadAll<GameObject>("SpawnablePrefabs").ToList();
-
-            var roomInfo = new RoomInfo("testServerRoom", "testScene", 100);
             
-            SpaceRoomManager.Instance.CreateRoom(roomInfo);
+            SpaceRoomManager.OnStartedServer();
+            
+            var roomInfo = new RoomInfo("OpenWorld", "OpenWorld_Scene", 50);
+            
+            SpaceRoomManager.CreateRoom(roomInfo);
+
+            SpaceRoomManager.OnClientJoinedRoom += OnClientJoinedRoom;
         }
 
         public override void OnStartClient()
@@ -149,6 +165,8 @@ namespace _Project.Scripts.Network.Managers
             {
                 NetworkClient.RegisterPrefab(spawnablePrefab);
             }
+            
+            SpaceRoomManager.OnStartedClient();
         }
 
         public override void OnStopServer()

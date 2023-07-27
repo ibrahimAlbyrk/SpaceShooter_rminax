@@ -47,7 +47,7 @@ namespace _Project.Scripts.Spaceship
             _isEnemy = isEnemy;
         }
         
-        [Client]
+        [ClientCallback]
         private void Update()
         {
             if (!_init) return;

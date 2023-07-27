@@ -4,8 +4,6 @@ using UnityEngine;
 
 namespace _Project.Scripts.Network
 {
-    using Managers.Room;
-    
     [RequireComponent(typeof(NetworkMatch))]
     public class LobbyPlayer : NetIdentity
     {

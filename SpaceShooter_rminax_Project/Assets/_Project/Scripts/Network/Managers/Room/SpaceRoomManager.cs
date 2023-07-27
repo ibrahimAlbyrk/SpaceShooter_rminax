@@ -1,151 +1,191 @@
-﻿using Mirror;
-using UnityEngine;
+﻿using System;
+using System.Collections;
+using Mirror;
 using System.Linq;
 using System.Collections.Generic;
+using _Project.Scripts.Scene;
+using UnityEngine;
 
 namespace _Project.Scripts.Network.Managers.Room
 {
     public class SpaceRoomManager : NetIdentity
     {
-        public static SpaceRoomManager Instance;
+        public static event Action<NetworkConnectionToClient> OnClientJoinedRoom; 
         
-        [SerializeField] private List<Room> _rooms = new();
+        public static SpaceRoomManager Instance;
 
-        #region Command Methods
+        private static readonly List<Room> _rooms = new();
 
-        [Command(requiresAuthority = false)]
-        public void CreateRoomRequest(NetworkConnectionToClient conn, RoomInfo roomInfo) => CreateRoom(conn, roomInfo);
+        public Room GetPlayersRoom(NetworkConnection conn)
+        {
+            return _rooms.FirstOrDefault(room => room._connections.Any(connection => connection == conn));
+        }
 
-        [Command(requiresAuthority = false)]
-        public void JoinRoomRequest(NetworkConnectionToClient conn, string roomName) => JoinRoom(conn, roomName);
+        #region Request Methods
 
-        [Command(requiresAuthority = false)]
-        public void ExitRoomRequest(NetworkConnectionToClient conn) => ExitRoom(conn);
+        [ClientCallback]
+        public static void RequestCreateRoom(RoomInfo roomInfo)
+        {
+            var serverRoomMessage = new ServerRoomMessage(ServerRoomState.Create, roomInfo);
+
+            NetworkClient.Send(serverRoomMessage);
+        }
+
+        [ClientCallback]
+        public void RequestJoinRoom(string roomName)
+        {
+            var roomInfo = new RoomInfo { Name = roomName };
+
+            var serverRoomMessage = new ServerRoomMessage(ServerRoomState.Join, roomInfo);
+
+            NetworkClient.Send(serverRoomMessage);
+        }
+
+        [ClientCallback]
+        public static void RequestExitRoom()
+        {
+            var serverRoomMessage = new ServerRoomMessage(ServerRoomState.Exit, default);
+
+            NetworkClient.Send(serverRoomMessage);
+        }
 
         #endregion
 
-        #region Server Methods
+        #region Room Methods
 
-        [Server]
-        public bool CreateRoom(RoomInfo roomInfo) => CreateRoom(null, roomInfo);
+        [ServerCallback]
+        public static void CreateRoom(RoomInfo roomInfo) => CreateRoom(null, roomInfo);
 
-        [Server]
-        public bool CreateRoom(NetworkConnection conn, RoomInfo roomInfo = default)
+        [ServerCallback]
+        public static void CreateRoom(NetworkConnection conn, RoomInfo roomInfo = default)
         {
             var roomName = roomInfo.Name;
             var sceneName = roomInfo.SceneName;
             var maxPlayers = roomInfo.MaxPlayers;
 
-            if (_rooms.Any(room => room.RoomName == roomName)) return false;
+            if (_rooms.Any(room => room.RoomName == roomName)) return;
 
             var onServer = conn is null;
-            
+
             var room = new Room(roomName, sceneName, maxPlayers, onServer);
-            
+
             //If it is a client, add in to the room
             if (!onServer)
             {
                 room.AddConnection(conn);
-                
-                SendRoomMessage(conn, RoomState.Created);
+
+                SendRoomMessage(conn, ClientRoomState.Created);
             }
             
             _rooms.Add(room);
-
-            return true;
+            
+            SceneManager.Instance.LoadAdditiveScene("OpenWorld_Scene").OnCompleted(scene =>
+            {
+                room.Scene = scene;
+            });
         }
 
-        [Server]
-        public bool RemoveRoom(string roomName)
+        [ServerCallback]
+        public static void RemoveRoom(string roomName)
         {
             var room = _rooms.FirstOrDefault(room => room.RoomName == roomName);
 
-            if (room == null) return false;
+            if (room == null) return;
 
             var removedConnections = room.RemoveAllConnections();
-            
+
             _rooms.Remove(room);
+
+            var roomScene = room.Scene;
             
-            removedConnections.ForEach(connection => SendRoomMessage(connection, RoomState.Removed));
-            
-            return true;
+            SceneManager.Instance.UnLoadScene(roomScene);
+
+            removedConnections.ForEach(connection => SendRoomMessage(connection, ClientRoomState.Removed));
         }
 
-        [Server]
-        public bool JoinRoom(NetworkConnection conn, string roomName)
+        [ServerCallback]
+        public static void JoinRoom(NetworkConnectionToClient conn, string roomName)
         {
             var room = _rooms.FirstOrDefault(r => r.RoomName == roomName);
 
-            if (room == null) return false; // Handle room not found.
-            
-            if (room.MaxPlayers <= room.CurrentPlayers)
+            if (room == null) // Handle room not found.
             {
-                // Handle room is full.
-                
-                SendRoomMessage(conn, RoomState.Fail);
-                
-                return false;
+                SendRoomMessage(conn, ClientRoomState.Fail);
+                return;
+            }
+
+            if (room.MaxPlayers <= room.CurrentPlayers) // Handle room is full.
+            {
+                SendRoomMessage(conn, ClientRoomState.Fail);
+                return;
             }
 
             room.AddConnection(conn);
 
-            SendRoomMessage(conn, RoomState.Joined);
-
-            return true;
+            OnClientJoinedRoom?.Invoke(conn);
+            
+            SendRoomMessage(conn, ClientRoomState.Joined);
         }
 
-        [Server]
-        public bool ExitRoom(NetworkConnection conn)
+        [ServerCallback]
+        public static void ExitRoom(NetworkConnection conn)
         {
             if (!_rooms.Any(room => room.RemoveConnection(conn)))
             {
                 // Handle exit failed (user not in any room).
-                return false;
+                return;
             }
-            
-            var roomMessage = new RoomMessage(RoomState.Exited);
-            
-            conn.Send(roomMessage);
 
-            return true;
+            var roomMessage = new ClientRoomMessage(ClientRoomState.Exited);
+
+            conn.Send(roomMessage);
         }
 
         #endregion
 
         #region Recieve Message Methods
 
-        private void OnReceivedRoomMessageViaServer(NetworkConnection conn, RoomMessage msg)
+        [ServerCallback]
+        private static void OnReceivedRoomMessageViaServer(NetworkConnectionToClient conn, ServerRoomMessage msg)
         {
-            switch (msg.RoomState)
+            switch (msg.ServerRoomState)
             {
-                case RoomState.Created:
+                case ServerRoomState.Create:
+                    print("Create room, <color=green>server</color>");
+                    CreateRoom(conn, msg.RoomInfo);
                     break;
-                case RoomState.Joined:
+                case ServerRoomState.Join:
+                    print("Join room, <color=green>server</color>");
+                    JoinRoom(conn, msg.RoomInfo.Name);
                     break;
-                case RoomState.Removed:
-                    break;
-                case RoomState.Exited:
-                    break;
-                case RoomState.Fail:
+                case ServerRoomState.Exit:
+                    print("Exit room, <color=green>server</color>");
+                    ExitRoom(conn);
                     break;
                 default:
                     return;
             }
         }
-        
-        private void OnReceivedRoomMessageViaClient(RoomMessage msg)
+
+        [ClientCallback]
+        private static void OnReceivedRoomMessageViaClient(ClientRoomMessage msg)
         {
-            switch (msg.RoomState)
+            switch (msg.ClientRoomState)
             {
-                case RoomState.Created:
+                case ClientRoomState.Created:
+                    print("Created room, <color=green>client</color>");
                     break;
-                case RoomState.Joined:
+                case ClientRoomState.Joined:
+                    print("Joined room, <color=green>client</color>");
                     break;
-                case RoomState.Removed:
+                case ClientRoomState.Removed:
+                    print("Removed room, <color=green>client</color>");
                     break;
-                case RoomState.Exited:
+                case ClientRoomState.Exited:
+                    print("Exited room, <color=green>client</color>");
                     break;
-                case RoomState.Fail:
+                case ClientRoomState.Fail:
+                    print("Failed room, <color=green>client</color>");
                     break;
                 default:
                     return;
@@ -154,16 +194,18 @@ namespace _Project.Scripts.Network.Managers.Room
 
         #endregion
 
-        #region Override Methods
-
-        public override void OnStartServer()
+        #region Base Server Methods
+        
+        [ServerCallback]
+        internal static void OnStartedServer()
         {
-            NetworkServer.RegisterHandler<RoomMessage>(OnReceivedRoomMessageViaServer);
+            NetworkServer.RegisterHandler<ServerRoomMessage>(OnReceivedRoomMessageViaServer);
         }
-
-        public override void OnStartClient()
+        
+        [ClientCallback]
+        internal static void OnStartedClient()
         {
-            NetworkClient.RegisterHandler<RoomMessage>(OnReceivedRoomMessageViaClient);
+            NetworkClient.RegisterHandler<ClientRoomMessage>(OnReceivedRoomMessageViaClient);
         }
 
         #endregion
@@ -186,10 +228,11 @@ namespace _Project.Scripts.Network.Managers.Room
 
         #region Utilities
 
-        private void SendRoomMessage(NetworkConnection conn, RoomState state)
+        [ServerCallback]
+        private static void SendRoomMessage(NetworkConnection conn, ClientRoomState state)
         {
-            var roomMessage = new RoomMessage(state);
-                
+            var roomMessage = new ClientRoomMessage(state);
+
             conn.Send(roomMessage);
         }
 

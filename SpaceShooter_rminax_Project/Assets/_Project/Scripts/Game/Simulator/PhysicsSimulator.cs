@@ -1,16 +1,17 @@
-﻿using UnityEngine;
+﻿using Mirror;
+using UnityEngine;
 
-namespace Mirror.Examples.MultipleAdditiveScenes
+namespace _Project.Scripts.Game.Simulator
 {
     public class PhysicsSimulator : MonoBehaviour
     {
-        PhysicsScene physicsScene;
-        PhysicsScene2D physicsScene2D;
+        private PhysicsScene physicsScene;
+        private PhysicsScene2D physicsScene2D;
 
-        bool simulatePhysicsScene;
-        bool simulatePhysicsScene2D;
+        private bool simulatePhysicsScene;
+        private bool simulatePhysicsScene2D;
 
-        void Awake()
+        private void Awake()
         {
             if (NetworkServer.active)
             {
@@ -25,9 +26,8 @@ namespace Mirror.Examples.MultipleAdditiveScenes
                 enabled = false;
             }
         }
-
-        [ServerCallback]
-        void FixedUpdate()
+        
+        private void FixedUpdate()
         {
             if (simulatePhysicsScene)
                 physicsScene.Simulate(Time.fixedDeltaTime);

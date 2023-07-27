@@ -1,4 +1,5 @@
-﻿using Mirror;
+﻿using _Project.Scripts.Network.Managers.Room;
+using Mirror;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -20,7 +21,9 @@ namespace _Project.Scripts.UI
         [Command(requiresAuthority = false)]
         private void ConnectOpenWorld()
         {
-            SpaceNetworkManager.singleton.ConnectOpenWorld();
+            //SpaceNetworkManager.singleton.ConnectOpenWorld();
+            
+            SpaceRoomManager.Instance.RequestJoinRoom("OpenWorld");
         }
 
         private void OnUsernameFieldChanged(string value)

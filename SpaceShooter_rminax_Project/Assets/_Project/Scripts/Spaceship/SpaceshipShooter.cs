@@ -1,7 +1,9 @@
-﻿using Mirror;
+﻿using _Project.Scripts.Network.Managers.Room;
+using Mirror;
 using MoreMountains.Feedbacks;
 using Sirenix.Utilities;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace _Project.Scripts.Spaceship
 {
@@ -73,6 +75,8 @@ namespace _Project.Scripts.Spaceship
                     var bullet = Instantiate(m_shooting.bulletSettings.Bullet,
                         barrelTransform.position + barrelTransform.forward * (x * 50),
                         Quaternion.LookRotation(transform.forward, transform.up));
+
+                    SceneManager.MoveGameObjectToScene(bullet, gameObject.scene);
 
                     NetworkServer.Spawn(bullet, gameObject);
 

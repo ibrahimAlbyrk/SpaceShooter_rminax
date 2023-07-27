@@ -11,6 +11,8 @@ namespace _Project.Scripts.Network.Managers.Room
         
         public string RoomName;
         public string SceneName;
+
+        public UnityEngine.SceneManagement.Scene Scene;
         
         public int MaxPlayers;
         public int CurrentPlayers;
@@ -42,7 +44,7 @@ namespace _Project.Scripts.Network.Managers.Room
         {
             var connections = _connections.ToList();
             
-            _connections.ForEach(connection => RemoveConnection(connection));
+            connections.ForEach(connection => RemoveConnection(connection));
 
             return connections;
         }
