@@ -17,10 +17,6 @@ namespace _Project.Scripts.Spaceship
 
         public ParticleSystem Trail;
 
-        //float Damage;
-
-        //float lifetime;
-
         private bool _isHit;
         private bool _isMove = true;
 
@@ -33,18 +29,22 @@ namespace _Project.Scripts.Spaceship
         private float _bulletLifeTime;
         private float _bulletSpeed;
 
+        private PhysicsScene _physicsScene;
+
         public void Init(GameObject owner, bool isEnemy = false, float bulletLifeTime = 3f, float bulletSpeed = 100f)
         {
             _owner = owner;
 
             _bulletLifeTime = bulletLifeTime;
             _bulletSpeed = bulletSpeed;
-            
+
             Invoke(nameof(CMD_Lifetime), _bulletLifeTime);
 
             _init = true;
 
             _isEnemy = isEnemy;
+
+            _physicsScene = gameObject.scene.GetPhysicsScene();
         }
         
         [ClientCallback]
@@ -55,15 +55,19 @@ namespace _Project.Scripts.Spaceship
 
             transform.position += transform.forward * (_bulletSpeed * Time.fixedDeltaTime);
 
-            var colls = Physics.OverlapBox(transform.position, transform.localScale, transform.rotation,
+            var detectedColls = new Collider[3];
+
+            var detectCount = _physicsScene.OverlapBox(transform.position, transform.localScale, detectedColls, transform.rotation,
                 _obstacleLayer);
 
-            if (colls.Length < 1 || _isHit) return;
-            if (colls.Any(coll => coll.gameObject == _owner)) return;
+            if (detectCount < 1 || _isHit) return;
+            if (detectedColls
+                .Where(coll => coll != null)
+                .Any(coll => coll.gameObject == _owner)) return;
             
             _isHit = true;
 
-            var obstacle = colls.FirstOrDefault()?.gameObject;
+            var obstacle = detectedColls.FirstOrDefault()?.gameObject;
             
             TakeDamageToObstacle(_owner, obstacle);
 
@@ -151,6 +155,8 @@ namespace _Project.Scripts.Spaceship
 
                 Destroy(firework);
             }
+
+            if (gameObject == null) yield break;
 
             NetworkServer.Destroy(gameObject);
         }

@@ -927,7 +927,12 @@ PlayerSettings:
   cloudServicesEnabled:
     Build: 0
     Collab: 1
+    Game Performance: 0
+    Legacy Analytics: 0
+    Purchasing: 0
+    UDP: 0
     UNet: 1
+    Unity Ads: 0
   luminIcon:
     m_Name: 
     m_ModelFolderPath: 
@@ -947,11 +952,11 @@ PlayerSettings:
   apiCompatibilityLevel: 3
   activeInputHandler: 2
   windowsGamepadBackendHint: 0
-  cloudProjectId: 
+  cloudProjectId: fd649886-e50c-40f8-9b6f-44d242c1fce8
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: Space Journey
-  organizationId: 
+  projectName: SpaceShooter
+  organizationId: ibrahimalbayrak812
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 1
   hmiLoadingImage: {fileID: 0}

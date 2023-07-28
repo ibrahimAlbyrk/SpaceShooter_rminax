@@ -13,12 +13,14 @@ namespace _Project.Scripts.Game
         
         [SerializeField] private int maxRanking = 10;
         
-        private List<PlayerScoreData> scoreEntries = new();
+        private static List<PlayerScoreData> scoreEntries = new();
 
         public static LeaderboardManager Instance;
 
         private void Awake()
         {
+            print("test");
+            
             if (Instance == null)
             {
                 Instance = this;
@@ -51,7 +53,7 @@ namespace _Project.Scripts.Game
 
         #region Server methods
 
-        [Server]
+        [ServerCallback]
         private void AddPlayer(string username)
         {
             if (CheckEntry(username)) return;
@@ -63,7 +65,7 @@ namespace _Project.Scripts.Game
             OnLeaderboardUpdated?.Invoke();
         }
         
-        [Server]
+        [ServerCallback]
         private void RemovePlayer(string username)
         {
             if (!CheckEntry(username, out var data)) return;
@@ -75,7 +77,7 @@ namespace _Project.Scripts.Game
             OnLeaderboardUpdated?.Invoke();
         }
 
-        [Server]
+        [ServerCallback]
         private void AddScore(string username, int value)
         {
             if (!CheckEntry(username, out var data)) return;
@@ -92,7 +94,7 @@ namespace _Project.Scripts.Game
             OnLeaderboardUpdated?.Invoke();
         }
 
-        [Server]
+        [ServerCallback]
         private void SetScore(string username, int value)
         {
             if (!CheckEntry(username, out var data)) return;
@@ -109,7 +111,7 @@ namespace _Project.Scripts.Game
             OnLeaderboardUpdated?.Invoke();
         }
 
-        [Server]
+        [ServerCallback]
         private void SubtractScore(string username, int value)
         {
             if (!CheckEntry(username, out var data)) return;

@@ -314,6 +314,14 @@ namespace _Project.Scripts.Spaceship
             if (!isOwned) return;
         }
 
+        private PhysicsScene _physicsScene;
+
+        [ClientCallback]
+        private void Start()
+        {
+            _physicsScene = gameObject.scene.GetPhysicsScene();
+        }
+
         [ClientCallback]
         private void LateUpdate()
         {
@@ -370,7 +378,7 @@ namespace _Project.Scripts.Spaceship
             }
         }
 
-        [Client]
+        [ClientCallback]
         private void FixedUpdate()
         {
             if (!isOwned || !IsInitialized || !IsRunningMotor) return;
@@ -379,7 +387,7 @@ namespace _Project.Scripts.Spaceship
             UpdateOrientationAndPosition();
         }
 
-        [Client]
+        [ClientCallback]
         private void Update()
         {
             if (!isOwned || !IsEnableControl || !IsInitialized || Health.IsDead) return;
@@ -572,9 +580,11 @@ namespace _Project.Scripts.Spaceship
 
         private bool CanMove(Vector3 dir, float distance)
         {
-            DrawUtilities.DrawBoxCastBox(transform.position, new Vector3(3, 1, 3), transform.rotation, dir, distance, Color.cyan);
+            var halfExtents = new Vector3(3, 1, 3);
             
-            return !Physics.BoxCast(transform.position, new Vector3(), dir, transform.rotation, distance,
+            DrawUtilities.DrawBoxCastBox(transform.position, halfExtents, transform.rotation, dir, distance, Color.cyan);
+            
+            return !_physicsScene.BoxCast(transform.position, halfExtents, dir, out _, transform.rotation, distance,
                 _environmentLayer);
         }
 

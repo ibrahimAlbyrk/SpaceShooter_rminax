@@ -182,6 +182,5 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 8
   spaceshipPushDistance: 125
-  projectilePushDistance: 35
   pushSpeedMod: 1.05
   physics: 0

@@ -8,7 +8,7 @@ namespace _Project.Scripts.Scene
 {
     using Network;
 
-    public class SceneManager : NetIdentity
+    public class SceneManager : MonoBehaviour
     {
         public static SceneManager Instance;
 
@@ -22,11 +22,18 @@ namespace _Project.Scripts.Scene
 
         public static event Action<UnityEngine.SceneManagement.Scene> OnSceneLoaded;
         
-        public void LoadScene(string sceneName, LoadSceneMode loadSceneMode = LoadSceneMode.Single)
+        public SceneHandler LoadScene(string sceneName, LoadSceneMode loadSceneMode = LoadSceneMode.Single)
         {
             StartCoroutine(LoadScene_Cor(sceneName, loadSceneMode));
+            return new SceneHandler();
         }
 
+        public SceneHandler LoadAdditiveScene(int sceneIndex)
+        {
+            StartCoroutine(LoadScene_Cor(sceneIndex, LoadSceneMode.Additive));
+            return new SceneHandler();
+        }
+        
         public SceneHandler LoadAdditiveScene(string sceneName)
         {
             StartCoroutine(LoadScene_Cor(sceneName, LoadSceneMode.Additive));
@@ -34,14 +41,31 @@ namespace _Project.Scripts.Scene
             return new SceneHandler();
         }
         
-        public void UnLoadScene(UnityEngine.SceneManagement.Scene scene)
+        public SceneHandler UnLoadScene(UnityEngine.SceneManagement.Scene scene)
         {
             StartCoroutine(UnLoadScene_Cor(scene));
+            return new SceneHandler();
         }
 
-        public void UnLoadScene(int index)
+        public SceneHandler UnLoadScene(int index)
         {
             StartCoroutine(UnLoadScene_Cor(index));
+            return new SceneHandler();
+        }
+        
+        private static IEnumerator LoadScene_Cor(int sceneIndex, LoadSceneMode loadSceneMode)
+        {
+            _sceneCount++;
+            
+            var loadSceneParameters = new LoadSceneParameters(loadSceneMode, LocalPhysicsMode.Physics3D);
+
+            yield return UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(sceneIndex, loadSceneParameters);
+
+            var scene = UnityEngine.SceneManagement.SceneManager.GetSceneAt(_sceneCount);
+
+            _loadedScenes.Add(scene);
+            
+            OnSceneLoaded?.Invoke(scene);
         }
         
         private static IEnumerator LoadScene_Cor(string sceneName, LoadSceneMode loadSceneMode)
@@ -63,10 +87,10 @@ namespace _Project.Scripts.Scene
         {
             yield return UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(scene, UnloadSceneOptions.UnloadAllEmbeddedSceneObjects);
 
-            var unloadedScene = _loadedScenes[_sceneCount];
+            var unloadedScene = _loadedScenes[_sceneCount - 1];
 
             _loadedScenes.Remove(unloadedScene);
-
+            
             _sceneCount--;
         }
         
@@ -74,7 +98,7 @@ namespace _Project.Scripts.Scene
         {
             yield return UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(index, UnloadSceneOptions.UnloadAllEmbeddedSceneObjects);
 
-            var unloadedScene = _loadedScenes[_sceneCount];
+            var unloadedScene = _loadedScenes[_sceneCount - 1];
 
             _loadedScenes.Remove(unloadedScene);
 

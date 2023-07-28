@@ -67,13 +67,13 @@ namespace _Project.Scripts.Player
             CMD_RequestLeaderboard();
         }
         
-        [Client]
+        [ClientCallback]
         private void OnDestroy()
         {
             LeaderboardManager.Instance.OnLeaderboardUpdated -= UpdateLeaderboard;
         }
 
-        [Client]
+        [ClientCallback]
         private void Start()
         {
             CloseLeaderboard();
@@ -81,7 +81,7 @@ namespace _Project.Scripts.Player
             LeaderboardManager.Instance.OnLeaderboardUpdated += UpdateLeaderboard;
         }
 
-        [Client]
+        [ClientCallback]
         private void Update()
         {
             if (!isOwned) return;

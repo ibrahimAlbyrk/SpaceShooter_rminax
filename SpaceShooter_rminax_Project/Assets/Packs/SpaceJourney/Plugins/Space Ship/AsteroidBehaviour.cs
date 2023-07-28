@@ -18,6 +18,8 @@ public class AsteroidBehaviour : NetIdentity
     
     private readonly List<Collider> _collisions = new();
 
+    private PhysicsScene _physicsScene;
+
     private void OnColliderEntered(Collider coll)
     {
         try
@@ -34,15 +36,25 @@ public class AsteroidBehaviour : NetIdentity
     }
 
     [ServerCallback]
+    private void Start()
+    {
+        _physicsScene = gameObject.scene.GetPhysicsScene();
+    }
+    
+    [ServerCallback]
     private void Update()
     {
         if (!isServer) return;
         
         //Check Colliders and do action
-        var colls = Physics.OverlapSphere(transform.position, _detectionRange, _detectionLayer);
+        var colls = new Collider[2];
+        _physicsScene.OverlapSphere(transform.position, _detectionRange, colls, _detectionLayer,
+            QueryTriggerInteraction.UseGlobal);
             
         foreach (var coll in colls)
         {
+            if (coll == null) continue;
+            
             if(coll.gameObject == gameObject) continue;
             
             if (_collisions.Contains(coll)) continue;

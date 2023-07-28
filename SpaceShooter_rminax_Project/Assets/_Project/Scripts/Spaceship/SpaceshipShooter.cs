@@ -20,7 +20,7 @@ namespace _Project.Scripts.Spaceship
 
         private SpaceshipController _controller;
 
-        [Client]
+        [ClientCallback]
         private void Start()
         {
             _fireDelayTimer = m_shooting.bulletSettings.BulletFireDelay;
@@ -28,7 +28,7 @@ namespace _Project.Scripts.Spaceship
             _controller = GetComponent<SpaceshipController>();
         }
 
-        [Client]
+        [ClientCallback]
         private void Update()
         {
             if (!isOwned) return;
@@ -40,14 +40,14 @@ namespace _Project.Scripts.Spaceship
             if (Input.GetMouseButtonDown(0))
             {
                 var mousePos = ScreenMousePosition();
-                
+
                 CMD_BulletShooting(gameObject, mousePos);
 
                 _shakers.ForEach(shaker => shaker?.Play());
             }
         }
 
-        [Client]
+        [ClientCallback]
         private Vector3 ScreenMousePosition()
         {
             if (m_camera.TargetCamera.targetTexture == null)

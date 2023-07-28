@@ -1,6 +1,6 @@
 ﻿using Mirror;
-using System.Collections.Generic;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace _Project.Scripts.Network.Managers.Room
 {
@@ -10,7 +10,6 @@ namespace _Project.Scripts.Network.Managers.Room
         public bool IsServer;
         
         public string RoomName;
-        public string SceneName;
 
         public UnityEngine.SceneManagement.Scene Scene;
         
@@ -19,12 +18,10 @@ namespace _Project.Scripts.Network.Managers.Room
 
         public readonly List<NetworkConnection> _connections;
 
-        public Room(string roomName, string sceneName, int maxPlayers, bool isServer)
+        public Room(string roomName, int maxPlayers, bool isServer)
         {
             IsServer = isServer;
-            
             RoomName = roomName;
-            SceneName = sceneName;
             MaxPlayers = maxPlayers;
             _connections = new List<NetworkConnection>();
         }

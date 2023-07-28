@@ -1,22 +1,23 @@
 ﻿using System;
-using System.Collections;
 using Mirror;
 using System.Linq;
 using System.Collections.Generic;
-using _Project.Scripts.Scene;
-using UnityEngine;
 
 namespace _Project.Scripts.Network.Managers.Room
 {
+    using Scene;
+    
     public class SpaceRoomManager : NetIdentity
     {
         public static event Action<NetworkConnectionToClient> OnClientJoinedRoom; 
         
-        public static SpaceRoomManager Instance;
+        
 
         private static readonly List<Room> _rooms = new();
 
-        public Room GetPlayersRoom(NetworkConnection conn)
+        public List<Room> GetRooms() => _rooms;
+
+        public static Room GetPlayersRoom(NetworkConnection conn)
         {
             return _rooms.FirstOrDefault(room => room._connections.Any(connection => connection == conn));
         }
@@ -32,7 +33,7 @@ namespace _Project.Scripts.Network.Managers.Room
         }
 
         [ClientCallback]
-        public void RequestJoinRoom(string roomName)
+        public static void RequestJoinRoom(string roomName)
         {
             var roomInfo = new RoomInfo { Name = roomName };
 
@@ -60,14 +61,13 @@ namespace _Project.Scripts.Network.Managers.Room
         public static void CreateRoom(NetworkConnection conn, RoomInfo roomInfo = default)
         {
             var roomName = roomInfo.Name;
-            var sceneName = roomInfo.SceneName;
             var maxPlayers = roomInfo.MaxPlayers;
 
             if (_rooms.Any(room => room.RoomName == roomName)) return;
 
             var onServer = conn is null;
 
-            var room = new Room(roomName, sceneName, maxPlayers, onServer);
+            var room = new Room(roomName, maxPlayers,onServer);
 
             //If it is a client, add in to the room
             if (!onServer)
@@ -79,7 +79,7 @@ namespace _Project.Scripts.Network.Managers.Room
             
             _rooms.Add(room);
             
-            SceneManager.Instance.LoadAdditiveScene("OpenWorld_Scene").OnCompleted(scene =>
+            SceneManager.Instance.LoadAdditiveScene(1).OnCompleted(scene =>
             {
                 room.Scene = scene;
             });
@@ -206,22 +206,6 @@ namespace _Project.Scripts.Network.Managers.Room
         internal static void OnStartedClient()
         {
             NetworkClient.RegisterHandler<ClientRoomMessage>(OnReceivedRoomMessageViaClient);
-        }
-
-        #endregion
-
-        #region Base Methods
-
-        private void Awake()
-        {
-            if (Instance != null && Instance != this)
-            {
-                Destroy(gameObject);
-                return;
-            }
-
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
         }
 
         #endregion

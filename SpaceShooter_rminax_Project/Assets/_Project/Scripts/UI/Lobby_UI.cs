@@ -18,12 +18,11 @@ namespace _Project.Scripts.UI
         [Header("Username Settings")]
         [SerializeField] private TMP_InputField usernameField;
         
-        [Command(requiresAuthority = false)]
         private void ConnectOpenWorld()
         {
             //SpaceNetworkManager.singleton.ConnectOpenWorld();
             
-            SpaceRoomManager.Instance.RequestJoinRoom("OpenWorld");
+            SpaceRoomManager.RequestJoinRoom("OpenWorld");
         }
 
         private void OnUsernameFieldChanged(string value)

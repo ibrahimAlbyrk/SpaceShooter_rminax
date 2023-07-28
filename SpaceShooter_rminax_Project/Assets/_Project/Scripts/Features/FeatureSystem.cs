@@ -23,7 +23,10 @@ namespace _Project.Scripts.Features
         private readonly List<Collider> _collisions = new();
 
         private SpaceshipController _thisController;
-        
+
+        private PhysicsScene _physicsScene;
+
+        [ClientCallback]
         private void OnColliderEntered(Collider coll)
         {
             if (!isOwned) return;
@@ -106,7 +109,7 @@ namespace _Project.Scripts.Features
 
         #region Base Methods
 
-        [Client]
+        [ClientCallback]
         private void Start()
         {
             _thisController = GetComponent<SpaceshipController>();
@@ -114,9 +117,11 @@ namespace _Project.Scripts.Features
             if (!isOwned) return;
             
             OnEntered += OnColliderEntered;
+
+            _physicsScene = gameObject.scene.GetPhysicsScene();
         }
 
-        [Client]
+        [ClientCallback]
         private void Update()
         {
             //Run features' update function 
@@ -144,10 +149,13 @@ namespace _Project.Scripts.Features
             }
 
             //Check Colliders and do action
-            var colls = Physics.OverlapSphere(transform.position, _featureDetectionRange, _detectionLayer);
+            var colls = new Collider[2];
+            _physicsScene.OverlapSphere(transform.position, _featureDetectionRange, colls, _detectionLayer, QueryTriggerInteraction.UseGlobal);
             
             foreach (var coll in colls)
             {
+                if(coll == null) continue;
+                
                 if (_collisions.Contains(coll)) continue;
 
                 _collisions.Add(coll);

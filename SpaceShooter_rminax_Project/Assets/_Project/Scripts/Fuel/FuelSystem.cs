@@ -33,17 +33,19 @@ namespace _Project.Scripts.Spaceship
         private bool _onStation;
 
         private SpaceshipController _controller;
+
+        private PhysicsScene _physicsScene;
         
         #region Base Methods
 
-        [Client]
+        [ClientCallback]
         private void OnDestroy()
         {
             OnEntered -= OnColliderEntered;
             OnExited -= OnColliderExited;
         }
 
-        [Client]
+        [ClientCallback]
         private void Start()
         {
             if (!isOwned) return;
@@ -56,9 +58,11 @@ namespace _Project.Scripts.Spaceship
             _currentFuel = _maxFuel;
             
             _barUI.SetValue(_currentFuel, _maxFuel);
+
+            _physicsScene = gameObject.scene.GetPhysicsScene();
         }
 
-        [Client]
+        [ClientCallback]
         private void Update()
         {
             if (!isOwned) return;
@@ -89,10 +93,13 @@ namespace _Project.Scripts.Spaceship
         private void CheckCollision()
         {
             //Check Colliders and do action
-            var colls = Physics.OverlapSphere(transform.position, _stationDetectionRange, _stationLayer);
+            var colls = new Collider[2];
+            _physicsScene.OverlapSphere(transform.position, _stationDetectionRange, colls, _stationLayer, QueryTriggerInteraction.UseGlobal);
 
             foreach (var coll in colls)
             {
+                if (coll == null) return;
+                
                 if (_collisions.Contains(coll)) continue;
 
                 _collisions.Add(coll);
