@@ -67,7 +67,7 @@ namespace _Project.Scripts.Spaceship
 
             if (_currentHealth > 0) return;
             
-            _controller.RPC_OnDeath();
+            _controller.OnDeath();
         }
 
         #region Base methods

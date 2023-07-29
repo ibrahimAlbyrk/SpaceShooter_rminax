@@ -20,11 +20,11 @@ public class AsteroidBehaviour : NetIdentity
 
     private PhysicsScene _physicsScene;
 
-    private void OnColliderEntered(Collider coll)
+    private void OnColliderEntered(Component coll)
     {
         try
         {
-            if ((!running && !physics))
+            if (!running && !physics)
             {
                 StartCoroutine(Moving(coll.transform));
             }
@@ -44,8 +44,6 @@ public class AsteroidBehaviour : NetIdentity
     [ServerCallback]
     private void Update()
     {
-        if (!isServer) return;
-        
         //Check Colliders and do action
         var colls = new Collider[2];
         _physicsScene.OverlapSphere(transform.position, _detectionRange, colls, _detectionLayer,

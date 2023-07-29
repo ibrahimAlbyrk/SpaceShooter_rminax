@@ -3,6 +3,7 @@ using Mirror;
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using _Project.Scripts.Game.Mod.ShrinkingArea;
 using _Project.Scripts.PostProcess;
 using _Project.Scripts.Utilities;
@@ -167,7 +168,7 @@ namespace _Project.Scripts.Spaceship
             Username = userName;
         }
         
-        public override void OnStartClient()
+        public override async void OnStartClient()
         {
             Init();
 
@@ -178,6 +179,8 @@ namespace _Project.Scripts.Spaceship
             CMD_SetUsername(username);
             
             _usernameCanvas.SetActive(false);
+
+            await Task.Delay(200);
 
             if (LeaderboardManager.Instance != null)
                 LeaderboardManager.Instance.CMD_AddPlayer(Username);
@@ -254,7 +257,7 @@ namespace _Project.Scripts.Spaceship
 
         private float _fireDelayTimer;
         
-        public void RPC_OnDeath()
+        public void OnDeath()
         {
             StartCoroutine(OnDeathCoroutine());
         }

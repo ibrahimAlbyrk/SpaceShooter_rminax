@@ -77,8 +77,6 @@ namespace _Project.Scripts.Features
             feature.OnStart(ownedController);
 
             _features.Add(feature, endTime);
-            
-            print($"<color=green>{featureName}</color> added to <color=orange>{ownedController.gameObject.name}</color>");
         }
 
         [ClientRpc]

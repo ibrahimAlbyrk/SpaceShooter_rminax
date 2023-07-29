@@ -1,5 +1,4 @@
-﻿using Unity.Services.Multiplay;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace _Project.Scripts.Network.Connection
 {
@@ -10,6 +9,8 @@ namespace _Project.Scripts.Network.Connection
     {
         private void Start()
         {
+            if (Application.isBatchMode) return;
+            
             FindOnlineServer();
         }
 
@@ -28,17 +29,15 @@ namespace _Project.Scripts.Network.Connection
                     var listServers = JsonUtility.FromJson<ListServers>("{\"ServerList\":" + json + "}");
                     foreach (var server in listServers.ServerList)
                     {
-                        print(server.ip);
                         if (server.status == ServerStatus.ONLINE.ToString() ||
                             server.status == ServerStatus.ALLOCATED.ToString())
                         {
                             //Server is online!
-                            print($"Online server was found: {server.ip}:{server.port}");
                             ConnectToServer(server.ip, (ushort)server.port);
                             return;
                         }
-                        else
-                            CreateAllocationToServer(server);
+                        
+                        CreateAllocationToServer(server);
                     }
                 });
         }
@@ -49,55 +48,41 @@ namespace _Project.Scripts.Network.Connection
             {
                 scopes = new[]{"multiplay.allocations.create", "multiplay.allocations.list"}
             });
-
-            var url = ServerSecrets.GetExchangeURL(server.fleetID);
             
-            WebRequests.PostJson(url, request => { },
+            WebRequests.PostJson(ServerSecrets.EXCHANGE_URL, request =>
+                {
+                    request.SetRequestHeader("Authorization", "Basic " + ServerSecrets.KEY_BASE_64);
+                },
                 jsonRequestBody,
                 error => { print($"Error: {error}");},
                 json =>
                 {
-                    var tokenExchangeResponse = JsonUtility.FromJson<TokenExchangeResponse>(json);
-
-                    WebRequests.PostJson(url, request =>
-                    {
-                        request.SetRequestHeader("Authorization", "Bearer " + tokenExchangeResponse.accessToken);
-                    },
-                        JsonUtility.ToJson(new QueueAllocationRequest
-                        {
-                            allocationId = "",
-                            buildConfigurationId = server.buildConfigurationID,
-                            regionId = ""
-                        }),
-                        error =>
-                        {
-                            print($"Error: {error}");
-                        },
-                        json =>
-                        {
-                            print($"Success: {json}");
-                        });
+                    PostAllocationHandler(server, json);
                 });
         }
-    }
-    
-    [System.Serializable]
-    public class TokenExchangeResponse {
-        public string accessToken;
-    }
+        
+        private static void PostAllocationHandler(Server server, string json)
+        {
+            var tokenExchangeResponse = JsonUtility.FromJson<TokenExchangeResponse>(json);
 
-
-    [System.Serializable]
-    public class TokenExchangeRequest {
-        public string[] scopes;
-    }
-    
-    [System.Serializable]
-    public class QueueAllocationRequest {
-        public string allocationId;
-        public int buildConfigurationId;
-        public string payload;
-        public string regionId;
-        public bool restart;
+            WebRequests.PostJson(ServerSecrets.ALLOCATIONS_URL, request =>
+                {
+                    request.SetRequestHeader("Authorization", "Bearer " + tokenExchangeResponse.accessToken);
+                },
+                JsonUtility.ToJson(new QueueAllocationRequest
+                {
+                    allocationId = ServerSecrets.ALLOCATION_ID,
+                    buildConfigurationId = server.buildConfigurationID,
+                    regionId = ServerSecrets.REGION_ID
+                }),
+                error =>
+                {
+                    print($"Error: {error}");
+                },
+                _ =>
+                {
+                    ConnectToServer(server.ip, (ushort)server.port);
+                });
+        }
     }
 }

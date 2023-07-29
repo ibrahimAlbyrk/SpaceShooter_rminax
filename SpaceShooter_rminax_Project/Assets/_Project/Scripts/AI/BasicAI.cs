@@ -7,13 +7,14 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using _Project.Scripts.Utilities;
+using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
 
 namespace _Project.Scripts.AI
 {
     using Network;
     using Spaceship;
-    
+
     public class BasicAI : NetIdentity
     {
         #region Serialize Var
@@ -44,7 +45,7 @@ namespace _Project.Scripts.AI
 
         [SerializeField] private float _bulletLifeTime = 5f;
         [SerializeField] private float _bulletSpeed = 150f;
-        
+
         #endregion
 
         #region Private Vars
@@ -58,9 +59,9 @@ namespace _Project.Scripts.AI
         private int _pointIndex;
 
         private float _fireTimer;
-        
+
         private float prevspeed;
-        
+
         private float prevturn;
 
         private CancellationTokenSource _destroyCancellationTokenSource;
@@ -70,6 +71,8 @@ namespace _Project.Scripts.AI
         #region Base Methods
 
         private Vector3 _firstPosition;
+
+        private PhysicsScene _physicsScene;
 
         [ServerCallback]
         private void Start()
@@ -86,6 +89,8 @@ namespace _Project.Scripts.AI
             _fireTimer = _fireCountDown;
 
             _firstPosition = origin.position;
+
+            _physicsScene = gameObject.scene.GetPhysicsScene();
         }
 
         [ServerCallback]
@@ -101,7 +106,7 @@ namespace _Project.Scripts.AI
         {
             _destroyCancellationTokenSource?.Cancel();
         }
-        
+
         #endregion
 
         #region Threat Methods
@@ -118,7 +123,7 @@ namespace _Project.Scripts.AI
             StartCoroutine(Cor_Threatened());
         }
 
-        [Server]
+        [ServerCallback]
         private IEnumerator Cor_Threatened()
         {
             prevturn = normalTurnSpeed;
@@ -138,9 +143,13 @@ namespace _Project.Scripts.AI
 
         private Transform FindPlayer()
         {
-            var colls = Physics.OverlapSphere(origin.position, DetectionRange, _detectionLayer);
+            var colls = new Collider[3];
+
+            _physicsScene.OverlapSphere(transform.position, DetectionRange, colls, _detectionLayer,
+                QueryTriggerInteraction.UseGlobal);
 
             return (from coll in colls
+                    where coll != null
                     where coll.CompareTag("Spaceship")
                     select coll.transform)
                 .FirstOrDefault(ship => !ship.GetComponent<Health>().IsDead);
@@ -173,7 +182,7 @@ namespace _Project.Scripts.AI
             var _currentMovePosition = _points[_pointIndex];
 
             var outDistance = MathUtilities.OutDistance(transform.position, _currentMovePosition, 15);
-            
+
             if (outDistance)
             {
                 transform.Translate(transform.forward * normalSpeed, Space.World);
@@ -197,11 +206,13 @@ namespace _Project.Scripts.AI
         {
             var bulletObj = Instantiate(bullet, barrel.position,
                 Quaternion.LookRotation(transform.forward, transform.up));
+            
+            SceneManager.MoveGameObjectToScene(bulletObj, gameObject.scene);
 
             NetworkServer.Spawn(bulletObj);
 
             _destroyCancellationTokenSource = new CancellationTokenSource();
-            
+
             try
             {
                 await Task.Delay(100, _destroyCancellationTokenSource.Token);
@@ -216,10 +227,11 @@ namespace _Project.Scripts.AI
         }
 
         [ClientRpc]
-        private void RPC_SetBulletSettings(GameObject owner, GameObject bulletObj, float bulletLifeTime, float bulletSpeed)
+        private void RPC_SetBulletSettings(GameObject owner, GameObject bulletObj, float bulletLifeTime,
+            float bulletSpeed)
         {
             if (owner == null || bulletObj == null) return;
-            
+
             bulletObj.GetComponent<BulletScript>().Init(owner, isEnemy: true, bulletLifeTime, bulletSpeed);
         }
 
@@ -228,7 +240,7 @@ namespace _Project.Scripts.AI
         private void OnDrawGizmosSelected()
         {
             if (origin == null) return;
-            
+
             Gizmos.color = Color.red;
 
             Gizmos.DrawWireSphere(origin.position, DetectionRange);
@@ -237,24 +249,24 @@ namespace _Project.Scripts.AI
             {
                 Gizmos.color = Color.yellow;
 
-                Gizmos.DrawWireSphere(origin.position, _stopRange);   
+                Gizmos.DrawWireSphere(origin.position, _stopRange);
             }
             else
             {
                 for (var i = 0; i < pointCount; i++)
                 {
                     var pos = _points[i];
-                    
+
                     Gizmos.color = new Color(0.61f, 0.4f, 1f);
-                    
+
                     Gizmos.DrawSphere(pos, 1f);
-                    
-                    if(i + 1 >= pointCount) break;
-                    
+
+                    if (i + 1 >= pointCount) break;
+
                     var nextPos = _points[i + 1];
-                    
+
                     Gizmos.color = Color.blue;
-                    
+
                     Gizmos.DrawLine(pos, nextPos);
                 }
             }

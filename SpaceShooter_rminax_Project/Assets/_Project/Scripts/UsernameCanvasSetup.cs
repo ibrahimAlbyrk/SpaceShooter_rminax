@@ -15,8 +15,6 @@ namespace _Project.Scripts
             if (cam == null) return;
             
             transform.position = _targetTransform.position + cam.transform.up * _distance;
-
-            transform.LookAt(cam.transform);
         }
     }
 }

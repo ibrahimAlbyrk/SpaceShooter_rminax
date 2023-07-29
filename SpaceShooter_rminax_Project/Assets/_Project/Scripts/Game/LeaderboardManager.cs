@@ -19,12 +19,9 @@ namespace _Project.Scripts.Game
 
         private void Awake()
         {
-            print("test");
-            
             if (Instance == null)
             {
                 Instance = this;
-                DontDestroyOnLoad(gameObject);
             }
             else
                 Destroy(gameObject);
@@ -141,7 +138,7 @@ namespace _Project.Scripts.Game
         {
             data = scoreEntries.FirstOrDefault(entry => entry.Username == username);
 
-            return data != null;
+            return !string.IsNullOrEmpty(data.Username);
         }
 
         private void OrderToScoreEntries()
@@ -152,7 +149,7 @@ namespace _Project.Scripts.Game
         #endregion
     }
 
-    public class PlayerScoreData
+    public struct PlayerScoreData
     {
         public string Username;
         public int Score;

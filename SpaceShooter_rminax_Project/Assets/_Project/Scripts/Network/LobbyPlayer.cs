@@ -1,5 +1,4 @@
-﻿using System;
-using Mirror;
+﻿using Mirror;
 using UnityEngine;
 
 namespace _Project.Scripts.Network
@@ -7,20 +6,9 @@ namespace _Project.Scripts.Network
     [RequireComponent(typeof(NetworkMatch))]
     public class LobbyPlayer : NetIdentity
     {
-        public static LobbyPlayer localLobbyPlayer;
+        public static LobbyPlayer LocalLobbyPlayer;
         
         [SyncVar] public string Username;
-        
-        public Guid RoomID;
-        
-        [Command]
-        public void CMD_SetRoomID(Guid roomID) => RPC_SetRoomID(roomID);
-
-        [ClientRpc]
-        private void RPC_SetRoomID(Guid roomID)
-        {
-            RoomID = roomID;
-        }
 
         [Command]
         public void CMD_SetUsername(string username) => Username = username;
@@ -28,7 +16,7 @@ namespace _Project.Scripts.Network
         private void Start()
         {
             if (isLocalPlayer)
-                localLobbyPlayer = this;
+                LocalLobbyPlayer = this;
         }
     }
 }

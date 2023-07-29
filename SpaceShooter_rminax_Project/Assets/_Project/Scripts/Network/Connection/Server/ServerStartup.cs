@@ -13,10 +13,6 @@ namespace _Project.Scripts.Network.Connection
         [Title("Connection Settings")] [SerializeField]
         private TelepathyTransport _transport;
 
-        [SerializeField] private string _internalServerIP = "0.0.0.0";
-
-        private ushort _serverPort;
-
         private async void Start()
         {
             var _currentServerFPS = 60;
@@ -26,11 +22,6 @@ namespace _Project.Scripts.Network.Connection
             for (var i = 0; i < args.Length; i++)
             {
                 var arg = args[i];
-
-                if (arg == "-port" && i + 1 < args.Length)
-                {
-                    _serverPort = ushort.Parse(args[i + 1]);
-                }
 
                 if (arg == "-fps" && i + 1 < arg.Length)
                 {
@@ -44,14 +35,12 @@ namespace _Project.Scripts.Network.Connection
             {
                 SetTargetFps(_currentServerFPS);
                 await StartServerServices();
-                return;
             }
-            // it's Client
         }
 
-        private void StartServer(ushort port)
+        private void StartServer(string ipv4, ushort port)
         {
-            SetConnection(_internalServerIP, port);
+            SetConnection(ipv4, port);
             
             NetworkManager.singleton.StartServer();
         }
@@ -87,9 +76,10 @@ namespace _Project.Scripts.Network.Connection
                       $"-QPort: {config.QueryPort}\n" +
                       $"-logs: {config.ServerLogDirectory}");
 
+            var ipv4 = config.IpAddress;
             var port = config.Port;
 
-            StartServer(port);
+            StartServer(ipv4, port);
         }
 
         private void SetConnection(string ipV4, ushort port)

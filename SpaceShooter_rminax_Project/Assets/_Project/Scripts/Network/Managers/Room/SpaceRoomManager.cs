@@ -151,15 +151,12 @@ namespace _Project.Scripts.Network.Managers.Room
             switch (msg.ServerRoomState)
             {
                 case ServerRoomState.Create:
-                    print("Create room, <color=green>server</color>");
                     CreateRoom(conn, msg.RoomInfo);
                     break;
                 case ServerRoomState.Join:
-                    print("Join room, <color=green>server</color>");
                     JoinRoom(conn, msg.RoomInfo.Name);
                     break;
                 case ServerRoomState.Exit:
-                    print("Exit room, <color=green>server</color>");
                     ExitRoom(conn);
                     break;
                 default:
@@ -173,19 +170,14 @@ namespace _Project.Scripts.Network.Managers.Room
             switch (msg.ClientRoomState)
             {
                 case ClientRoomState.Created:
-                    print("Created room, <color=green>client</color>");
                     break;
                 case ClientRoomState.Joined:
-                    print("Joined room, <color=green>client</color>");
                     break;
                 case ClientRoomState.Removed:
-                    print("Removed room, <color=green>client</color>");
                     break;
                 case ClientRoomState.Exited:
-                    print("Exited room, <color=green>client</color>");
                     break;
                 case ClientRoomState.Fail:
-                    print("Failed room, <color=green>client</color>");
                     break;
                 default:
                     return;

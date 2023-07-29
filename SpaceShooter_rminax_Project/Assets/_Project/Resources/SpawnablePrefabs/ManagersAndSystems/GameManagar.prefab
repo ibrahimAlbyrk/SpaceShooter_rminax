@@ -84,7 +84,7 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0
   _openWorldMod:
-    _mapGeneratorData: {fileID: 11400000, guid: 8c3cf54d075e73e4b9791ed58e8e8e78,
+    _mapGeneratorData: {fileID: 11400000, guid: a40daf6fa3dae6f4fbfbd16c0d362cf7,
       type: 2}
     _gpuPrefabManager: {fileID: 0}
     _contentNames:
