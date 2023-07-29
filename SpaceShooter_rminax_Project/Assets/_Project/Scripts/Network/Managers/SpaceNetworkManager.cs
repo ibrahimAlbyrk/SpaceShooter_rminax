@@ -174,10 +174,33 @@ namespace _Project.Scripts.Network.Managers
 
         #endregion
 
-        public void ConnectOpenWorld()
+        #region Connection Methods
+
+        public void ConnectClient(string ipv4, ushort port)
         {
-            ServerChangeScene(_gameScene);
+            SetConnectionConfig(ipv4, port);
+            
+            StartClient();
         }
+
+        public void ConnectServer(string ipv4, ushort port)
+        {
+            SetConnectionConfig(ipv4, port);
+            
+            StartServer();
+        }
+
+        public void SetConnectionConfig(string ipv4, ushort port)
+        {
+            networkAddress = ipv4;
+            
+            if (transport is TelepathyTransport telepathyTransport)
+            {
+                telepathyTransport.port = port;
+            }
+        }
+
+        #endregion
 
         #region Player Methods
 

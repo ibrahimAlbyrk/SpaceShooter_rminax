@@ -1,66 +1,103 @@
-﻿using Mirror;
+﻿using Unity.Services.Multiplay;
 using UnityEngine;
 
 namespace _Project.Scripts.Network.Connection
 {
+    using Web;
     using Managers;
-    
+
     public class AutoNetworkConnector : MonoBehaviour
     {
-        [SerializeField] private bool isLocal;
-        [SerializeField] private bool isHost;
-        [SerializeField] private string networkAddress = "13.50.196.147";
-        [SerializeField] private GameObject _connectingPanel;
-        
-        public void HostLocal()
-        {
-            SpaceNetworkManager.singleton.networkAddress = "localhost";
-            SpaceNetworkManager.singleton.StartHost();
-        }
-    
-        public void JoinLocal()
-        {
-            SpaceNetworkManager.singleton.networkAddress = "localhost";
-            SpaceNetworkManager.singleton.StartClient();
-        }
-        
         private void Start()
         {
-            OpenConnectionPanel();
-
-            if (NetworkServer.active)
-            {
-                CloseConnectionPanel();
-                return;
-            }
-            
-            SpaceNetworkManager.OnClientConnected += CloseConnectionPanel;
-            
-            if (isHost)
-            {
-                SpaceNetworkManager.singleton.networkAddress = isLocal ? "localhost" : networkAddress;
-                SpaceNetworkManager.singleton.StartHost();
-                
-                Debug.Log("<color=green>=====Client Connected And Starting as host===</color>");
-                
-                return;
-            }
-            
-            if (!Application.isBatchMode) //Headless build
-            {
-                SpaceNetworkManager.singleton.networkAddress = isLocal ? "localhost" : networkAddress;
-                SpaceNetworkManager.singleton.StartClient();
-                
-                Debug.Log("<color=green>=====Client Connected===</color>");
-                return;
-            }
-            
-            SpaceNetworkManager.singleton.networkAddress = networkAddress;
-            
-            Debug.Log("<color=green>=====Server Starting===</color>");
+            FindOnlineServer();
         }
 
-        private void OpenConnectionPanel() => _connectingPanel.SetActive(true);
-        private void CloseConnectionPanel() => _connectingPanel.SetActive(false);
+        private static void ConnectToServer(string ipv4, ushort port)
+        {
+            SpaceNetworkManager.singleton.ConnectClient(ipv4, port);
+        }
+
+        private static void FindOnlineServer()
+        {
+            WebRequests.Get(ServerSecrets.SERVER_URL,
+                request => { request.SetRequestHeader("Authorization", $"Basic {ServerSecrets.KEY_BASE_64}"); },
+                errorMessage => { Debug.Log($"Error: {errorMessage}"); },
+                json =>
+                {
+                    var listServers = JsonUtility.FromJson<ListServers>("{\"ServerList\":" + json + "}");
+                    foreach (var server in listServers.ServerList)
+                    {
+                        print(server.ip);
+                        if (server.status == ServerStatus.ONLINE.ToString() ||
+                            server.status == ServerStatus.ALLOCATED.ToString())
+                        {
+                            //Server is online!
+                            print($"Online server was found: {server.ip}:{server.port}");
+                            ConnectToServer(server.ip, (ushort)server.port);
+                            return;
+                        }
+                        else
+                            CreateAllocationToServer(server);
+                    }
+                });
+        }
+
+        private static void CreateAllocationToServer(Server server)
+        {
+            var jsonRequestBody = JsonUtility.ToJson(new TokenExchangeRequest
+            {
+                scopes = new[]{"multiplay.allocations.create", "multiplay.allocations.list"}
+            });
+
+            var url = ServerSecrets.GetExchangeURL(server.fleetID);
+            
+            WebRequests.PostJson(url, request => { },
+                jsonRequestBody,
+                error => { print($"Error: {error}");},
+                json =>
+                {
+                    var tokenExchangeResponse = JsonUtility.FromJson<TokenExchangeResponse>(json);
+
+                    WebRequests.PostJson(url, request =>
+                    {
+                        request.SetRequestHeader("Authorization", "Bearer " + tokenExchangeResponse.accessToken);
+                    },
+                        JsonUtility.ToJson(new QueueAllocationRequest
+                        {
+                            allocationId = "",
+                            buildConfigurationId = server.buildConfigurationID,
+                            regionId = ""
+                        }),
+                        error =>
+                        {
+                            print($"Error: {error}");
+                        },
+                        json =>
+                        {
+                            print($"Success: {json}");
+                        });
+                });
+        }
+    }
+    
+    [System.Serializable]
+    public class TokenExchangeResponse {
+        public string accessToken;
+    }
+
+
+    [System.Serializable]
+    public class TokenExchangeRequest {
+        public string[] scopes;
+    }
+    
+    [System.Serializable]
+    public class QueueAllocationRequest {
+        public string allocationId;
+        public int buildConfigurationId;
+        public string payload;
+        public string regionId;
+        public bool restart;
     }
 }
