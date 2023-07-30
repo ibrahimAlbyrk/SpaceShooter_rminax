@@ -76,18 +76,7 @@ MonoBehaviour:
   EnvironmentCount: 20
   MeteorPrefabs:
   - {fileID: 1169622286159614, guid: b3c31f6b19e12ab43af383150930c5d2, type: 3}
-  - {fileID: 1112909584421644, guid: e768d9e8bea187b4d85e4021e33af962, type: 3}
-  - {fileID: 1127296253721428, guid: 7429708adb9eb984586625a4dcdcc5be, type: 3}
-  - {fileID: 1705588362555262, guid: a2ef9fa1af23a57479ab9baedc978e18, type: 3}
-  - {fileID: 1381034071681170, guid: 95fdd0e77b5a57d47978fe50e32ff461, type: 3}
-  - {fileID: 1760393968351504, guid: 94a1f88d427da7740bb6ce9ff131f2b2, type: 3}
-  - {fileID: 1979778945228820, guid: 48048d55c0bf5f54ab56afcb2b142e5c, type: 3}
-  - {fileID: 1926048894723304, guid: 538573d1225fe344b951636e3f58cfaa, type: 3}
-  - {fileID: 1280199790347334, guid: 1d99e2ffe976be6419610eedcaefdc08, type: 3}
-  - {fileID: 1212796926661636, guid: 61041b38478b1174383f35214324c3d1, type: 3}
-  - {fileID: 1480290005869230, guid: e3d672f94c33fd845acc69356f3a1930, type: 3}
-  - {fileID: 1529249800494676, guid: 4d5c26a5782d9294eaed6fbde168b364, type: 3}
-  MeteorCount: 450
+  MeteorCount: 2000
   FuelStationPrefabs:
   - {fileID: 4849306525670135010, guid: a2643645ab2aa54458be7c9f4ace3792, type: 3}
   FuelStationCount: 10

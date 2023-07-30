@@ -19,12 +19,7 @@ namespace _Project.Scripts.Game
 
         private void Awake()
         {
-            if (Instance == null)
-            {
-                Instance = this;
-            }
-            else
-                Destroy(gameObject);
+            Instance = this;
         }
 
         public List<PlayerScoreData> GetLeaderboard() => scoreEntries;

@@ -9,7 +9,7 @@ namespace _Project.Scripts.Network.Connection
     {
         private void Start()
         {
-            if (Application.isBatchMode) return;
+            //if (Application.isBatchMode) return;
             
             FindOnlineServer();
         }
@@ -26,19 +26,24 @@ namespace _Project.Scripts.Network.Connection
                 errorMessage => { Debug.Log($"Error: {errorMessage}"); },
                 json =>
                 {
+                    Server sendedServer = default;
+                    
                     var listServers = JsonUtility.FromJson<ListServers>("{\"ServerList\":" + json + "}");
                     foreach (var server in listServers.ServerList)
                     {
-                        if (server.status == ServerStatus.ONLINE.ToString() ||
-                            server.status == ServerStatus.ALLOCATED.ToString())
+                        if (server.status != ServerStatus.ONLINE.ToString() && //Server is offline!
+                            server.status != ServerStatus.ALLOCATED.ToString())
                         {
-                            //Server is online!
-                            ConnectToServer(server.ip, (ushort)server.port);
-                            return;
+                            sendedServer = server;
+                            break;
                         }
                         
-                        CreateAllocationToServer(server);
+                        //Server is online!
+                        ConnectToServer(server.ip, (ushort)server.port);
+                        return;
                     }
+                    
+                    CreateAllocationToServer(sendedServer);
                 });
         }
 

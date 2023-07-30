@@ -1,5 +1,4 @@
-﻿using GPUInstancer;
-using Mirror;
+﻿using Mirror;
 using UnityEngine;
 
 namespace _Project.Scripts.Game
@@ -29,6 +28,12 @@ namespace _Project.Scripts.Game
         private void Awake()
         {
             Instance = this;
+        }
+
+        [ServerCallback]
+        private void Update()
+        {
+            _modManager.RunGameMod();
         }
         
         [ServerCallback]

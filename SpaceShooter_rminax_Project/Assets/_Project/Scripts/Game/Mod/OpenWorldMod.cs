@@ -2,8 +2,11 @@
 using UnityEngine;
 using System.Linq;
 using System.Collections.Generic;
-using GPUInstancer;
-using UnityEngine.SceneManagement;
+using Unity.Collections;
+using Unity.Jobs;
+using Unity.Mathematics;
+using UnityEngine.Profiling;
+using Random = UnityEngine.Random;
 
 namespace _Project.Scripts.Game.Mod
 {
@@ -13,20 +16,18 @@ namespace _Project.Scripts.Game.Mod
     [System.Serializable]
     public class OpenWorldMod : GameMod
     {
-        //TODO: Spawn features
-
-        [SerializeField] private GPUInstancerPrefabManager _gpuPrefabManager;
-        
         [Space(10), Header("Content Settings"), SerializeField]
         private string[] _contentNames;
 
         [Space(10), Header("Iterator Settings")] [SerializeField]
         private float _iteratorInterval = 10;
 
-        [Header("Debug")]
-        [SerializeField] private float _iteratorTimer;
+        [Header("Debug")] [SerializeField] private float _iteratorTimer;
 
         private Dictionary<string, Transform> _contents = new();
+
+        [SerializeField] private Mesh _meteorMesh;
+        [SerializeField] private Material _meteorMaterial;
 
         private SyncList<Transform> _spawnedEnvironments = new();
         private SyncList<Transform> _spawnedMeteors = new();
@@ -35,18 +36,71 @@ namespace _Project.Scripts.Game.Mod
         private SyncDictionary<Transform, Transform> _spawnedFuelStationAIs = new();
         private SyncList<Transform> _spawnedAreaAIs = new();
 
+        private Matrix4x4[] _meteorMatrices;
+
+        private NativeArray<float3> _meteorNativePosition;
+        private NativeArray<float3> _meteorNativeRotation;
+        private NativeArray<Matrix4x4> _meteorNativeMatrices;
+
+        private float3 _meteorSize;
+
+        private MeteorPositionJob _meteorPositionJob;
+
         public override void Start()
         {
+            _meteorSize = _mapGeneratorData.MeteorPrefabs[0].transform.localScale;
+
+            _meteorMatrices = new Matrix4x4[_mapGeneratorData.MeteorCount];
+
+            _meteorNativePosition = new NativeArray<float3>(_mapGeneratorData.MeteorCount, Allocator.Persistent);
+            _meteorNativeRotation = new NativeArray<float3>(_mapGeneratorData.MeteorCount, Allocator.Persistent);
+            _meteorNativeMatrices = new NativeArray<Matrix4x4>(_mapGeneratorData.MeteorCount, Allocator.Persistent);
+
+            _meteorPositionJob = new MeteorPositionJob
+            {
+                Positions = _meteorNativePosition,
+                Rotations = _meteorNativeRotation,
+                Scale = _meteorSize
+            };
+
             CreateContents();
 
             SpawnHandler();
             
-            //if (_gpuPrefabManager != null && _gpuPrefabManager.gameObject.activeSelf && _gpuPrefabManager.enabled)
-            //{
-            //    GPUInstancerAPI.RegisterPrefabInstanceList(_gpuPrefabManager, _spawnedEnvironments.ToList().Select(e => e.GetComponent<GPUInstancerPrefab>()));
-            //    GPUInstancerAPI.RegisterPrefabInstanceList(_gpuPrefabManager, _spawnedMeteors.ToList().Select(e => e.GetComponent<GPUInstancerPrefab>()));
-            //    GPUInstancerAPI.InitializeGPUInstancer(_gpuPrefabManager);
-            //}
+        }
+
+        public override void Run()
+        {
+            if (_meteorMatrices == null || _meteorMatrices.Length < 1) return;
+
+            UpdateMeteorMatrices();
+            DrawMeteorMatrices(_meteorMesh, _meteorMaterial);
+        }
+
+        [ServerCallback]
+        private void UpdateMeteorMatrices()
+        {
+            for (var i = 0; i < _meteorMatrices.Length; i++)
+            {
+                var meteor = _spawnedMeteors[i];
+
+                if (meteor == null) continue;
+
+                _meteorNativePosition[i] = meteor.position;
+                _meteorNativeRotation[i] = new float3(meteor.rotation.eulerAngles * Mathf.Deg2Rad);
+            }
+        }
+
+        private void DrawMeteorMatrices(Mesh mesh, Material mat)
+        {
+            Profiler.BeginSample("Draw From GPU");
+            
+            _meteorPositionJob.Matrices = _meteorNativeMatrices;
+            _meteorPositionJob.Schedule(_meteorNativeMatrices.Length, 64).Complete();
+
+            Graphics.DrawMeshInstanced(mesh, 0, mat, _meteorNativeMatrices.ToArray());
+
+            Profiler.EndSample();
         }
 
         public override void FixedRun()
@@ -161,13 +215,13 @@ namespace _Project.Scripts.Game.Mod
         }
 
         #endregion
-        
+
         #region Spawn Methods
-        
+
         private void SpawnHandler()
         {
             SpawnEnvironments();
-            
+
             SpawnMeteors();
 
             SpawnFuelStations();
@@ -188,15 +242,27 @@ namespace _Project.Scripts.Game.Mod
                     _mapGeneratorData.EnvironmentCount)
                 .ToSyncList();
         }
-        
+
         private void SpawnMeteors()
         {
-            _spawnedMeteors = SpawnWithConfigurations(
-                    _mapGeneratorData.MeteorPrefabs,
-                    _contents["Meteor"],
-                    _mapGeneratorData.GameAreaRadius,
-                    _mapGeneratorData.MeteorCount)
-                .ToSyncList();
+            // _spawnedMeteors = SpawnWithConfigurations(
+            //         _mapGeneratorData.MeteorPrefabs,
+            //         _contents["Meteor"],
+            //         _mapGeneratorData.GameAreaRadius,
+            //         _mapGeneratorData.MeteorCount)
+            //     .ToSyncList();
+
+            for (var i = 0; i < _mapGeneratorData.MeteorCount; i++)
+            {
+                var meteorPrefab = _mapGeneratorData.MeteorPrefabs.GetRandomElement();
+
+                var pos = Random.insideUnitSphere * _mapGeneratorData.GameAreaRadius;
+                var rot = Random.rotation;
+
+                var spawnedObject = Object.Instantiate(meteorPrefab, pos, rot, _contents["Meteor"]);
+
+                _spawnedMeteors.Add(spawnedObject.transform);
+            }
         }
 
         private void SpawnMeteor(int count)
@@ -291,7 +357,8 @@ namespace _Project.Scripts.Game.Mod
 
                     var spawnedAI = SpawnObjectWithNetwork(selectedAI, _contents["AI"], pos);
 
-                    CMD_SetSpawnedAIConfiguration(spawnedAI, _mapGeneratorData.AIFuelStationPatrolRange, _mapGeneratorData.AIFuelStationDetectionRange);
+                    CMD_SetSpawnedAIConfiguration(spawnedAI, _mapGeneratorData.AIFuelStationPatrolRange,
+                        _mapGeneratorData.AIFuelStationDetectionRange);
 
                     _spawnedFuelStationAIs.Add(fuelStation, spawnedAI.transform);
                 }
@@ -309,7 +376,8 @@ namespace _Project.Scripts.Game.Mod
 
             var spawnedAI = SpawnObjectWithNetwork(selectedAI, _contents["AI"], pos);
 
-            CMD_SetSpawnedAIConfiguration(spawnedAI, _mapGeneratorData.AIFuelStationPatrolRange, _mapGeneratorData.AIFuelStationDetectionRange);
+            CMD_SetSpawnedAIConfiguration(spawnedAI, _mapGeneratorData.AIFuelStationPatrolRange,
+                _mapGeneratorData.AIFuelStationDetectionRange);
 
             return spawnedAI.transform;
         }
@@ -325,7 +393,8 @@ namespace _Project.Scripts.Game.Mod
 
             foreach (var spawnedAI in spawnedAIs)
             {
-                CMD_SetSpawnedAIConfiguration(spawnedAI.gameObject, _mapGeneratorData.AIAreaPatronRange, _mapGeneratorData.AIAreaDetectionRange);
+                CMD_SetSpawnedAIConfiguration(spawnedAI.gameObject, _mapGeneratorData.AIAreaPatronRange,
+                    _mapGeneratorData.AIAreaDetectionRange);
 
                 _spawnedAreaAIs.Add(spawnedAI);
             }
@@ -338,7 +407,8 @@ namespace _Project.Scripts.Game.Mod
 
             foreach (var spawnedAI in spawnedAIs)
             {
-                CMD_SetSpawnedAIConfiguration(spawnedAI.gameObject, _mapGeneratorData.AIAreaPatronRange, _mapGeneratorData.AIAreaDetectionRange);
+                CMD_SetSpawnedAIConfiguration(spawnedAI.gameObject, _mapGeneratorData.AIAreaPatronRange,
+                    _mapGeneratorData.AIAreaDetectionRange);
 
                 _spawnedAreaAIs.Add(spawnedAI);
             }
@@ -350,7 +420,7 @@ namespace _Project.Scripts.Game.Mod
         private void RPC_SetSpawnedAIConfiguration(GameObject ai, float patronRange, float detectionRange)
         {
             var aiScript = ai.GetComponent<BasicAI>();
-            
+
             aiScript.patrolRange = patronRange;
             aiScript.DetectionRange = detectionRange;
         }
@@ -384,8 +454,9 @@ namespace _Project.Scripts.Game.Mod
         {
             return SpawnWithConfigurations(objs, content, new Vector2(radius, radius), count);
         }
-        
-        private List<Transform> SpawnWithConfigurations(IReadOnlyList<GameObject> objs, Transform content, Vector2 radiusRange,
+
+        private List<Transform> SpawnWithConfigurations(IReadOnlyList<GameObject> objs, Transform content,
+            Vector2 radiusRange,
             float count)
         {
             var list = new List<Transform>();

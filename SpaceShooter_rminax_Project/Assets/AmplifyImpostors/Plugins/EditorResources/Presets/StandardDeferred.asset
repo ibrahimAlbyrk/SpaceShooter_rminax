@@ -24,32 +24,32 @@ MonoBehaviour:
     Scale: 1
     SRGB: 1
     Channels: 0
-    Compression: 1
-    ImageFormat: 1
+    Compression: 2
+    ImageFormat: 0
   - Index: -1
     OverrideMask: 0
-    Active: 0
+    Active: 1
     Name: _SpecularSmoothness
     Scale: 1
-    SRGB: 1
+    SRGB: 0
     Channels: 0
-    Compression: 1
-    ImageFormat: 1
+    Compression: 2
+    ImageFormat: 0
   - Index: -1
     OverrideMask: 0
-    Active: 0
+    Active: 1
     Name: _NormalDepth
     Scale: 1
     SRGB: 0
     Channels: 0
-    Compression: 1
-    ImageFormat: 1
+    Compression: 2
+    ImageFormat: 0
   - Index: -1
     OverrideMask: 0
-    Active: 0
+    Active: 1
     Name: _EmissionOcclusion
     Scale: 1
     SRGB: 0
     Channels: 0
-    Compression: 1
-    ImageFormat: 1
+    Compression: 2
+    ImageFormat: 0

@@ -84,7 +84,7 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0
   _openWorldMod:
-    _mapGeneratorData: {fileID: 11400000, guid: a40daf6fa3dae6f4fbfbd16c0d362cf7,
+    _mapGeneratorData: {fileID: 11400000, guid: 8c3cf54d075e73e4b9791ed58e8e8e78,
       type: 2}
     _gpuPrefabManager: {fileID: 0}
     _contentNames:
@@ -95,6 +95,10 @@ MonoBehaviour:
     - Feature
     _iteratorInterval: 30
     _iteratorTimer: 0
+    _meteorMesh: {fileID: -6144598162397975537, guid: f8f2b66d4b457fe43bb882b2eb6997d8,
+      type: 2}
+    _meteorMaterial: {fileID: 5906969207647616806, guid: f8f2b66d4b457fe43bb882b2eb6997d8,
+      type: 2}
   _shrinkingAreaMod:
     _mapGeneratorData: {fileID: 11400000, guid: 9263f544d75913e4fa23cbb6b3da54f0,
       type: 2}
@@ -107,5 +111,7 @@ MonoBehaviour:
     - Feature
     _iteratorInterval: 15
     _iteratorTimer: 0
+    _meteorMesh: {fileID: 0}
+    _meteorMaterial: {fileID: 0}
     _shrinkingAreaSystem: {fileID: 2300649255512792729, guid: f95e39f01bb72b142897581fe459d219,
       type: 3}

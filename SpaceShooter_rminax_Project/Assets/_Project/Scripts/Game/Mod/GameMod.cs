@@ -21,6 +21,8 @@ namespace _Project.Scripts.Game.Mod
         
         public virtual void Start(){}
 
+        public virtual void Run(){}
+        
         public virtual void FixedRun(){}
     }
 }

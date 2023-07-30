@@ -33,6 +33,11 @@ namespace _Project.Scripts.Game
             _selectedMod.Start();
         }
         
+        public void RunGameMod()
+        {
+            _selectedMod.Run();
+        }
+        
         [Server]
         public void FixedRunGameMod()
         {
