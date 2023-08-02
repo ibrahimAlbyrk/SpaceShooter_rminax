@@ -1,4 +1,5 @@
 ﻿using _Project.Scripts.Utilities;
+using Mirror;
 using UnityEngine;
 
 namespace _Project.Scripts.Features
@@ -9,9 +10,9 @@ namespace _Project.Scripts.Features
     public class FireFeature_SO : Feature_SO
     {
         [Header("Fire Settings")]
-        [SerializeField] private Vector2 _increaseBulletCountRange = new (2, 4);
-        [SerializeField] private Vector2 _increaseTargetDistanceRange = new (50, 300);
-        [SerializeField] private Vector2 _increaseSpeedRange = new (200, 500);
+        [SerializeField] public Vector2 IncreaseBulletCountRange = new (2, 4);
+        [SerializeField] public Vector2 IncreaseTargetDistanceRange = new (50, 300);
+        [SerializeField] public Vector2 IncreaseSpeedRange = new (200, 500);
 
         private float _bulletCount;
         private float _targetDistance;
@@ -20,8 +21,6 @@ namespace _Project.Scripts.Features
         public override void OnStart(SpaceshipController ownedController)
         {
             OwnedController = ownedController;
-            
-            SetBulletSettings();
             
             if(_bulletCount != 0)
                 OwnedController.Shooter.m_shooting.bulletSettings.BulletCount += _bulletCount;
@@ -49,11 +48,11 @@ namespace _Project.Scripts.Features
                 OwnedController.Shooter.m_shooting.bulletSettings.BulletSpeed -= _speed;
         }
 
-        private void SetBulletSettings()
+        public void SetBulletSettings(float bulletCount, float bulletDistance, float bulletSpeed)
         {
-            _bulletCount = _increaseBulletCountRange.GetRandomValue();
-            _targetDistance = _increaseTargetDistanceRange.GetRandomValue();
-            _speed = _increaseSpeedRange.GetRandomValue();
+            _bulletCount = bulletCount;
+            _targetDistance = bulletDistance;
+            _speed = bulletSpeed;
         }
     }
 }

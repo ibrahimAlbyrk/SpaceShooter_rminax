@@ -12,12 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 770b51866a01443895ef45cc17779e76, type: 3}
   m_Name: OpenWorld_MapGenerator_SO_Test
   m_EditorClassIdentifier: Assembly-CSharp:_Project.Scripts.Game:MapGeneratorData
-  GameAreaRadius: 1000
+  GameAreaRadius: 2500
   AIPrefabs:
   - {fileID: 3415335726005022911, guid: bd96e4e9d82995a4cb006ced5eb303f1, type: 3}
   - {fileID: 8732073677464986696, guid: 585081a074f72b84493f1b20cbb37738, type: 3}
   - {fileID: 7836332993649650853, guid: 52e64cdd649761a4b957696fe715ac93, type: 3}
-  AIFuelStationCountRange: {x: 0, y: 0}
+  AIFuelStationCountRange: {x: 1, y: 1}
   AIFuelStationSpawnRange: 50
   AIFuelStationPatrolRange: 250
   AIFuelStationDetectionRange: 200

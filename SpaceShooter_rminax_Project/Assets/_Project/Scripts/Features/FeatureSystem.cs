@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using System.Diagnostics;
 using System.Collections.Generic;
+using _Project.Scripts.Utilities;
 
 namespace _Project.Scripts.Features
 {
@@ -14,15 +15,13 @@ namespace _Project.Scripts.Features
     {
         [SerializeField] private Transform _featureContent;
         [SerializeField] private GameObject _featureUIPrefab;
-        
+
         [SerializeField] private float _featureDetectionRange = 20f;
 
         [SerializeField] private LayerMask _detectionLayer;
 
         private readonly List<Feature_UI> _featureUIs = new();
 
-        private readonly List<Feature_SO> _addedFeatures = new();
-        
         private event Action<Collider> OnEntered;
 
         private readonly Dictionary<Feature_SO, float> _features = new();
@@ -43,21 +42,21 @@ namespace _Project.Scripts.Features
             if (featureHandler == null || feature == null) return;
 
             featureHandler.Destroy();
-            
-            if (_addedFeatures.Contains(feature))
+
+            var selectedFeature = _features.Keys.FirstOrDefault(f => f.Name == feature.Name);
+
+            if (selectedFeature != null)
             {
-                var index = _addedFeatures.IndexOf(feature);
-                
-                //CMD_UpdateFeatureUI(index);
+                var index = _features.Keys.ToList().IndexOf(selectedFeature);
+
+                CMD_UpdateFeatureUI(index);
                 CMD_UpdateFeatureTime(feature.Name);
             }
             else
             {
-                _addedFeatures.Add(feature);
-                
                 CMD_AddFeature(feature.Name, SpaceshipController.instance);
-                
-                //CMD_CreateFeatureUI(feature.name);
+
+                CMD_CreateFeatureUI(feature.name);
             }
         }
 
@@ -65,15 +64,13 @@ namespace _Project.Scripts.Features
 
         [Command]
         private void CMD_CreateFeatureUI(string featureName) => RPC_CreateFeatureUI(featureName);
-        
-        [Command]
-        private void CMD_RemoveAddedFeature(string featureName) => RPC_RemoveAddedFeature(featureName);
-        
+
         [Command]
         private void CMD_UpdateFeatureUI(int index) => RPC_UpdateFeatureUI(index);
 
         [Command]
-        private void CMD_AddFeature(string featureName, SpaceshipController ownedController) => RPC_AddFeature(featureName, ownedController);
+        private void CMD_AddFeature(string featureName, SpaceshipController ownedController) =>
+            RPC_AddFeature(featureName, ownedController);
 
         [Command]
         private void CMD_UpdateFeatureTime(string featureName) => RPC_UpdateFeatureTime(featureName);
@@ -88,32 +85,24 @@ namespace _Project.Scripts.Features
         [TargetRpc]
         private void RPC_CreateFeatureUI(string featureName)
         {
-            var feature = _addedFeatures.FirstOrDefault(f => f.Name == featureName);
+            var feature = _features.Keys.FirstOrDefault(f => f.Name == featureName);
 
             if (feature == null) return;
-            
+
             var _featureUI = Instantiate(_featureUIPrefab, _featureContent).GetComponent<Feature_UI>();
-            
+
+            if (_featureUI == null) return;
+
             _featureUI.Init(feature.Icon, feature.Duration);
-            
+
             _featureUIs.Add(_featureUI);
         }
-        
-        [ClientRpc]
-        private void RPC_RemoveAddedFeature(string featureName)
-        {
-            var feature = _addedFeatures.FirstOrDefault(f => f.Name == featureName);
 
-            if (feature == null) return;
-            
-            _addedFeatures.Remove(feature);
-        }
-        
         [TargetRpc]
         private void RPC_UpdateFeatureUI(int index)
         {
-            if (index >= _features.Count) return;
-            
+            if (index >= _featureUIs.Count) return;
+
             _featureUIs[index].UpdateDuration();
         }
 
@@ -124,21 +113,62 @@ namespace _Project.Scripts.Features
             feature = Instantiate(feature);
 
             if (feature == null) return;
-            
+
             var endTime = Time.time + feature.Duration;
 
-            feature.OnStart(ownedController);
-
             _features.Add(feature, endTime);
+
+            CMD_SetSettingFeature(ownedController, featureName);
         }
+
+        #region Fire Feature Methods
+
+        [Command]
+        private void CMD_SetSettingFeature(SpaceshipController ownedController, string featureName)
+        {
+            var feature = _features.Keys.FirstOrDefault(f => f.Name == featureName);
+
+            if (feature == null) return;
+
+            if (feature is not FireFeature_SO fireFeature)
+            {
+                feature.OnStart(ownedController);
+                
+                return;
+            }
+
+            var bulletCount = fireFeature.IncreaseBulletCountRange.GetRandomValue();
+            var targetDistance = fireFeature.IncreaseTargetDistanceRange.GetRandomValue();
+            var speed = fireFeature.IncreaseSpeedRange.GetRandomValue();
+
+            RPC_SetSettingForFireFeature(ownedController, featureName, bulletCount, targetDistance, speed);
+        }
+
+        [ClientRpc]
+        private void RPC_SetSettingForFireFeature(SpaceshipController ownedController, string featureName,
+            float bulletCount, float targetDistance, float speed)
+        {
+            var feature = _features.Keys.FirstOrDefault(f => f.Name == featureName);
+
+            if (feature == null) return;
+
+            if (feature is FireFeature_SO fireFeature)
+            {
+                fireFeature.SetBulletSettings(bulletCount, targetDistance, speed);
+            }
+
+            feature.OnStart(ownedController);
+        }
+
+        #endregion
 
         [ClientRpc]
         private void RPC_UpdateFeatureTime(string featureName)
         {
             var feature = _features.Keys.FirstOrDefault(feature => feature.Name == featureName);
-            
+
             if (feature == null) return;
-            
+
             var endTime = Time.time + feature.Duration;
 
             _features[feature] = endTime;
@@ -148,11 +178,11 @@ namespace _Project.Scripts.Features
         private void RPC_RemoveFeature(string featureName)
         {
             var feature = _features.Keys.FirstOrDefault(feature => feature.Name == featureName);
-            
+
             if (feature == null) return;
-            
+
             feature.OnEnd();
-            
+
             _features.Remove(feature);
         }
 
@@ -164,7 +194,7 @@ namespace _Project.Scripts.Features
         private void Start()
         {
             if (!isOwned) return;
-            
+
             OnEntered += OnColliderEntered;
 
             _physicsScene = gameObject.scene.GetPhysicsScene();
@@ -178,7 +208,7 @@ namespace _Project.Scripts.Features
             {
                 feature.OnUpdate();
             }
-            
+
             if (!isOwned) return;
 
             var endedFeatures = new List<Feature_SO>();
@@ -187,7 +217,7 @@ namespace _Project.Scripts.Features
             foreach (var (feature, endTime) in _features)
             {
                 if (Time.time < endTime) continue;
-                
+
                 endedFeatures.Add(feature);
             }
 
@@ -200,12 +230,13 @@ namespace _Project.Scripts.Features
 
             //Check Colliders and do action
             var colls = new Collider[2];
-            _physicsScene.OverlapSphere(transform.position, _featureDetectionRange, colls, _detectionLayer, QueryTriggerInteraction.UseGlobal);
-            
+            _physicsScene.OverlapSphere(transform.position, _featureDetectionRange, colls, _detectionLayer,
+                QueryTriggerInteraction.UseGlobal);
+
             foreach (var coll in colls)
             {
-                if(coll == null) continue;
-                
+                if (coll == null) continue;
+
                 if (_collisions.Contains(coll)) continue;
 
                 _collisions.Add(coll);

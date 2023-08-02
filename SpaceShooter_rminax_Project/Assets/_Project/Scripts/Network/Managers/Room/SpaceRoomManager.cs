@@ -2,16 +2,15 @@
 using Mirror;
 using System.Linq;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 
 namespace _Project.Scripts.Network.Managers.Room
 {
-    using Scene;
+    using Scenes;
     
     public class SpaceRoomManager : NetIdentity
     {
-        public static event Action<NetworkConnectionToClient> OnClientJoinedRoom; 
-        
-        
+        public static event Action<NetworkConnectionToClient> OnClientJoinedRoom;
 
         private static readonly List<Room> _rooms = new();
 
@@ -79,10 +78,8 @@ namespace _Project.Scripts.Network.Managers.Room
             
             _rooms.Add(room);
             
-            SceneManager.Instance.LoadAdditiveScene(1).OnCompleted(scene =>
-            {
-                room.Scene = scene;
-            });
+            SpaceSceneManager.Instance.LoadScene(roomInfo.SceneName, LoadSceneMode.Additive,
+                scene => room.Scene = scene);
         }
 
         [ServerCallback]
@@ -98,7 +95,9 @@ namespace _Project.Scripts.Network.Managers.Room
 
             var roomScene = room.Scene;
             
-            SceneManager.Instance.UnLoadScene(roomScene);
+            print("removing");
+            
+            SpaceSceneManager.Instance.UnLoadScene(roomScene);
 
             removedConnections.ForEach(connection => SendRoomMessage(connection, ClientRoomState.Removed));
         }

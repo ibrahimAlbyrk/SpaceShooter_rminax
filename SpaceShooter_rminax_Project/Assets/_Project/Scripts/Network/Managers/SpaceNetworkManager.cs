@@ -140,8 +140,12 @@ namespace _Project.Scripts.Network.Managers
             SpaceRoomManager.OnStartedServer();
             
             var roomInfo = new RoomInfo("OpenWorld", "OpenWorld_Scene", 50);
+            var roomInfo2 = new RoomInfo("OpenWorld2", "OpenWorld_Scene", 10);
+            var roomInfo3 = new RoomInfo("OpenWorld3", "OpenWorld_Scene", 40);
             
             SpaceRoomManager.CreateRoom(roomInfo);
+            SpaceRoomManager.CreateRoom(roomInfo2);
+            SpaceRoomManager.CreateRoom(roomInfo3);
 
             SpaceRoomManager.OnClientJoinedRoom += OnClientJoinedRoom;
         }
