@@ -1,5 +1,5 @@
-﻿using Unity.Mathematics;
-using UnityEngine;
+﻿using UnityEngine;
+using Unity.Mathematics;
 
 namespace _Project.Scripts.Utilities
 {

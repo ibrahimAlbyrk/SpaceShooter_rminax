@@ -15,7 +15,10 @@ namespace _Project.Scripts.Game
         }
         
         [Command(requiresAuthority = false)]
-        public void CMD_SpawnPlayer()
+        public void CMD_SpawnPlayer() => SpawnPlayer();
+
+        [ServerCallback]
+        public void SpawnPlayer()
         {
             var spawnRange = GameManager.Instance.GetData().GameAreaRadius;
 

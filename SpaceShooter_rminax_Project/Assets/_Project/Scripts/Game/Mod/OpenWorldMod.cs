@@ -2,10 +2,6 @@
 using UnityEngine;
 using System.Linq;
 using System.Collections.Generic;
-using Unity.Collections;
-using Unity.Jobs;
-using Unity.Mathematics;
-using UnityEngine.Profiling;
 using Random = UnityEngine.Random;
 
 namespace _Project.Scripts.Game.Mod
@@ -26,9 +22,6 @@ namespace _Project.Scripts.Game.Mod
 
         private Dictionary<string, Transform> _contents = new();
 
-        [SerializeField] private Mesh _meteorMesh;
-        [SerializeField] private Material _meteorMaterial;
-
         private SyncList<Transform> _spawnedEnvironments = new();
         private SyncList<Transform> _spawnedMeteors = new();
         private SyncList<Transform> _spawnedFuelStations = new();
@@ -36,71 +29,11 @@ namespace _Project.Scripts.Game.Mod
         private SyncDictionary<Transform, Transform> _spawnedFuelStationAIs = new();
         private SyncList<Transform> _spawnedAreaAIs = new();
 
-        private Matrix4x4[] _meteorMatrices;
-
-        private NativeArray<float3> _meteorNativePosition;
-        private NativeArray<float3> _meteorNativeRotation;
-        private NativeArray<Matrix4x4> _meteorNativeMatrices;
-
-        private float3 _meteorSize;
-
-        private MeteorPositionJob _meteorPositionJob;
-
         public override void Start()
         {
-            _meteorSize = _mapGeneratorData.MeteorPrefabs[0].transform.localScale;
-
-            _meteorMatrices = new Matrix4x4[_mapGeneratorData.MeteorCount];
-
-            _meteorNativePosition = new NativeArray<float3>(_mapGeneratorData.MeteorCount, Allocator.Persistent);
-            _meteorNativeRotation = new NativeArray<float3>(_mapGeneratorData.MeteorCount, Allocator.Persistent);
-            _meteorNativeMatrices = new NativeArray<Matrix4x4>(_mapGeneratorData.MeteorCount, Allocator.Persistent);
-
-            _meteorPositionJob = new MeteorPositionJob
-            {
-                Positions = _meteorNativePosition,
-                Rotations = _meteorNativeRotation,
-                Scale = _meteorSize
-            };
-
             CreateContents();
 
             SpawnHandler();
-            
-        }
-
-        public override void Run()
-        {
-            if (_meteorMatrices == null || _meteorMatrices.Length < 1) return;
-
-            UpdateMeteorMatrices();
-            DrawMeteorMatrices(_meteorMesh, _meteorMaterial);
-        }
-
-        [ServerCallback]
-        private void UpdateMeteorMatrices()
-        {
-            for (var i = 0; i < _meteorMatrices.Length; i++)
-            {
-                var meteor = _spawnedMeteors[i];
-
-                if (meteor == null) continue;
-
-                _meteorNativePosition[i] = meteor.position;
-                _meteorNativeRotation[i] = new float3(meteor.rotation.eulerAngles * Mathf.Deg2Rad);
-            }
-        }
-
-        private void DrawMeteorMatrices(Mesh mesh, Material mat)
-        {
-            Profiler.BeginSample("Draw From GPU");
-            
-            _meteorPositionJob.Matrices = _meteorNativeMatrices;
-            _meteorPositionJob.Schedule(_meteorNativeMatrices.Length, 64).Complete();
-
-            Graphics.DrawMeshInstanced(mesh, 0, mat, _meteorNativeMatrices.ToArray());
-
-            Profiler.EndSample();
         }
 
         public override void FixedRun()
@@ -245,24 +178,12 @@ namespace _Project.Scripts.Game.Mod
 
         private void SpawnMeteors()
         {
-            // _spawnedMeteors = SpawnWithConfigurations(
-            //         _mapGeneratorData.MeteorPrefabs,
-            //         _contents["Meteor"],
-            //         _mapGeneratorData.GameAreaRadius,
-            //         _mapGeneratorData.MeteorCount)
-            //     .ToSyncList();
-
-            for (var i = 0; i < _mapGeneratorData.MeteorCount; i++)
-            {
-                var meteorPrefab = _mapGeneratorData.MeteorPrefabs.GetRandomElement();
-
-                var pos = Random.insideUnitSphere * _mapGeneratorData.GameAreaRadius;
-                var rot = Random.rotation;
-
-                var spawnedObject = Object.Instantiate(meteorPrefab, pos, rot, _contents["Meteor"]);
-
-                _spawnedMeteors.Add(spawnedObject.transform);
-            }
+            _spawnedMeteors = SpawnWithConfigurations(
+                    _mapGeneratorData.MeteorPrefabs,
+                    _contents["Meteor"],
+                    _mapGeneratorData.GameAreaRadius,
+                    _mapGeneratorData.MeteorCount)
+                .ToSyncList();
         }
 
         private void SpawnMeteor(int count)

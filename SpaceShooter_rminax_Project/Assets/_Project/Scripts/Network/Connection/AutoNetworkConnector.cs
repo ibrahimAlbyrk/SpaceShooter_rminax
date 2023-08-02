@@ -9,8 +9,6 @@ namespace _Project.Scripts.Network.Connection
     {
         private void Start()
         {
-            //if (Application.isBatchMode) return;
-            
             FindOnlineServer();
         }
 
@@ -68,6 +66,7 @@ namespace _Project.Scripts.Network.Connection
         
         private static void PostAllocationHandler(Server server, string json)
         {
+            print(json);
             var tokenExchangeResponse = JsonUtility.FromJson<TokenExchangeResponse>(json);
 
             WebRequests.PostJson(ServerSecrets.ALLOCATIONS_URL, request =>

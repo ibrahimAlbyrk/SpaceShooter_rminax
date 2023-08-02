@@ -1,19 +1,17 @@
-﻿using _Project.Scripts.Network.Managers.Room;
+﻿using System;
 using Mirror;
-using MoreMountains.Feedbacks;
-using Sirenix.Utilities;
 using UnityEngine;
+using Sirenix.Utilities;
+using MoreMountains.Feedbacks;
 using UnityEngine.SceneManagement;
 
 namespace _Project.Scripts.Spaceship
 {
     public class SpaceshipShooter : NetworkBehaviour
     {
-        private int b = 0;
+        private int b;
 
-        private float _fireDelayTimer;
-
-        [field: SerializeField] public SpaceshipController.ShootingSettings m_shooting;
+        [SerializeField] public SpaceshipController.ShootingSettings m_shooting;
         [SerializeField] private SpaceshipController.CameraSettings m_camera;
 
         [SerializeField] private MMShaker[] _shakers;
@@ -23,8 +21,6 @@ namespace _Project.Scripts.Spaceship
         [ClientCallback]
         private void Start()
         {
-            _fireDelayTimer = m_shooting.bulletSettings.BulletFireDelay;
-
             _controller = GetComponent<SpaceshipController>();
         }
 
@@ -32,7 +28,7 @@ namespace _Project.Scripts.Spaceship
         private void Update()
         {
             if (!isOwned) return;
-            
+
             if (_controller.Health.IsDead) return;
 
             if (!_controller.IsRunningMotor || !_controller.IsEnableControl) return;
@@ -41,7 +37,18 @@ namespace _Project.Scripts.Spaceship
             {
                 var mousePos = ScreenMousePosition();
 
-                CMD_BulletShooting(gameObject, mousePos);
+                var bulletInfo = new BulletInfo
+                {
+                    BulletDamage = m_shooting.bulletSettings.BulletDamage,
+                    BulletSpeed = m_shooting.bulletSettings.BulletSpeed + _controller.CurrentSpeed,
+                    BulletLifetime = m_shooting.bulletSettings.BulletLifetime,
+                    BulletCount = m_shooting.bulletSettings.BulletCount
+                };
+                
+                //var dir = _controller.CachedTransform.position * (_controller.CurrentSpeed * Time.fixedDeltaTime);
+                //var dir = _controller.CachedTransform.localPosition + _controller.CachedTransform.forward * (_controller.SpeedFactor * Time.fixedDeltaTime);
+                
+                CMD_BulletShooting(gameObject, mousePos, bulletInfo);
 
                 _shakers.ForEach(shaker => shaker?.Play());
             }
@@ -64,26 +71,33 @@ namespace _Project.Scripts.Spaceship
         }
 
         [Command]
-        private void CMD_BulletShooting(GameObject owner, Vector3 mousePos)
+        private void CMD_BulletShooting(GameObject owner, Vector3 mousePos, BulletInfo bulletInfo)
         {
-            for (var x = 0; x < m_shooting.bulletSettings.BulletCount; x++)
+            for (var x = 0; x < bulletInfo.BulletCount; x++)
             {
                 for (var i = b; i < m_shooting.bulletSettings.BulletBarrels.Count; i++)
                 {
                     var barrelTransform = m_shooting.bulletSettings.BulletBarrels[i].transform;
 
+                    var pos = barrelTransform.position;
+
                     var bullet = Instantiate(m_shooting.bulletSettings.Bullet,
-                        barrelTransform.position + barrelTransform.forward * (x * 50),
+                        pos + barrelTransform.forward * (x * 50),
                         Quaternion.LookRotation(transform.forward, transform.up));
 
                     SceneManager.MoveGameObjectToScene(bullet, gameObject.scene);
 
+                    bullet.GetComponent<BulletScript>().Init(owner, isEnemy: false, 
+                        bulletInfo.BulletDamage,
+                        bulletInfo.BulletLifetime,
+                        bulletInfo.BulletSpeed);
+                    
+                    bullet.transform.LookAt(mousePos);
+
                     NetworkServer.Spawn(bullet, gameObject);
 
-                    RPC_SetBulletConfiguration(owner, bullet, mousePos,
-                        m_shooting.bulletSettings.BulletLifetime,
-                        m_shooting.bulletSettings.BulletSpeed);
-
+                    bullet.transform.LookAt(mousePos);
+                    
                     if (m_shooting.bulletSettings.BulletBarrels.Count > 1)
                     {
                         b = b == 0 ? 1 : 0;
@@ -99,13 +113,22 @@ namespace _Project.Scripts.Spaceship
             }
         }
 
-        [ClientRpc]
-        private void RPC_SetBulletConfiguration(GameObject owner, GameObject bullet, Vector3 mousePos,
-            float bulletLifeTime, float bulletSpeed)
-        {
-            bullet.GetComponent<BulletScript>().Init(owner, isEnemy: false, bulletLifeTime, bulletSpeed);
+        //[ClientRpc]
+        //private void RPC_SetBulletConfiguration(GameObject owner, GameObject bullet, Vector3 mousePos,
+        //    float bulletLifeTime, float bulletSpeed)
+        //{
+        //    bullet.GetComponent<BulletScript>().Init(owner, isEnemy: false, bulletLifeTime, bulletSpeed);
+        //    
+        //    bullet.transform.LookAt(mousePos);
+        //}
 
-            bullet.transform.LookAt(mousePos);
+        [Serializable]
+        public struct BulletInfo
+        {
+            public float BulletCount;
+            public float BulletSpeed;
+            public float BulletLifetime;
+            public float BulletDamage;
         }
     }
 }

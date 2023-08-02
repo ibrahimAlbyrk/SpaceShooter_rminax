@@ -1,12 +1,9 @@
-﻿using System;
-using Mirror;
+﻿using Mirror;
 using System.Linq;
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
-using _Project.Scripts.Utilities;
 using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
 
@@ -14,6 +11,7 @@ namespace _Project.Scripts.AI
 {
     using Network;
     using Spaceship;
+    using Utilities;
 
     public class BasicAI : NetIdentity
     {
@@ -21,6 +19,8 @@ namespace _Project.Scripts.AI
 
         [Header("Setup Settings")] public Transform origin;
         public Transform barrel;
+
+        [SerializeField] private float _damage = 10;
 
         public GameObject bullet;
 
@@ -143,7 +143,7 @@ namespace _Project.Scripts.AI
 
         private Transform FindPlayer()
         {
-            var colls = new Collider[3];
+            var colls = new Collider[10];
 
             _physicsScene.OverlapSphere(transform.position, DetectionRange, colls, _detectionLayer,
                 QueryTriggerInteraction.UseGlobal);
@@ -157,11 +157,11 @@ namespace _Project.Scripts.AI
 
         private void Chase()
         {
-            var distance = (transform.position - _targetPlayer.position).sqrMagnitude;
-
+            var isInside = MathUtilities.InDistance(transform.position, _targetPlayer.position, _stopRange);
+            
             var dir = transform.forward * aggresiveSpeed;
 
-            if (distance <= _stopRange * _stopRange)
+            if (isInside)
                 dir = Vector3.zero;
 
             transform.Translate(dir, Space.World);
@@ -182,7 +182,7 @@ namespace _Project.Scripts.AI
             var _currentMovePosition = _points[_pointIndex];
 
             var outDistance = MathUtilities.OutDistance(transform.position, _currentMovePosition, 15);
-
+            
             if (outDistance)
             {
                 transform.Translate(transform.forward * normalSpeed, Space.World);
@@ -202,7 +202,7 @@ namespace _Project.Scripts.AI
 
         #region Fire Methods
 
-        private async void Fire()
+        private void Fire()
         {
             var bulletObj = Instantiate(bullet, barrel.position,
                 Quaternion.LookRotation(transform.forward, transform.up));
@@ -212,28 +212,30 @@ namespace _Project.Scripts.AI
             NetworkServer.Spawn(bulletObj);
 
             _destroyCancellationTokenSource = new CancellationTokenSource();
+            
+            bulletObj.GetComponent<BulletScript>().Init(gameObject,  isEnemy: true, _damage, _bulletLifeTime, _bulletSpeed);
 
-            try
-            {
-                await Task.Delay(100, _destroyCancellationTokenSource.Token);
-            }
-            catch (TaskCanceledException)
-            {
-                // GameObject has been destroyed, so we stop here
-                return;
-            }
+            //try
+            //{
+            //    await Task.Delay(100, _destroyCancellationTokenSource.Token);
+            //}
+            //catch (TaskCanceledException)
+            //{
+            //    // GameObject has been destroyed, so we stop here
+            //    return;
+            //}
 
-            RPC_SetBulletSettings(gameObject, bulletObj, _bulletLifeTime, _bulletSpeed);
+            //RPC_SetBulletSettings(gameObject, bulletObj, _bulletLifeTime, _bulletSpeed);
         }
 
-        [ClientRpc]
-        private void RPC_SetBulletSettings(GameObject owner, GameObject bulletObj, float bulletLifeTime,
-            float bulletSpeed)
-        {
-            if (owner == null || bulletObj == null) return;
-
-            bulletObj.GetComponent<BulletScript>().Init(owner, isEnemy: true, bulletLifeTime, bulletSpeed);
-        }
+        //[ClientRpc]
+        //private void RPC_SetBulletSettings(GameObject owner, GameObject bulletObj, float bulletLifeTime,
+        //    float bulletSpeed)
+        //{
+        //    if (owner == null || bulletObj == null) return;
+        //
+        //    bulletObj.GetComponent<BulletScript>().Init(owner, _damage, isEnemy: true, bulletLifeTime, bulletSpeed);
+        //}
 
         #endregion
 

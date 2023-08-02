@@ -11,7 +11,7 @@ namespace _Project.Scripts.Game.Mod
 
         [Header("General Settings"), SerializeField]
         protected MapGeneratorData _mapGeneratorData;
-
+        
         public MapGeneratorData GetMapData() => _mapGeneratorData;
         
         public virtual void Init(ModManager manager)

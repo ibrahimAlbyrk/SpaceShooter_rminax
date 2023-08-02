@@ -11,12 +11,17 @@ namespace _Project.Scripts.Game
     {
         [SerializeField] private OpenWorldMod _openWorldMod;
         [SerializeField] private ShrinkingAreaMod _shrinkingAreaMod;
-
+        
         private GameMod _selectedMod;
-
+        
         public MapGeneratorData GetMapData() => _selectedMod?.GetMapData();
         
         public void Init(ModType _modType)
+        {
+            SetMod(_modType);
+        }
+        
+        private void SetMod(ModType _modType)
         {
             _selectedMod = _modType switch
             {
@@ -27,21 +32,22 @@ namespace _Project.Scripts.Game
             _selectedMod.Init(this);
         }
         
-        [Server]
+        [ServerCallback]
         public void StartGameMod()
         {
-            _selectedMod.Start();
+            _selectedMod?.Start();
         }
         
+        [ServerCallback]
         public void RunGameMod()
         {
-            _selectedMod.Run();
+            _selectedMod?.Run();
         }
         
-        [Server]
+        [ServerCallback]
         public void FixedRunGameMod()
         {
-            _selectedMod.FixedRun();
+            _selectedMod?.FixedRun();
         }
     }
 }

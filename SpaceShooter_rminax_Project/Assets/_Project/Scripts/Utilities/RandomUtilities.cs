@@ -16,5 +16,9 @@ namespace _Project.Scripts.Utilities
 
             return array[randomIndex];
         }
+
+        public static float GetRandomValue(this Vector2 vec) => Random.Range(vec.x, vec.y);
+        
+        public static int GetRandomValue(this Vector2Int vec) => Random.Range(vec.x, vec.y);
     }
 }

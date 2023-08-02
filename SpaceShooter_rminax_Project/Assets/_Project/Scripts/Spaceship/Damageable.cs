@@ -13,17 +13,21 @@ namespace _Project.Scripts.Spaceship
 
         public float GetHealth() => _health.GetHealth();
         
+        [ServerCallback]
         public void DealDamage(float dealToDamage)
         {
             var controller = GetComponent<SpaceshipController>();
 
             if (controller != null)
             {
-                controller.CMD_Shake();
-                _shakers.ForEach(shaker => shaker?.Play());
+                controller.RPC_Shake(); //TODO: It's was CMD
+                RPC_PlayShakers();
             }
             
             _health.Remove(dealToDamage);
         }
+
+        [TargetRpc]
+        private void RPC_PlayShakers() => _shakers.ForEach(shaker => shaker?.Play());
     }
 }

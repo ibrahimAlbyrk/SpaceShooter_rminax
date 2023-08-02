@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: FireFeature_01
   m_EditorClassIdentifier: 
   Name: FireFeature_01
-  Duration: 10
-  _increaseBulletCount: 2
-  _increaseSpeed: 50
+  Duration: 30
+  Icon: {fileID: 21300000, guid: 5b6c9a106da2e134d816b523f402d62c, type: 3}
+  _increaseBulletCountRange: {x: 2, y: 4}
+  _increaseTargetDistanceRange: {x: 500, y: 1000}
+  _increaseSpeedRange: {x: 1000, y: 2000}

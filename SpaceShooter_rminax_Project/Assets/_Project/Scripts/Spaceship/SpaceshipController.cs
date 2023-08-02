@@ -257,11 +257,13 @@ namespace _Project.Scripts.Spaceship
 
         private float _fireDelayTimer;
         
+        [ServerCallback]
         public void OnDeath()
         {
             StartCoroutine(OnDeathCoroutine());
         }
 
+        [ServerCallback]
         private IEnumerator OnDeathCoroutine()
         {
             var modType = GameManager.Instance.GetModType();
@@ -284,9 +286,7 @@ namespace _Project.Scripts.Spaceship
             
             ResetFuel();
             
-            yield return new WaitForSeconds(.2f);
-            
-            SpawnSystem?.CMD_SpawnPlayer();
+            SpawnSystem?.SpawnPlayer();
         }
 
         [ClientRpc]
@@ -602,7 +602,7 @@ namespace _Project.Scripts.Spaceship
         private Coroutine _shakeCor;
 
         [Command(requiresAuthority = false)]
-        public void CMD_Shake() => RPC_Shaking();
+        public void CMD_Shake() => RPC_Shake();
 
         float shakePercentage;
         float startAmount;
@@ -648,7 +648,7 @@ namespace _Project.Scripts.Spaceship
         }
 
         [TargetRpc]
-        private void RPC_Shaking()
+        public void RPC_Shake()
         {
             if (isRunning)
             {

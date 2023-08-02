@@ -1,5 +1,4 @@
-﻿using _Project.Scripts.Game.Mod.ShrinkingArea;
-using Mirror;
+﻿using Mirror;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -7,6 +6,7 @@ namespace _Project.Scripts.Spaceship
 {
     using Game;
     using Network;
+    using Game.Mod.ShrinkingArea;
     
     public class DeadManager : NetIdentity
     {
@@ -24,10 +24,8 @@ namespace _Project.Scripts.Spaceship
 
         private SpaceshipController _controller;
         
-        public void CloseGameOver() => CMD_CloseGameOver();
-
-        [Command(requiresAuthority = false)]
-        private void CMD_CloseGameOver() => RPC_CloseGameOver();
+        [ServerCallback]
+        public void CloseGameOver() => RPC_CloseGameOver();
 
         [TargetRpc]
         private void RPC_CloseGameOver()
@@ -40,10 +38,8 @@ namespace _Project.Scripts.Spaceship
             _exitGameButton.onClick.RemoveAllListeners();
         }
         
-        public void ShowGameOver(ModType modType) => CMD_ShowGameOver(modType);
-
-        [Command(requiresAuthority = false)]
-        private void CMD_ShowGameOver(ModType modType) => RPC_ShowGameOver(modType);
+        [ServerCallback]
+        public void ShowGameOver(ModType modType) => RPC_ShowGameOver(modType);
 
         [TargetRpc]
         private void RPC_ShowGameOver(ModType modType)

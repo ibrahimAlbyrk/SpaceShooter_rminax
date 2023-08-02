@@ -12,17 +12,22 @@ namespace _Project.Scripts.Features
 
     public class FeatureSystem : NetIdentity
     {
+        [SerializeField] private Transform _featureContent;
+        [SerializeField] private GameObject _featureUIPrefab;
+        
         [SerializeField] private float _featureDetectionRange = 20f;
 
         [SerializeField] private LayerMask _detectionLayer;
+
+        private readonly List<Feature_UI> _featureUIs = new();
+
+        private readonly List<Feature_SO> _addedFeatures = new();
         
         private event Action<Collider> OnEntered;
 
         private readonly Dictionary<Feature_SO, float> _features = new();
 
         private readonly List<Collider> _collisions = new();
-
-        private SpaceshipController _thisController;
 
         private PhysicsScene _physicsScene;
 
@@ -39,17 +44,33 @@ namespace _Project.Scripts.Features
 
             featureHandler.Destroy();
             
-            if (_features.ContainsKey(feature))
+            if (_addedFeatures.Contains(feature))
             {
+                var index = _addedFeatures.IndexOf(feature);
+                
+                //CMD_UpdateFeatureUI(index);
                 CMD_UpdateFeatureTime(feature.Name);
             }
             else
             {
+                _addedFeatures.Add(feature);
+                
                 CMD_AddFeature(feature.Name, SpaceshipController.instance);
+                
+                //CMD_CreateFeatureUI(feature.name);
             }
         }
 
         #region Command Methods
+
+        [Command]
+        private void CMD_CreateFeatureUI(string featureName) => RPC_CreateFeatureUI(featureName);
+        
+        [Command]
+        private void CMD_RemoveAddedFeature(string featureName) => RPC_RemoveAddedFeature(featureName);
+        
+        [Command]
+        private void CMD_UpdateFeatureUI(int index) => RPC_UpdateFeatureUI(index);
 
         [Command]
         private void CMD_AddFeature(string featureName, SpaceshipController ownedController) => RPC_AddFeature(featureName, ownedController);
@@ -63,6 +84,38 @@ namespace _Project.Scripts.Features
         #endregion
 
         #region Client Methods
+
+        [TargetRpc]
+        private void RPC_CreateFeatureUI(string featureName)
+        {
+            var feature = _addedFeatures.FirstOrDefault(f => f.Name == featureName);
+
+            if (feature == null) return;
+            
+            var _featureUI = Instantiate(_featureUIPrefab, _featureContent).GetComponent<Feature_UI>();
+            
+            _featureUI.Init(feature.Icon, feature.Duration);
+            
+            _featureUIs.Add(_featureUI);
+        }
+        
+        [ClientRpc]
+        private void RPC_RemoveAddedFeature(string featureName)
+        {
+            var feature = _addedFeatures.FirstOrDefault(f => f.Name == featureName);
+
+            if (feature == null) return;
+            
+            _addedFeatures.Remove(feature);
+        }
+        
+        [TargetRpc]
+        private void RPC_UpdateFeatureUI(int index)
+        {
+            if (index >= _features.Count) return;
+            
+            _featureUIs[index].UpdateDuration();
+        }
 
         [ClientRpc]
         private void RPC_AddFeature(string featureName, SpaceshipController ownedController)
@@ -110,8 +163,6 @@ namespace _Project.Scripts.Features
         [ClientCallback]
         private void Start()
         {
-            _thisController = GetComponent<SpaceshipController>();
-            
             if (!isOwned) return;
             
             OnEntered += OnColliderEntered;
@@ -144,6 +195,7 @@ namespace _Project.Scripts.Features
             foreach (var endedFeature in endedFeatures)
             {
                 CMD_RemoveFeature(endedFeature.Name);
+                //CMD_RemoveAddedFeature(endedFeature.name);
             }
 
             //Check Colliders and do action

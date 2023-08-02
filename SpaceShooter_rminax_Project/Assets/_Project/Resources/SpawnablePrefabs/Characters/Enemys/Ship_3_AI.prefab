@@ -86460,11 +86460,9 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0
   Explosion: {fileID: 1121192042590650, guid: e1b08032bec16ba4eb1ae23cbd572664, type: 3}
-  HP: 100
   particleParent: {fileID: 9194372238816540730}
+  HP: 50
   ExplosionScale: 10
-  Asteroid: 0
-  Metal: 1
 --- !u!114 &9194372238816251141
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -86482,15 +86480,16 @@ MonoBehaviour:
   syncInterval: 0
   origin: {fileID: 9194372238816526380}
   barrel: {fileID: 1868520002588854856}
+  _damage: 5
   bullet: {fileID: 1169261860770638, guid: 80da6cc03cd261542ab76ca82cb01256, type: 3}
   timeInThreatenedMode: 20
   aggresiveSpeed: 3
-  aggresiveTurnSpeed: 0.65
+  aggresiveTurnSpeed: 0.3
   normalSpeed: 2
   normalTurnSpeed: 10
   _fireCountDown: 0.5
   patrolRange: 150
-  pointCount: 10
+  pointCount: 30
   aggresive: 1
   _detectionLayer:
     serializedVersion: 2

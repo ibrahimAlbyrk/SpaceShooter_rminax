@@ -15,6 +15,7 @@ namespace _Project.Scripts.Game.Mod
         public NativeArray<float3> Rotations;
         public NativeArray<Matrix4x4> Matrices;
 
+        
         public void Execute(int index)
         {
             Matrices[index] = Matrix4x4.TRS(Positions[index],

@@ -9,6 +9,8 @@ namespace _Project.Scripts.Features
         [Header("Feature Settings")]
         public string Name = "New Feature";
         public float Duration = 5f;
+
+        public Sprite Icon;
         
         public SpaceshipController OwnedController { get; set; }
 

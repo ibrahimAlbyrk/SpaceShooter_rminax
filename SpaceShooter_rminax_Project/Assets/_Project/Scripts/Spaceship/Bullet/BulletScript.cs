@@ -2,6 +2,8 @@
 using System.Linq;
 using UnityEngine;
 using System.Collections;
+using System.Threading.Tasks;
+using _Project.Scripts.Utilities;
 
 namespace _Project.Scripts.Spaceship
 {
@@ -28,17 +30,19 @@ namespace _Project.Scripts.Spaceship
 
         private float _bulletLifeTime;
         private float _bulletSpeed;
+        private float _bulletDamage;
 
         private PhysicsScene _physicsScene;
 
-        public void Init(GameObject owner, bool isEnemy = false, float bulletLifeTime = 3f, float bulletSpeed = 100f)
+        public void Init(GameObject owner, bool isEnemy = false, float bulletDamage = 1f, float bulletLifeTime = 3f, float bulletSpeed = 100f)
         {
             _owner = owner;
 
             _bulletLifeTime = bulletLifeTime;
             _bulletSpeed = bulletSpeed;
+            _bulletDamage = bulletDamage;
 
-            Invoke(nameof(CMD_Lifetime), _bulletLifeTime);
+            Invoke(nameof(Lifetime), _bulletLifeTime);
 
             _init = true;
 
@@ -47,7 +51,7 @@ namespace _Project.Scripts.Spaceship
             _physicsScene = gameObject.scene.GetPhysicsScene();
         }
         
-        [ClientCallback]
+        [ServerCallback]
         private void Update()
         {
             if (!_init) return;
@@ -70,17 +74,12 @@ namespace _Project.Scripts.Spaceship
             var obstacle = detectedColls.FirstOrDefault()?.gameObject;
             
             TakeDamageToObstacle(_owner, obstacle);
-
-            StartCoroutine(DestroySequence());
         }
         
+        [ServerCallback]
         private void TakeDamageToObstacle(GameObject owner, GameObject obstacle)
         {
             if (obstacle.gameObject == owner) return;
-            
-            var _settings = SpaceshipController.instance.m_shooting.bulletSettings;
-            
-            StartCoroutine(DestroySequence());
 
             var username = "";
             
@@ -97,7 +96,7 @@ namespace _Project.Scripts.Spaceship
                 }
                 else
                 {
-                    Damageable.DealDamage(_settings.BulletDamage);   
+                    Damageable.DealDamage(_bulletDamage);   
                 }
                 return;
             }
@@ -107,7 +106,7 @@ namespace _Project.Scripts.Spaceship
             {
                 if (destructionScript.HP <= 0) return;
                 
-                destructionScript.HP -= _settings.BulletDamage;
+                destructionScript.HP -= _bulletDamage;
                 
                 var basicAI = destructionScript.GetComponent<BasicAI>();
 
@@ -117,51 +116,61 @@ namespace _Project.Scripts.Spaceship
                 {
                     basicAI.Threat();
                     
-                    if (isDead)
-                    {
-                        AddScore(username, 30);
-                    }
+                    if (isDead) AddScore(username, 30);
                 }
-                else
-                {
-                    if (isDead)
-                    {
-                        AddScore(username, 1);
-                    }
-                }
+                else if
+                    (isDead) AddScore(username, 1);
             }
+            
+            StartCoroutine(DestroySequence());
         }
 
+        [ServerCallback]
         private void AddScore(string username, int value)
         {
             if (_isEnemy) return;
             
-            LeaderboardManager.Instance.CMD_AddScore(username, value);
+            LeaderboardManager.Instance?.AddScore(username, value);
         }
 
+        [ServerCallback]
         private IEnumerator DestroySequence()
         {
             _isMove = false;
+            
+            RPC_CloseVisual();
 
-            if (Trail != null)
-                Trail.gameObject.SetActive(false);
+            RPC_SpawnFireworks(transform.position, Quaternion.identity, 1);
 
-            if (HitEffect != null)
-            {
-                var firework = Instantiate(HitEffect, transform.position, Quaternion.identity);
-                firework.transform.parent = gameObject.transform;
-
-                yield return new WaitForSeconds(1f);
-
-                Destroy(firework);
-            }
-
-            if (gameObject == null) yield break;
-
+            yield return new WaitForSeconds(1.1f);
+            
             NetworkServer.Destroy(gameObject);
         }
 
-        [Command(requiresAuthority = false)]
-        private void CMD_Lifetime() => NetworkServer.Destroy(gameObject);
+        private void Lifetime() => NetworkServer.Destroy(gameObject);
+
+        [ClientRpc]
+        private void RPC_CloseVisual()
+        {
+            if (Trail == null) return;
+            
+            Trail.gameObject.SetActive(false);
+        }
+        
+        [ClientRpc]
+        private async void RPC_SpawnFireworks(Vector3 pos, Quaternion rot, int destroyCountdown)
+        {
+            if (HitEffect == null) return;
+        
+            var firework = Instantiate(HitEffect, pos, rot);
+            
+            if (firework == null) return;
+
+            firework.GetComponentInChildren<ParticleSystem>().Play();
+
+            await Task.Delay(destroyCountdown * 1000);
+
+            firework.Destroy();
+        }
     }
 }

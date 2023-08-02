@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 114314359035804656}
   - component: {fileID: 64667440090797558}
   - component: {fileID: 8795501709388276313}
-  - component: {fileID: 2187964995787904890}
+  - component: {fileID: 6689314924350438568}
   - component: {fileID: -5690094386140864779}
   m_Layer: 3
   m_Name: Asteroid_7
@@ -105,11 +105,9 @@ MonoBehaviour:
   syncInterval: 0
   Explosion: {fileID: 1934171336851347416, guid: 0f79123a3daebd04d9f9c0aa20ec2926,
     type: 3}
-  HP: 200
   particleParent: {fileID: 0}
+  HP: 32
   ExplosionScale: 6
-  Asteroid: 1
-  Metal: 0
 --- !u!64 &64667440090797558
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -149,7 +147,7 @@ MonoBehaviour:
   serverOnly: 0
   visible: 0
   hasSpawned: 0
---- !u!114 &2187964995787904890
+--- !u!114 &6689314924350438568
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -158,10 +156,31 @@ MonoBehaviour:
   m_GameObject: {fileID: 1979778945228820}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f13f42112a552354988a63573e49f5d2, type: 3}
+  m_Script: {fileID: 11500000, guid: 8ff3ba0becae47b8b9381191598957c8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  prefabPrototype: {fileID: 11400000, guid: 4cdcf0958f0d8a44fadda171ab021296, type: 2}
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  target: {fileID: 4827560558302120}
+  clientAuthority: 0
+  syncPosition: 1
+  syncRotation: 1
+  syncScale: 0
+  interpolatePosition: 1
+  interpolateRotation: 1
+  interpolateScale: 1
+  sendIntervalMultiplier: 1
+  timelineOffset: 0
+  showGizmos: 0
+  showOverlay: 0
+  overlayColor: {r: 0, g: 0, b: 0, a: 0.5}
+  onlySyncOnChange: 1
+  onlySyncOnChangeCorrectionMultiplier: 2
+  rotationSensitivity: 0.01
+  compressRotation: 0
+  positionPrecision: 0.01
+  scalePrecision: 0.01
 --- !u!114 &-5690094386140864779
 MonoBehaviour:
   m_ObjectHideFlags: 0

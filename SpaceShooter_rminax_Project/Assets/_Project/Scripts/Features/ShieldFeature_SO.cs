@@ -19,7 +19,7 @@ namespace _Project.Scripts.Features
             
             _spawnedShieldObj = Instantiate(_shieldPrefab);
 
-            OwnedController.Health.SetDamageable(false);
+            OwnedController.Health.CMD_SetDamageable(false);
         }
 
         public override void OnUpdate()
@@ -33,7 +33,7 @@ namespace _Project.Scripts.Features
 
         public override void OnEnd()
         {
-            OwnedController.Health.SetDamageable(true);
+            OwnedController.Health.CMD_SetDamageable(true);
             
             if (_spawnedShieldObj == null) return;
             

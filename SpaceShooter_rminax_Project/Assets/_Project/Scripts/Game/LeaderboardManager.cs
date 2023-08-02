@@ -46,7 +46,7 @@ namespace _Project.Scripts.Game
         #region Server methods
 
         [ServerCallback]
-        private void AddPlayer(string username)
+        public void AddPlayer(string username)
         {
             if (CheckEntry(username)) return;
             
@@ -58,7 +58,7 @@ namespace _Project.Scripts.Game
         }
         
         [ServerCallback]
-        private void RemovePlayer(string username)
+        public void RemovePlayer(string username)
         {
             if (!CheckEntry(username, out var data)) return;
 
@@ -70,7 +70,7 @@ namespace _Project.Scripts.Game
         }
 
         [ServerCallback]
-        private void AddScore(string username, int value)
+        public void AddScore(string username, int value)
         {
             if (!CheckEntry(username, out var data)) return;
             
@@ -87,7 +87,7 @@ namespace _Project.Scripts.Game
         }
 
         [ServerCallback]
-        private void SetScore(string username, int value)
+        public void SetScore(string username, int value)
         {
             if (!CheckEntry(username, out var data)) return;
             
@@ -104,7 +104,7 @@ namespace _Project.Scripts.Game
         }
 
         [ServerCallback]
-        private void SubtractScore(string username, int value)
+        public void SubtractScore(string username, int value)
         {
             if (!CheckEntry(username, out var data)) return;
 

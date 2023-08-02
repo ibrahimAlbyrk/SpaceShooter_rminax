@@ -1,19 +1,21 @@
 ﻿using System.Collections;
+using System.Threading.Tasks;
+using _Project.Scripts.Utilities;
 using Mirror;
 using UnityEngine;
 
 public class DestructionScript : NetworkBehaviour
 {
     public GameObject Explosion;
-    public float HP;
     public Transform particleParent;
+
+    [SyncVar] public float HP;
+
     public float ExplosionScale = 10f;
 
     private bool dead;
 
-    public bool Asteroid;
-    public bool Metal;
-
+    [ServerCallback]
     private void Update()
     {
         if (!dead && HP <= 0f)
@@ -24,7 +26,25 @@ public class DestructionScript : NetworkBehaviour
     }
 
     //TODO: Run If HP is Zero
+    [ServerCallback]
     private IEnumerator Death()
+    {
+        RPC_CloseVisualAndInteraction();
+
+        if (Explosion != null)
+        {
+            RPC_SpawnFireworks(transform.position, transform.rotation, 2);
+
+            yield return new WaitForSeconds(2.5f);
+
+            NetworkServer.Destroy(gameObject);
+        }
+        else
+            NetworkServer.Destroy(gameObject);
+    }
+
+    [ClientRpc]
+    private void RPC_CloseVisualAndInteraction()
     {
         GetComponent<Renderer>().enabled = false;
         foreach (Transform child in transform)
@@ -44,20 +64,22 @@ public class DestructionScript : NetworkBehaviour
         }
 
         GetComponent<Collider>().enabled = false;
-        if (Explosion != null)
-        {
-            var firework = Instantiate(Explosion, transform.position, transform.rotation);
-            firework.transform.localScale *= ExplosionScale;
-            
-            firework.GetComponent<ParticleSystem>().Play();
-            
-            Destroy(gameObject);
-            
-            yield return new WaitForSeconds(2f);
-            
-            Destroy(firework);
-        }
-        else
-            Destroy(gameObject);
+    }
+
+    [ClientRpc]
+    private async void RPC_SpawnFireworks(Vector3 pos, Quaternion rot, int destroyCountdown)
+    {
+        if (Explosion == null) return;
+        
+        var firework = Instantiate(Explosion, pos, rot);
+        firework.transform.localScale *= ExplosionScale;
+
+        firework.GetComponent<ParticleSystem>().Play();
+
+        await Task.Delay(destroyCountdown * 1000);
+
+        if (firework == null) return;
+
+        firework.Destroy();
     }
 }

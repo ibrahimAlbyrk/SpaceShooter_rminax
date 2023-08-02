@@ -1,5 +1,6 @@
 ﻿using System;
 using Mirror;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace _Project.Scripts.Spaceship
@@ -40,15 +41,27 @@ namespace _Project.Scripts.Spaceship
         #endregion
 
         [Command(requiresAuthority = false)]
-        public void SetDamageable(bool state) => isDamageable = state;
+        public void CMD_SetDamageable(bool state) => SetDamageable(state);
+
+        [Command(requiresAuthority = false)]
+        public void CMD_Reset() => Reset();
+
+        [Command(requiresAuthority = false)]
+        public void CMD_Add(float value) => Add(value);
         
         [Command(requiresAuthority = false)]
+        public void CMD_Remove(float value) => Remove(value);
+        
+        [ServerCallback]
+        public void SetDamageable(bool state) => isDamageable = state;
+        
+        [ServerCallback]
         public void Reset()
         {
             _currentHealth = _maxHealth;
         }
-        
-        [Command(requiresAuthority = false)]
+
+        [ServerCallback]
         public void Add(float value)
         {
             value = Mathf.Max(value, 0);
@@ -56,7 +69,7 @@ namespace _Project.Scripts.Spaceship
             _currentHealth = Mathf.Min(_currentHealth + value, _maxHealth);
         }
 
-        [Command(requiresAuthority = false)]
+        [ServerCallback]
         public void Remove(float value)
         {
             if (!isDamageable) return;
