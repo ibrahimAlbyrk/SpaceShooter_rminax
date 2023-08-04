@@ -3,7 +3,6 @@ using System;
 using UnityEngine;
 using System.Linq;
 using System.Collections;
-using System.Threading.Tasks;
 using UnityEngine.SceneManagement;
 
 namespace _Project.Scripts.Network.Managers
@@ -21,7 +20,6 @@ namespace _Project.Scripts.Network.Managers
         [Scene] [SerializeField] private string _hubScene;
         [Scene] [SerializeField] private string _gameScene;
 
-        [SerializeField] private GameObject _roomManager;
         [SerializeField] private GameObject _lobbyPlayerPrefab;
         [SerializeField] private GameObject _gamePlayerPrefab;
 
@@ -61,8 +59,6 @@ namespace _Project.Scripts.Network.Managers
             base.OnServerReady(conn);
             
             CreateLobbyPlayer(conn);
-            
-            SpaceRoomManager.Instance.OnStartedClient();
             
             OnServerRedied?.Invoke(conn);
         }
@@ -133,7 +129,7 @@ namespace _Project.Scripts.Network.Managers
             yield return new WaitForEndOfFrame();
             
             var newPlayer = ReplaceGamePlayer(conn);
-            newPlayer.name = $"{_gamePlayerPrefab.name} [connId={conn.identity.connectionToClient.connectionId}]";
+            newPlayer.name = $"{_gamePlayerPrefab.name} [connId={conn.connectionId}]";
 
             var playersRoom = SpaceRoomManager.Instance.GetPlayersRoom(conn);
             
@@ -148,11 +144,6 @@ namespace _Project.Scripts.Network.Managers
             
             spawnPrefabs = Resources.LoadAll<GameObject>("SpawnablePrefabs").ToList();
 
-            var roomManager = Instantiate(_roomManager);
-            NetworkServer.Spawn(roomManager);
-
-            if (SpaceRoomManager.Instance == null) return;
-            
             SpaceRoomManager.Instance.OnStartedServer();
             
             var roomInfo = new RoomInfo
@@ -178,16 +169,13 @@ namespace _Project.Scripts.Network.Managers
             {
                 NetworkClient.RegisterPrefab(spawnablePrefab);
             }
-        }
-
-        private void StartClientRoomManager()
-        {
+            
             SpaceRoomManager.Instance.OnStartedClient();
         }
 
         public override void OnStopServer()
         {
-            SpaceRoomManager.Instance.RemoveRoom("OpenWorld");
+            SpaceRoomManager.Instance.RemoveAllRoom();
         }
 
         public override void OnStopClient()

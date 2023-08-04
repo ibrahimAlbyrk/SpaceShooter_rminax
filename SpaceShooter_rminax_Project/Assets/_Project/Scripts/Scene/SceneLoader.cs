@@ -14,6 +14,13 @@ namespace _Project.Scripts.Scenes
     
     public class SceneLoader
     {
+        private readonly SpaceSceneManager _sceneManager;
+        
+        public SceneLoader(SpaceSceneManager sceneManager)
+        {
+            _sceneManager = sceneManager;
+        }
+        
         private class SceneLoaderHandler : MonoBehaviour
         {
         }
@@ -77,15 +84,15 @@ namespace _Project.Scripts.Scenes
             while (_scenes.Count > 0)
             {
                 _isCurrentlyLoading = true;
-                
-                //The zero index is assumed as the menu.
-                var sceneIndex = _scenes.Count;
-                
-                if(sceneIndex < 0) yield break;
+
+                //The reason I add one is that the first scene is the menu scene and it will stay open all the time.
+                var sceneIndex = _sceneManager.GetLoadedSceneCount() + 1;
                 
                 var task = _scenes.Dequeue();
 
                 Scene scene = default;
+                
+                Debug.Log($"SceneCor, SceneIndex: {sceneIndex}");
                 
                 //If the scene is unloading, we need to get the scene info without deleting it
                 if(task.LoadOperation == LoadOperation.UnLoad)
@@ -98,7 +105,7 @@ namespace _Project.Scripts.Scenes
                     _ => throw new ArgumentOutOfRangeException($"SceneLoader", "Load Operation is undefined")
                 };
                 
-                //If the scene is loading, the scene information comes after loading
+                //If the scene is loading, the scene information comes after loaded
                 if(task.LoadOperation == LoadOperation.Load)
                     scene = SceneManager.GetSceneAt(sceneIndex);
 

@@ -1,8 +1,8 @@
 ﻿using System;
 using Mirror;
 using System.Linq;
-using System.Collections.Generic;
 using UnityEngine;
+using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 
 namespace _Project.Scripts.Network.Managers.Room
@@ -21,15 +21,25 @@ namespace _Project.Scripts.Network.Managers.Room
         {
             get
             {
-                if (instance == null)
+                lock (padlock)
                 {
-                    instance = FindObjectOfType<SpaceRoomManager>();
+                    if (instance == null)
+                    {
+                        instance = FindObjectOfType<SpaceRoomManager>();
+
+                        if (instance == null)
+                        {
+                            var obj = new GameObject(nameof(SpaceRoomManager));
+                            instance = obj.AddComponent<SpaceRoomManager>();
+                            DontDestroyOnLoad(obj);
+                        }
+                    }
                 }
 
                 return instance;
             }
         }
-        
+
         #endregion
         
         public static event Action<NetworkConnectionToClient> OnServerJoinedClient;
@@ -37,14 +47,6 @@ namespace _Project.Scripts.Network.Managers.Room
         public static event Action OnClientCreatedRoom;
 
         private readonly List<Room> _rooms = new();
-
-        [SyncVar(hook = nameof(OnChangedRoomCount))]
-        private int _roomCount;
-
-        public void OnChangedRoomCount(int _, int newCount)
-        {
-            
-        }
         
         public IEnumerable<Room> GetRooms() => _rooms.ToList();
 
@@ -98,22 +100,22 @@ namespace _Project.Scripts.Network.Managers.Room
 
             var onServer = conn is null;
 
-            var room = new Room(roomName, maxPlayers,onServer);
-
-            _rooms.Add(room);
+            var room = new Room(roomName, maxPlayers, onServer);
             
+            _rooms.Add(room);
+
             //If it is a client, add in to the room
             if (!onServer)
             {
+                SendRoomMessage(conn, ClientRoomState.Created);
+                
                 SpaceSceneManager.Instance.LoadScene(roomInfo.SceneName, LoadSceneMode.Additive,
                     scene =>
                     {
                         room.Scene = scene;
-                        
-                        room.AddConnection(conn);
-
-                        SendRoomMessage(conn, ClientRoomState.Created, conn.connectionId, roomInfo.SceneName);
+                        JoinRoom(conn.identity.connectionToClient, roomName); 
                     });
+                
                 return;
             }
             
@@ -121,6 +123,39 @@ namespace _Project.Scripts.Network.Managers.Room
                 scene => room.Scene = scene);
         }
 
+        [ServerCallback]
+        public void JoinRoom(NetworkConnectionToClient conn, string roomName)
+        {
+            var room = _rooms.FirstOrDefault(r => r.RoomName == roomName);
+
+            if (room == null) // Handle room not found.
+            {
+                SendRoomMessage(conn, ClientRoomState.Fail);
+                return;
+            }
+
+            if (room.MaxPlayers <= room.CurrentPlayers) // Handle room is full.
+            {
+                SendRoomMessage(conn, ClientRoomState.Fail);
+                return;
+            }
+
+            room.AddConnection(conn);
+            
+            OnServerJoinedClient?.Invoke(conn);
+            
+            SendRoomMessage(conn, ClientRoomState.Joined);
+        }
+
+        [ServerCallback]
+        public void RemoveAllRoom()
+        {
+            foreach (var room in _rooms)
+            {
+                RemoveRoom(room.RoomName);
+            }
+        }
+        
         [ServerCallback]
         public void RemoveRoom(string roomName)
         {
@@ -136,47 +171,16 @@ namespace _Project.Scripts.Network.Managers.Room
             
             SpaceSceneManager.Instance.UnLoadScene(roomScene);
 
-            removedConnections.ForEach(connection => SendRoomMessage(connection, ClientRoomState.Removed, connection.connectionId, roomName));
-        }
-
-        [ServerCallback]
-        public void JoinRoom(NetworkConnectionToClient conn, string roomName)
-        {
-            var room = _rooms.FirstOrDefault(r => r.RoomName == roomName);
-            
-            print(room?.Scene.name);
-
-            if (room == null) // Handle room not found.
-            {
-                SendRoomMessage(conn, ClientRoomState.Fail, conn.connectionId);
-                return;
-            }
-
-            if (room.MaxPlayers <= room.CurrentPlayers) // Handle room is full.
-            {
-                SendRoomMessage(conn, ClientRoomState.Fail, conn.connectionId);
-                return;
-            }
-
-            room.AddConnection(conn);
-
-            OnServerJoinedClient?.Invoke(conn);
-            
-            SendRoomMessage(conn, ClientRoomState.Joined, conn.connectionId, roomName);
+            removedConnections.ForEach(connection => SendRoomMessage(connection, ClientRoomState.Removed));
         }
 
         [ServerCallback]
         public void ExitRoom(NetworkConnection conn)
         {
-            var exitedRoom = _rooms.FirstOrDefault(room => room.RemoveConnection(conn));
-
-            if (exitedRoom != null && exitedRoom._connections.Count < 1)
+            if (!_rooms.Any(room => room.RemoveConnection(conn)))
             {
-                var serverMessage = new ServerRoomMessage(
-                    ServerRoomState.Remove,
-                    new RoomInfo{Name = exitedRoom.RoomName});
-                
-                conn.Send(serverMessage);
+                // Handle exit failed (user not in any room).
+                return;
             }
 
             var roomMessage = new ClientRoomMessage(ClientRoomState.Exited, conn.connectionId);
@@ -199,21 +203,12 @@ namespace _Project.Scripts.Network.Managers.Room
                 case ServerRoomState.Join:
                     JoinRoom(conn, msg.RoomInfo.Name);
                     break;
-                case ServerRoomState.Remove:
-                    RemoveRoom(msg.RoomInfo.Name);
-                    break;
                 case ServerRoomState.Exit:
                     ExitRoom(conn);
                     break;
                 default:
                     return;
             }
-        }
-
-        [Command(requiresAuthority = false)]
-        private void CMD_OnServerJoined(int connectionId)
-        {
-            SpaceNetworkManager.singleton.OnServerJoinedClient(connectionId);
         }
 
         [ClientCallback]
@@ -223,11 +218,9 @@ namespace _Project.Scripts.Network.Managers.Room
             {
                 case ClientRoomState.Created:
                     print("created room");
-                    OnClientCreatedRoom?.Invoke();
-                    CMD_OnServerJoined(msg.ConnectionId);
                     break;
                 case ClientRoomState.Joined:
-                    CMD_OnServerJoined(msg.ConnectionId);
+                    print("joined room");
                     break;
                 case ClientRoomState.Removed:
                     break;
@@ -253,6 +246,7 @@ namespace _Project.Scripts.Network.Managers.Room
         [ClientCallback]
         internal void OnStartedClient()
         {
+            print("started client");
             NetworkClient.RegisterHandler<ClientRoomMessage>(OnReceivedRoomMessageViaClient);
         }
 
@@ -261,9 +255,9 @@ namespace _Project.Scripts.Network.Managers.Room
         #region Utilities
 
         [ServerCallback]
-        private void SendRoomMessage(NetworkConnection conn, ClientRoomState state, int connectionId, string roomName = null)
+        private void SendRoomMessage(NetworkConnection conn, ClientRoomState state)
         {
-            var roomMessage = new ClientRoomMessage(roomName, state, connectionId);
+            var roomMessage = new ClientRoomMessage(state, conn.connectionId);
 
             conn.Send(roomMessage);
         }

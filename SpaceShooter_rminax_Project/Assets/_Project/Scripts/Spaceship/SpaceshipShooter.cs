@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Mirror;
 using UnityEngine;
 using Sirenix.Utilities;
@@ -44,11 +45,17 @@ namespace _Project.Scripts.Spaceship
                     BulletLifetime = m_shooting.bulletSettings.BulletLifetime,
                     BulletCount = m_shooting.bulletSettings.BulletCount
                 };
+
+                var barrelPredictionData = new BarrelPredictionData
+                {
+                    LastBarrelPositions = m_shooting.bulletSettings.BulletBarrels
+                        .Select(barrel => barrel.transform.position).ToArray(),
+                    
+                    LastBarrelForwards = m_shooting.bulletSettings.BulletBarrels
+                        .Select(barrel => barrel.transform.forward).ToArray()
+                };
                 
-                //var dir = _controller.CachedTransform.position * (_controller.CurrentSpeed * Time.fixedDeltaTime);
-                //var dir = _controller.CachedTransform.localPosition + _controller.CachedTransform.forward * (_controller.SpeedFactor * Time.fixedDeltaTime);
-                
-                CMD_BulletShooting(gameObject, mousePos, bulletInfo);
+                CMD_BulletShooting(gameObject, mousePos, bulletInfo, barrelPredictionData);
 
                 _shakers.ForEach(shaker => shaker?.Play());
             }
@@ -69,20 +76,26 @@ namespace _Project.Scripts.Spaceship
                 Input.mousePosition.y / (Screen.height / (float)m_camera.TargetCamera.pixelHeight),
                 m_shooting.bulletSettings.TargetDistance));
         }
+        
+        public struct BarrelPredictionData
+        {
+            public Vector3[] LastBarrelPositions;
+            public Vector3[] LastBarrelForwards;
+        }
 
         [Command]
-        private void CMD_BulletShooting(GameObject owner, Vector3 mousePos, BulletInfo bulletInfo)
+        private void CMD_BulletShooting(GameObject owner, Vector3 mousePos, BulletInfo bulletInfo, BarrelPredictionData barrelPredictionData)
         {
             for (var x = 0; x < bulletInfo.BulletCount; x++)
             {
-                for (var i = b; i < m_shooting.bulletSettings.BulletBarrels.Count; i++)
+                for (var i = b; i < barrelPredictionData.LastBarrelPositions.Length; i++)
                 {
-                    var barrelTransform = m_shooting.bulletSettings.BulletBarrels[i].transform;
-
-                    var pos = barrelTransform.position;
+                    var forward = barrelPredictionData.LastBarrelForwards[i];
+                    
+                    var pos = barrelPredictionData.LastBarrelPositions[i] + forward * 2;
 
                     var bullet = Instantiate(m_shooting.bulletSettings.Bullet,
-                        pos + barrelTransform.forward * (x * 50),
+                        pos + forward * (x * 50),
                         Quaternion.LookRotation(transform.forward, transform.up));
 
                     SceneManager.MoveGameObjectToScene(bullet, gameObject.scene);

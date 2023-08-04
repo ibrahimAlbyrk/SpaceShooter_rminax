@@ -1689,7 +1689,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1068496537
 Transform:
   m_ObjectHideFlags: 0
@@ -1724,7 +1724,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1068496536}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0c271865e6ea462cb68c0f6bb103fe2d, type: 3}
   m_Name: 
@@ -2685,6 +2685,11 @@ PrefabInstance:
     - target: {fileID: 6202576416935331845, guid: fb0a4d90cd8e869418cd5636643bcc2f,
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8671867278215689821, guid: fb0a4d90cd8e869418cd5636643bcc2f,
+        type: 3}
+      propertyPath: clientUseWss
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []

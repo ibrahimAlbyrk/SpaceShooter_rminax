@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -37,27 +38,48 @@ namespace _Project.Scripts.Scenes
 
         #endregion
 
-        private readonly SceneLoader _loader = new();
-        
         public static event Action<Scene> OnSceneLoaded;
+        public static event Action<Scene> OnSceneUnloaded;
+
+        private readonly List<Scene> LoadedScenes = new();
+        
+        private SceneLoader _loader;
+
+        public int GetLoadedSceneCount() => LoadedScenes.Count;
 
         #region SceneHandler Methods
 
         public void LoadScene(string sceneName, LoadSceneMode loadSceneMode = LoadSceneMode.Single, Action<Scene> onCompleted = null)
         {
             _loader.LoadScene(sceneName, loadSceneMode,
-                scene =>
+                loadedScene =>
                 {
-                    onCompleted?.Invoke(scene);
-                    OnSceneLoaded?.Invoke(scene);
+                    onCompleted?.Invoke(loadedScene);
+                    OnSceneLoaded?.Invoke(loadedScene);
                 });
         }
 
-        public void UnLoadScene(Scene scene)
+        public void UnLoadScene(Scene scene, Action<Scene> onCompleted = null)
         {
-            _loader.UnloadScene(scene);
+            _loader.UnloadScene(scene, unloadedScene =>
+            {
+                onCompleted?.Invoke(scene);
+                OnSceneUnloaded?.Invoke(unloadedScene);
+            });
         }
 
         #endregion
+        
+        private void KeepLoadedScene(Scene scene) => LoadedScenes.Add(scene);
+        
+        private void DiscardLoadedScene(Scene scene) => LoadedScenes.Remove(scene);
+
+        private void Awake()
+        {
+            OnSceneLoaded += KeepLoadedScene;
+            OnSceneUnloaded += DiscardLoadedScene;
+
+            _loader = new SceneLoader(this);
+        }
     }
 }

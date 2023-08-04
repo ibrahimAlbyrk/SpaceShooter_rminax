@@ -1,7 +1,9 @@
-﻿using Mirror;
+﻿using System;
+using Mirror;
 using System.Linq;
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using _Project.Scripts.Utilities;
 
@@ -50,12 +52,11 @@ namespace _Project.Scripts.Spaceship
 
             _physicsScene = gameObject.scene.GetPhysicsScene();
         }
-        
+
         [ServerCallback]
         private void Update()
         {
-            if (!_init) return;
-            if (!_isMove) return;
+            if (!_init || !_isMove) return;
 
             transform.position += transform.forward * (_bulletSpeed * Time.fixedDeltaTime);
 

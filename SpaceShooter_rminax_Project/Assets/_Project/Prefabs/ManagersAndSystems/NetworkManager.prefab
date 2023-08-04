@@ -55,7 +55,7 @@ MonoBehaviour:
   offlineScene: 
   onlineScene: 
   transport: {fileID: 8671867278215689821}
-  networkAddress: localhost
+  networkAddress: 35.234.170.36
   maxConnections: 100
   authenticator: {fileID: 0}
   playerPrefab: {fileID: 4451912455583840644, guid: e8f9620e66cbcbe4898357d3fdcf768f,
@@ -76,8 +76,6 @@ MonoBehaviour:
   timeInterpolationGui: 0
   _hubScene: Assets/_Project/Scenes/Hub_Scene.unity
   _gameScene: Assets/_Project/Scenes/OpenWorld_Scene.unity
-  _roomManager: {fileID: 2824309192289387798, guid: 1509b6b82349197428975cc9c1596e38,
-    type: 3}
   _lobbyPlayerPrefab: {fileID: 6547834403345332842, guid: 6131550e707c922419740e6db502fd1c,
     type: 3}
   _gamePlayerPrefab: {fileID: 4340039570911776515, guid: 34a9267cc7acc7d44b97789354cba91f,
