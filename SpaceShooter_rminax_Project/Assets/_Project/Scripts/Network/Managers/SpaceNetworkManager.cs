@@ -3,6 +3,7 @@ using System;
 using UnityEngine;
 using System.Linq;
 using System.Collections;
+using System.Threading.Tasks;
 using UnityEngine.SceneManagement;
 
 namespace _Project.Scripts.Network.Managers
@@ -20,6 +21,7 @@ namespace _Project.Scripts.Network.Managers
         [Scene] [SerializeField] private string _hubScene;
         [Scene] [SerializeField] private string _gameScene;
 
+        [SerializeField] private GameObject _roomManager;
         [SerializeField] private GameObject _lobbyPlayerPrefab;
         [SerializeField] private GameObject _gamePlayerPrefab;
 
@@ -60,6 +62,8 @@ namespace _Project.Scripts.Network.Managers
             
             CreateLobbyPlayer(conn);
             
+            SpaceRoomManager.Instance.OnStartedClient();
+            
             OnServerRedied?.Invoke(conn);
         }
 
@@ -90,11 +94,6 @@ namespace _Project.Scripts.Network.Managers
 
         #region Client System Callbacks
 
-        public override void OnClientSceneChanged()
-        {
-            base.OnClientSceneChanged(); //TODO: to be looked at
-        }
-
         public override void OnClientConnect()
         {
             base.OnClientConnect();
@@ -108,10 +107,22 @@ namespace _Project.Scripts.Network.Managers
         }
 
         #endregion
-
+        
         [ServerCallback]
-        private void OnClientJoinedRoom(NetworkConnectionToClient conn)
+        public void OnServerJoinedClient(NetworkConnectionToClient conn)
         {
+            StartCoroutine(OnClientJoinedRoom_Cor(conn));
+        }
+        
+        [ServerCallback]
+        public void OnServerJoinedClient(int connectionId)
+        {
+            if (!NetworkServer.connections.ContainsKey(connectionId)) return;
+            
+            var conn = NetworkServer.connections[connectionId];
+
+            if (conn == null) return;
+
             StartCoroutine(OnClientJoinedRoom_Cor(conn));
         }
 
@@ -122,32 +133,38 @@ namespace _Project.Scripts.Network.Managers
             yield return new WaitForEndOfFrame();
             
             var newPlayer = ReplaceGamePlayer(conn);
-            newPlayer.name = $"{_gamePlayerPrefab.name} [connId={conn.connectionId}]";
+            newPlayer.name = $"{_gamePlayerPrefab.name} [connId={conn.identity.connectionToClient.connectionId}]";
 
-            var playersRoom = SpaceRoomManager.GetPlayersRoom(conn);
+            var playersRoom = SpaceRoomManager.Instance.GetPlayersRoom(conn);
             
             SceneManager.MoveGameObjectToScene(newPlayer, playersRoom.Scene);
         }
         
         #region Start & Stop Callbacks
-
+        
         public override void OnStartServer()
         {
             spawnPrefabs.Clear();
             
             spawnPrefabs = Resources.LoadAll<GameObject>("SpawnablePrefabs").ToList();
-            
-            SpaceRoomManager.OnStartedServer();
-            
-            var roomInfo = new RoomInfo("OpenWorld", "OpenWorld_Scene", 50);
-            var roomInfo2 = new RoomInfo("OpenWorld2", "OpenWorld_Scene", 10);
-            var roomInfo3 = new RoomInfo("OpenWorld3", "OpenWorld_Scene", 40);
-            
-            SpaceRoomManager.CreateRoom(roomInfo);
-            SpaceRoomManager.CreateRoom(roomInfo2);
-            SpaceRoomManager.CreateRoom(roomInfo3);
 
-            SpaceRoomManager.OnClientJoinedRoom += OnClientJoinedRoom;
+            var roomManager = Instantiate(_roomManager);
+            NetworkServer.Spawn(roomManager);
+
+            if (SpaceRoomManager.Instance == null) return;
+            
+            SpaceRoomManager.Instance.OnStartedServer();
+            
+            var roomInfo = new RoomInfo
+            {
+                Name = "OpenWorld",
+                MaxPlayers = 100,
+                SceneName = "OpenWorld_Scene"
+            };
+            
+            SpaceRoomManager.Instance.CreateRoom(roomInfo);
+
+            SpaceRoomManager.OnServerJoinedClient += OnServerJoinedClient;
         }
 
         public override void OnStartClient()
@@ -161,13 +178,16 @@ namespace _Project.Scripts.Network.Managers
             {
                 NetworkClient.RegisterPrefab(spawnablePrefab);
             }
-            
-            SpaceRoomManager.OnStartedClient();
+        }
+
+        private void StartClientRoomManager()
+        {
+            SpaceRoomManager.Instance.OnStartedClient();
         }
 
         public override void OnStopServer()
         {
-            SpaceRoomManager.RemoveRoom("OpenWorld");
+            SpaceRoomManager.Instance.RemoveRoom("OpenWorld");
         }
 
         public override void OnStopClient()

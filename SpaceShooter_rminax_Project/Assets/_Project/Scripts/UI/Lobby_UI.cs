@@ -25,6 +25,23 @@ namespace _Project.Scripts.UI
             SpaceRoomManager.RequestJoinRoom("OpenWorld");
         }
 
+        private void CreateRoom()
+        {
+            var roomInfo = new RoomInfo
+            {
+                Name = "Geber",
+                MaxPlayers = 1,
+                SceneName = "OpenWorld_Scene"
+            };
+            
+            SpaceRoomManager.RequestCreateRoom(roomInfo);
+        }
+
+        private void FindRoom()
+        {
+            
+        }
+
         private void OnUsernameFieldChanged(string value)
         {
             var isIncorrect = value.Length < 3 || string.IsNullOrEmpty(value) || string.IsNullOrWhiteSpace(value);
@@ -41,6 +58,8 @@ namespace _Project.Scripts.UI
         private void Awake()
         {
             _openWorldButton.onClick.AddListener(ConnectOpenWorld);
+            _createRoomButton.onClick.AddListener(CreateRoom);
+            _findRoomButton.onClick.AddListener(FindRoom);
 
             usernameField.onValueChanged.AddListener(OnUsernameFieldChanged);
         }

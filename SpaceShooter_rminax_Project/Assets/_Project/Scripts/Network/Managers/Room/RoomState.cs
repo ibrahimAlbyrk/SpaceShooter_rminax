@@ -5,7 +5,8 @@
     {
         Create,
         Join,
-        Exit
+        Remove,
+        Exit,
     }
     
     [System.Serializable]
