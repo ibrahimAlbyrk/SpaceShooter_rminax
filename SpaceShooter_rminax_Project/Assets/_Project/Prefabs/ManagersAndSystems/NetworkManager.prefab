@@ -10,9 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 6202576416935331845}
   - component: {fileID: 22853247453527872}
+  - component: {fileID: 3103446413171582499}
   - component: {fileID: 6184912547315984954}
   - component: {fileID: 2574818954487519790}
-  - component: {fileID: 8671867278215689821}
   m_Layer: 0
   m_Name: NetworkManager
   m_TagString: Untagged
@@ -54,8 +54,8 @@ MonoBehaviour:
   sendRate: 30
   offlineScene: 
   onlineScene: 
-  transport: {fileID: 8671867278215689821}
-  networkAddress: 35.234.170.36
+  transport: {fileID: 0}
+  networkAddress: 34.30.217.64
   maxConnections: 100
   authenticator: {fileID: 0}
   playerPrefab: {fileID: 4451912455583840644, guid: e8f9620e66cbcbe4898357d3fdcf768f,
@@ -81,6 +81,34 @@ MonoBehaviour:
   _gamePlayerPrefab: {fileID: 4340039570911776515, guid: 34a9267cc7acc7d44b97789354cba91f,
     type: 3}
   _maxConnection: 100
+--- !u!114 &3103446413171582499
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2627724217231595445}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0110f245bfcfc7d459681f7bd9ebc590, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  port: 7778
+  ClientUseDefaultPort: 0
+  maxMessageSize: 16384
+  handshakeMaxSize: 3000
+  noDelay: 1
+  sendTimeout: 5000
+  receiveTimeout: 20000
+  serverMaxMessagesPerTick: 10000
+  clientMaxMessagesPerTick: 1000
+  batchSend: 1
+  waitBeforeSend: 1
+  clientUseWss: 0
+  sslEnabled: 0
+  sslCertJson: ./cert.json
+  sslProtocols: 3072
+  _logLevels: 3
 --- !u!114 &6184912547315984954
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -107,31 +135,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b979f26c95d34324ba005bfacfa9c4fc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &8671867278215689821
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2627724217231595445}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0110f245bfcfc7d459681f7bd9ebc590, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  port: 9000
-  ClientUseDefaultPort: 0
-  maxMessageSize: 16384
-  handshakeMaxSize: 3000
-  noDelay: 1
-  sendTimeout: 5000
-  receiveTimeout: 20000
-  serverMaxMessagesPerTick: 10000
-  clientMaxMessagesPerTick: 1000
-  batchSend: 1
-  waitBeforeSend: 1
-  clientUseWss: 0
-  sslEnabled: 0
-  sslCertJson: ./cert.json
-  sslProtocols: 3072
-  _logLevels: 3
