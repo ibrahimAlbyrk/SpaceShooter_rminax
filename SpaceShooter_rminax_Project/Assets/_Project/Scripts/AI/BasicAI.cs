@@ -4,6 +4,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
 
@@ -19,6 +20,7 @@ namespace _Project.Scripts.AI
 
         [Header("Setup Settings")] public Transform origin;
         public Transform barrel;
+        [SerializeField] private DestructionScript _destruction;
 
         [SerializeField] private float _damage = 10;
 
@@ -96,6 +98,8 @@ namespace _Project.Scripts.AI
         [ServerCallback]
         private void FixedUpdate()
         {
+            if (_destruction.HP <= 0) return;
+            
             _targetPlayer = FindPlayer();
 
             if (_targetPlayer != null && _targetPlayer.gameObject.activeSelf) Chase();
@@ -202,7 +206,7 @@ namespace _Project.Scripts.AI
 
         #region Fire Methods
 
-        private void Fire()
+        private async void Fire()
         {
             var bulletObj = Instantiate(bullet, barrel.position,
                 Quaternion.LookRotation(transform.forward, transform.up));
@@ -213,29 +217,29 @@ namespace _Project.Scripts.AI
 
             _destroyCancellationTokenSource = new CancellationTokenSource();
             
-            bulletObj.GetComponent<BulletScript>().Init(gameObject,  isEnemy: true, _damage, _bulletLifeTime, _bulletSpeed);
+            bulletObj.GetComponent<BulletScript>().Init(gameObject, isEnemy: true, _damage, _bulletLifeTime, _bulletSpeed);
+            
+            try
+            {
+                await Task.Delay(100, _destroyCancellationTokenSource.Token);
+            }
+            catch (TaskCanceledException)
+            {
+                // GameObject has been destroyed, so we stop here
+                return;
+            }
 
-            //try
-            //{
-            //    await Task.Delay(100, _destroyCancellationTokenSource.Token);
-            //}
-            //catch (TaskCanceledException)
-            //{
-            //    // GameObject has been destroyed, so we stop here
-            //    return;
-            //}
-
-            //RPC_SetBulletSettings(gameObject, bulletObj, _bulletLifeTime, _bulletSpeed);
+            RPC_SetBulletSettings(gameObject, bulletObj, _bulletLifeTime, _bulletSpeed);
         }
 
-        //[ClientRpc]
-        //private void RPC_SetBulletSettings(GameObject owner, GameObject bulletObj, float bulletLifeTime,
-        //    float bulletSpeed)
-        //{
-        //    if (owner == null || bulletObj == null) return;
-        //
-        //    bulletObj.GetComponent<BulletScript>().Init(owner, _damage, isEnemy: true, bulletLifeTime, bulletSpeed);
-        //}
+        [ClientRpc]
+        private void RPC_SetBulletSettings(GameObject owner, GameObject bulletObj, float bulletLifeTime,
+            float bulletSpeed)
+        {
+            if (owner == null || bulletObj == null) return;
+        
+            bulletObj.GetComponent<BulletScript>().Init(owner, isEnemy: false, _damage, bulletLifeTime, bulletSpeed);
+        }
 
         #endregion
 

@@ -48050,6 +48050,7 @@ MonoBehaviour:
   syncInterval: 0
   origin: {fileID: 8729523151063909562}
   barrel: {fileID: 8735401117538228672}
+  _destruction: {fileID: 8700303240362441030}
   _damage: 5
   bullet: {fileID: 1169261860770638, guid: acba20e0ba98c7c49a26f32b5fbb662a, type: 3}
   timeInThreatenedMode: 20

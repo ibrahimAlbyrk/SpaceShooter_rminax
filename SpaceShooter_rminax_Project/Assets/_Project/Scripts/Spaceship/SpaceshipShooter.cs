@@ -41,7 +41,7 @@ namespace _Project.Scripts.Spaceship
                 var bulletInfo = new BulletInfo
                 {
                     BulletDamage = m_shooting.bulletSettings.BulletDamage,
-                    BulletSpeed = m_shooting.bulletSettings.BulletSpeed + _controller.CurrentSpeed,
+                    BulletSpeed = m_shooting.bulletSettings.BulletSpeed,
                     BulletLifetime = m_shooting.bulletSettings.BulletLifetime,
                     BulletCount = m_shooting.bulletSettings.BulletCount
                 };
@@ -64,17 +64,8 @@ namespace _Project.Scripts.Spaceship
         [ClientCallback]
         private Vector3 ScreenMousePosition()
         {
-            if (m_camera.TargetCamera.targetTexture == null)
-            {
-                return m_camera.TargetCamera.ScreenToWorldPoint(new Vector3(Input.mousePosition.x,
-                    Input.mousePosition.y, m_shooting.bulletSettings.TargetDistance));
-            }
-
-            //EVERYTHING MUST BE A FLOAT
-            return m_camera.TargetCamera.ScreenToWorldPoint(new Vector3(
-                Input.mousePosition.x / (Screen.height / (float)m_camera.TargetCamera.pixelHeight),
-                Input.mousePosition.y / (Screen.height / (float)m_camera.TargetCamera.pixelHeight),
-                m_shooting.bulletSettings.TargetDistance));
+            return m_camera.TargetCamera.ScreenToWorldPoint(new Vector3(Input.mousePosition.x,
+                Input.mousePosition.y + 10, m_shooting.bulletSettings.TargetDistance));
         }
         
         public struct BarrelPredictionData
@@ -97,20 +88,23 @@ namespace _Project.Scripts.Spaceship
                     var bullet = Instantiate(m_shooting.bulletSettings.Bullet,
                         pos + forward * (x * 50),
                         Quaternion.LookRotation(transform.forward, transform.up));
-
-                    SceneManager.MoveGameObjectToScene(bullet, gameObject.scene);
-
-                    bullet.GetComponent<BulletScript>().Init(owner, isEnemy: false, 
+                    
+                    SetBulletConfiguration(owner, bullet,
+                        mousePos,
                         bulletInfo.BulletDamage,
                         bulletInfo.BulletLifetime,
                         bulletInfo.BulletSpeed);
                     
-                    bullet.transform.LookAt(mousePos);
-
-                    NetworkServer.Spawn(bullet, gameObject);
-
-                    bullet.transform.LookAt(mousePos);
+                    SceneManager.MoveGameObjectToScene(bullet, gameObject.scene);
                     
+                    NetworkServer.Spawn(bullet, gameObject);
+                    
+                    RPC_SetBulletConfiguration(owner, bullet,
+                        mousePos,
+                        bulletInfo.BulletDamage,
+                        bulletInfo.BulletLifetime,
+                        bulletInfo.BulletSpeed);
+
                     if (m_shooting.bulletSettings.BulletBarrels.Count > 1)
                     {
                         b = b == 0 ? 1 : 0;
@@ -126,14 +120,20 @@ namespace _Project.Scripts.Spaceship
             }
         }
 
-        //[ClientRpc]
-        //private void RPC_SetBulletConfiguration(GameObject owner, GameObject bullet, Vector3 mousePos,
-        //    float bulletLifeTime, float bulletSpeed)
-        //{
-        //    bullet.GetComponent<BulletScript>().Init(owner, isEnemy: false, bulletLifeTime, bulletSpeed);
-        //    
-        //    bullet.transform.LookAt(mousePos);
-        //}
+        [ClientRpc]
+        private void RPC_SetBulletConfiguration(GameObject owner, GameObject bullet, Vector3 mousePos,
+            float bulletDamage, float bulletLifeTime, float bulletSpeed)
+        {
+            SetBulletConfiguration(owner, bullet, mousePos, bulletDamage, bulletLifeTime, bulletSpeed);
+        }
+        
+        private void SetBulletConfiguration(GameObject owner, GameObject bullet, Vector3 mousePos,
+            float bulletDamage, float bulletLifeTime, float bulletSpeed)
+        {
+            bullet.GetComponent<BulletScript>().Init(owner, isEnemy: false, bulletDamage, bulletLifeTime, bulletSpeed);
+            
+            bullet.transform.LookAt(mousePos);
+        }
 
         [Serializable]
         public struct BulletInfo

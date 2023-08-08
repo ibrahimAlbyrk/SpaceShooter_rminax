@@ -25222,8 +25222,8 @@ MonoBehaviour:
       Smooth: {x: 15, y: 15}
     Offset: 50
     OnRollCompensationFactor: 0.1
-    PositionSmooth: 7
-    RotationSmooth: 10
+    PositionSmooth: 5
+    RotationSmooth: 7
     TargetCamera: {fileID: 5212725053008746201}
     normalCursor: {fileID: 0}
     aimingCursor: {fileID: 0}

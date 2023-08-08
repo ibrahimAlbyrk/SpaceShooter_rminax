@@ -4,12 +4,12 @@ using System.Linq;
 using UnityEngine;
 using System.Diagnostics;
 using System.Collections.Generic;
-using _Project.Scripts.Utilities;
 
 namespace _Project.Scripts.Features
 {
     using Network;
     using Spaceship;
+    using Utilities;
 
     public class FeatureSystem : NetIdentity
     {
@@ -37,9 +37,9 @@ namespace _Project.Scripts.Features
 
             var featureHandler = coll.GetComponent<FeatureHandler>();
 
-            var feature = featureHandler.GetFeature();
+            var feature = featureHandler?.GetFeature();
 
-            if (featureHandler == null || feature == null) return;
+            if (feature == null) return;
 
             featureHandler.Destroy();
 
@@ -117,26 +117,54 @@ namespace _Project.Scripts.Features
             var endTime = Time.time + feature.Duration;
 
             _features.Add(feature, endTime);
-
-            CMD_SetSettingFeature(ownedController, featureName);
+            
+            CMD_AddToList(featureName);
+            
+            SetSettingFeature(ownedController, feature);
         }
 
-        #region Fire Feature Methods
+        [Command(requiresAuthority = false)]
+        private void CMD_AddToList(string featureName)
+        {
+            var feature = Resources.Load<Feature_SO>($"FeaturesSO/{featureName}");
+            feature = Instantiate(feature);
+            
+            var endTime = Time.time + feature.Duration;
 
-        [Command]
-        private void CMD_SetSettingFeature(SpaceshipController ownedController, string featureName)
+            _features.Add(feature, endTime);
+        }
+        
+        [Command(requiresAuthority = false)]
+        private void CMD_RemoveToList(string featureName)
         {
             var feature = _features.Keys.FirstOrDefault(f => f.Name == featureName);
 
             if (feature == null) return;
 
-            if (feature is not FireFeature_SO fireFeature)
+            _features.Remove(feature);
+        }
+
+        #region Fire Feature Methods
+
+        private void SetSettingFeature(SpaceshipController ownedController, Feature_SO feature)
+        {
+            if (feature is not FireFeature_SO)
             {
                 feature.OnStart(ownedController);
                 
                 return;
             }
 
+            CMD_SetFireFeature(feature.Name, ownedController);
+        }
+
+        [Command(requiresAuthority = false)]
+        private void CMD_SetFireFeature(string featureName, SpaceshipController ownedController)
+        {
+            var feature = _features.Keys.FirstOrDefault(f => f.Name == featureName);
+
+            if (feature is not FireFeature_SO fireFeature) return;
+            
             var bulletCount = fireFeature.IncreaseBulletCountRange.GetRandomValue();
             var targetDistance = fireFeature.IncreaseTargetDistanceRange.GetRandomValue();
             var speed = fireFeature.IncreaseSpeedRange.GetRandomValue();
@@ -184,6 +212,8 @@ namespace _Project.Scripts.Features
             feature.OnEnd();
 
             _features.Remove(feature);
+            
+            CMD_RemoveToList(featureName);
         }
 
         #endregion

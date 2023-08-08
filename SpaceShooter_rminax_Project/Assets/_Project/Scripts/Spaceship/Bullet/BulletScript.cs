@@ -1,16 +1,14 @@
-﻿using System;
-using Mirror;
+﻿using Mirror;
 using System.Linq;
 using UnityEngine;
 using System.Collections;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using _Project.Scripts.Utilities;
 
 namespace _Project.Scripts.Spaceship
 {
     using AI;
     using Game;
+    using Utilities;
     
     public class BulletScript : NetworkBehaviour
     {
@@ -44,7 +42,8 @@ namespace _Project.Scripts.Spaceship
             _bulletSpeed = bulletSpeed;
             _bulletDamage = bulletDamage;
 
-            Invoke(nameof(Lifetime), _bulletLifeTime);
+            if(isServer)
+                Invoke(nameof(Lifetime), _bulletLifeTime);
 
             _init = true;
 
@@ -53,12 +52,17 @@ namespace _Project.Scripts.Spaceship
             _physicsScene = gameObject.scene.GetPhysicsScene();
         }
 
+        private void FixedUpdate()
+        {
+            if (!_init || !_isMove) return;
+            
+            transform.position += transform.forward * (_bulletSpeed * Time.fixedDeltaTime);
+        }
+        
         [ServerCallback]
         private void Update()
         {
             if (!_init || !_isMove) return;
-
-            transform.position += transform.forward * (_bulletSpeed * Time.fixedDeltaTime);
 
             var detectedColls = new Collider[3];
 
@@ -134,14 +138,20 @@ namespace _Project.Scripts.Spaceship
             LeaderboardManager.Instance?.AddScore(username, value);
         }
 
-        [ServerCallback]
-        private IEnumerator DestroySequence()
+        [ClientRpc]
+        private void RPC_Destroy()
         {
             _isMove = false;
             
-            RPC_CloseVisual();
+            CloseVisual();
 
-            RPC_SpawnFireworks(transform.position, Quaternion.identity, 1);
+            SpawnFireworks(transform.position, Quaternion.identity, 1);
+        }
+        
+        [ServerCallback]
+        private IEnumerator DestroySequence()
+        {
+            RPC_Destroy();
 
             yield return new WaitForSeconds(1.1f);
             
@@ -150,16 +160,14 @@ namespace _Project.Scripts.Spaceship
 
         private void Lifetime() => NetworkServer.Destroy(gameObject);
 
-        [ClientRpc]
-        private void RPC_CloseVisual()
+        private void CloseVisual()
         {
             if (Trail == null) return;
             
             Trail.gameObject.SetActive(false);
         }
         
-        [ClientRpc]
-        private async void RPC_SpawnFireworks(Vector3 pos, Quaternion rot, int destroyCountdown)
+        private async void SpawnFireworks(Vector3 pos, Quaternion rot, int destroyCountdown)
         {
             if (HitEffect == null) return;
         

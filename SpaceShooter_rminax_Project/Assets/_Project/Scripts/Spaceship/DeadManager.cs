@@ -51,11 +51,14 @@ namespace _Project.Scripts.Spaceship
             
             _exitGameButton.onClick.AddListener(() =>
             {
-                if (LeaderboardManager.Instance != null)
-                    LeaderboardManager.Instance.CMD_RemovePlayer(_controller.Username);
+                if (GameManager.Instance.GetModType() != ModType.OpenWorld)
+                {
+                    if (LeaderboardManager.Instance != null)
+                        LeaderboardManager.Instance.CMD_RemovePlayer(_controller.Username);
             
-                if (ShrinkingAreaSystem.Instance != null)
-                    ShrinkingAreaSystem.Instance.CMD_RemovePlayer(_controller);
+                    if (ShrinkingAreaSystem.Instance != null)
+                        ShrinkingAreaSystem.Instance.CMD_RemovePlayer(_controller);   
+                }
                 
                 NetworkClient.Disconnect();
             });
