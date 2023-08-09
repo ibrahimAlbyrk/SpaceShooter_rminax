@@ -1,15 +1,17 @@
-﻿using _Project.Scripts.Network.Managers.Room;
+﻿using TMPro;
 using Mirror;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace _Project.Scripts.UI
 {
-    using Network.Managers;
+    using Network.Managers.Room;
     
     public class Lobby_UI : NetworkBehaviour
     {
+        [SerializeField] private RoomSearcher _roomSearcher;
+        [SerializeField] private RoomCreator _roomCreator;
+        
         [Header("Buttons")]
         [SerializeField] private Button _openWorldButton;
         [SerializeField] private Button _findRoomButton;
@@ -20,26 +22,18 @@ namespace _Project.Scripts.UI
         
         private void ConnectOpenWorld()
         {
-            //SpaceNetworkManager.singleton.ConnectOpenWorld();
-            
             SpaceRoomManager.RequestJoinRoom("OpenWorld");
         }
 
         private void CreateRoom()
         {
-            var roomInfo = new RoomInfo
-            {
-                Name = "Geber",
-                MaxPlayers = 1,
-                SceneName = "OpenWorld_Scene"
-            };
-            
-            SpaceRoomManager.RequestCreateRoom(roomInfo);
+            _roomCreator.gameObject.SetActive(true);
         }
 
         private void FindRoom()
         {
-            
+            _roomSearcher.gameObject.SetActive(true);
+            _roomSearcher.UpdateUI();
         }
 
         private void OnUsernameFieldChanged(string value)
@@ -57,11 +51,11 @@ namespace _Project.Scripts.UI
 
         private void Awake()
         {
-            _openWorldButton.onClick.AddListener(ConnectOpenWorld);
-            _createRoomButton.onClick.AddListener(CreateRoom);
-            _findRoomButton.onClick.AddListener(FindRoom);
-
-            usernameField.onValueChanged.AddListener(OnUsernameFieldChanged);
+            _openWorldButton?.onClick.AddListener(ConnectOpenWorld);
+            _findRoomButton?.onClick.AddListener(FindRoom);
+            _createRoomButton?.onClick.AddListener(CreateRoom);
+            
+            usernameField?.onValueChanged.AddListener(OnUsernameFieldChanged);
         }
 
         private void Start()

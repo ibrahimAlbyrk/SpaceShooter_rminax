@@ -92,11 +92,9 @@ namespace _Project.Scripts.Scenes
 
                 Scene scene = default;
                 
-                Debug.Log($"SceneCor, SceneIndex: {sceneIndex}");
-                
                 //If the scene is unloading, we need to get the scene info without deleting it
-                if(task.LoadOperation == LoadOperation.UnLoad)
-                    scene = SceneManager.GetSceneAt(sceneIndex);
+                if (task.LoadOperation == LoadOperation.UnLoad)
+                    scene = task.Scene;
 
                 yield return task.LoadOperation switch
                 {

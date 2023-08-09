@@ -1,11 +1,43 @@
 ﻿using System;
-using System.Collections.Generic;
 using Mirror;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace _Project.Scripts.Utilities
 {
     public static class CollectionUtilities
     {
+        #region List
+
+        public static void RemoveAll<T>(this List<T> list)
+        {
+            foreach (var element in list.ToList())
+            {
+                list.Remove(element);
+            }
+        }
+
+        #endregion
+        
+        #region Array
+
+        public static void RemoveAll<T>(this T[] array)
+        {
+            var list = array.ToList();
+
+            for (var i = 0; i < list.Count; i++)
+            {
+                list.RemoveAt(i);
+            }
+
+            // ReSharper disable once RedundantAssignment
+            array = list.ToArray();
+        }
+
+        #endregion
+
+        #region IEnumerable
+
         public static T GetElement<T>(this IEnumerable<T> collection, int atIndex)
         {
             var index = 0;
@@ -42,5 +74,7 @@ namespace _Project.Scripts.Utilities
 
             return syncList;
         }
+
+        #endregion
     }
 }

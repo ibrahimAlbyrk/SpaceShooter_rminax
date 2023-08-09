@@ -137,13 +137,14 @@ namespace _Project.Scripts.Network.Managers
         }
         
         #region Start & Stop Callbacks
-        
-        public override void OnStartServer()
-        {
-            spawnPrefabs.Clear();
-            
-            spawnPrefabs = Resources.LoadAll<GameObject>("SpawnablePrefabs").ToList();
 
+        private IEnumerator RoomManagerStartedServer()
+        {
+            while(SpaceRoomManager.Instance == null)
+            {
+                yield return null;
+            }
+            
             SpaceRoomManager.Instance.OnStartedServer();
             
             var roomInfo = new RoomInfo
@@ -156,6 +157,25 @@ namespace _Project.Scripts.Network.Managers
             SpaceRoomManager.Instance.CreateRoom(roomInfo);
 
             SpaceRoomManager.OnServerJoinedClient += OnServerJoinedClient;
+        }
+        
+        private IEnumerator RoomManagerStartedClient()
+        {
+            while(SpaceRoomManager.Instance == null)
+            {
+                yield return null;
+            }
+            
+            SpaceRoomManager.Instance.OnStartedClient();
+        }
+        
+        public override void OnStartServer()
+        {
+            spawnPrefabs.Clear();
+            
+            spawnPrefabs = Resources.LoadAll<GameObject>("SpawnablePrefabs").ToList();
+
+            StartCoroutine(RoomManagerStartedServer());
         }
 
         public override void OnStartClient()
@@ -170,7 +190,7 @@ namespace _Project.Scripts.Network.Managers
                 NetworkClient.RegisterPrefab(spawnablePrefab);
             }
             
-            SpaceRoomManager.Instance.OnStartedClient();
+            StartCoroutine(RoomManagerStartedClient());
         }
 
         public override void OnStopServer()

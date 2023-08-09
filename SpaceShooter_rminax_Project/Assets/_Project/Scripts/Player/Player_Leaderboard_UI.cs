@@ -70,15 +70,17 @@ namespace _Project.Scripts.Player
         [ClientCallback]
         private void OnDestroy()
         {
-            LeaderboardManager.Instance.OnLeaderboardUpdated -= UpdateLeaderboard;
+            if (LeaderboardManager.Instance != null)
+                LeaderboardManager.Instance.OnLeaderboardUpdated -= UpdateLeaderboard;
         }
 
         [ClientCallback]
         private void Start()
         {
             CloseLeaderboard();
-
-            LeaderboardManager.Instance.OnLeaderboardUpdated += UpdateLeaderboard;
+            
+            if (LeaderboardManager.Instance != null)
+                LeaderboardManager.Instance.OnLeaderboardUpdated += UpdateLeaderboard;
         }
 
         [ClientCallback]
