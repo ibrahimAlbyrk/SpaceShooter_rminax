@@ -1,19 +1,22 @@
-﻿using System;
+﻿using TMPro;
+using System;
 using Mirror;
 using UnityEngine;
 using System.Collections;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using _Project.Scripts.Game.Mod.ShrinkingArea;
-using _Project.Scripts.PostProcess;
-using _Project.Scripts.Utilities;
-using TMPro;
+using System.Collections.Generic;
+using _Project.Scripts.Extensions;
 using Random = UnityEngine.Random;
 
 namespace _Project.Scripts.Spaceship
 {
     using Game;
+    using Enum;
     using Network;
+    using Utilities;
+    using PostProcess;
+    using Network.Managers.Room;
+    using Game.Mod.ShrinkingArea;
 
     public sealed class SpaceshipController : NetIdentity
     {
@@ -182,13 +185,19 @@ namespace _Project.Scripts.Spaceship
 
             await Task.Delay(200);
 
-            if (LeaderboardManager.Instance != null)
-                LeaderboardManager.Instance.CMD_AddPlayer(Username);
-            
-            if (ShrinkingAreaSystem.Instance != null)
-                ShrinkingAreaSystem.Instance.CMD_AddPlayer(this);
+            CMD_AddPlayer();
         }
 
+        [Command(requiresAuthority = false)]
+        private void CMD_AddPlayer()
+        {
+            var leaderboardManager = gameObject.GameContainer().Get<LeaderboardManager>();
+            leaderboardManager?.AddPlayer(Username);
+            
+            var shrinkingAreaSystem = gameObject.GameContainer().Get<ShrinkingAreaSystem>();
+            shrinkingAreaSystem?.AddPlayer(this);
+        }
+        
         public override void OnStopClient()
         {
             //if (LeaderboardManager.Instance != null)
@@ -196,6 +205,8 @@ namespace _Project.Scripts.Spaceship
             //
             //if (ShrinkingAreaSystem.Instance != null)
             //    ShrinkingAreaSystem.Instance.CMD_RemovePlayer(this);
+            
+            SpaceRoomManager.RequestExitRoom();
         }
 
         #endregion
@@ -266,7 +277,9 @@ namespace _Project.Scripts.Spaceship
         [ServerCallback]
         private IEnumerator OnDeathCoroutine()
         {
-            var modType = GameManager.Instance.GetModType();
+            var gameManager = gameObject.GameContainer().Get<GameManager>();
+            
+            var modType = gameManager.GetModType();
             
             DeadManager.ShowGameOver(modType);
 

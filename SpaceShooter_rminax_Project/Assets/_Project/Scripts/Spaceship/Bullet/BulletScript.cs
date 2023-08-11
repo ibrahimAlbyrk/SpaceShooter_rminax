@@ -3,6 +3,7 @@ using System.Linq;
 using UnityEngine;
 using System.Collections;
 using System.Threading.Tasks;
+using _Project.Scripts.Extensions;
 
 namespace _Project.Scripts.Spaceship
 {
@@ -42,8 +43,7 @@ namespace _Project.Scripts.Spaceship
             _bulletSpeed = bulletSpeed;
             _bulletDamage = bulletDamage;
 
-            if(isServer)
-                Invoke(nameof(Lifetime), _bulletLifeTime);
+            Invoke(nameof(Lifetime), _bulletLifeTime);
 
             _init = true;
 
@@ -51,7 +51,7 @@ namespace _Project.Scripts.Spaceship
 
             _physicsScene = gameObject.scene.GetPhysicsScene();
         }
-
+        
         private void FixedUpdate()
         {
             if (!_init || !_isMove) return;
@@ -59,7 +59,7 @@ namespace _Project.Scripts.Spaceship
             transform.position += transform.forward * (_bulletSpeed * Time.fixedDeltaTime);
         }
         
-        [ServerCallback]
+        [ClientCallback]
         private void Update()
         {
             if (!_init || !_isMove) return;
@@ -78,18 +78,20 @@ namespace _Project.Scripts.Spaceship
 
             var obstacle = detectedColls.FirstOrDefault()?.gameObject;
             
-            TakeDamageToObstacle(_owner, obstacle);
+            CMD_TakeDamageToObstacle(_owner, obstacle);
         }
         
-        [ServerCallback]
-        private void TakeDamageToObstacle(GameObject owner, GameObject obstacle)
+        [Command(requiresAuthority = false)]
+        private void CMD_TakeDamageToObstacle(GameObject owner, GameObject obstacle)
         {
+            if (obstacle == null || owner == null) return;
+            
             if (obstacle.gameObject == owner) return;
-
+            
             var username = "";
             
             if(!_isEnemy)
-                username = owner.GetComponent<SpaceshipController>().Username;
+                username = owner.GetComponent<SpaceshipController>()?.Username;
 
             var Damageable = obstacle.GetComponent<Damageable>();
 
@@ -133,41 +135,40 @@ namespace _Project.Scripts.Spaceship
         [ServerCallback]
         private void AddScore(string username, int value)
         {
-            if (_isEnemy) return;
-            
-            LeaderboardManager.Instance?.AddScore(username, value);
-        }
+            if (_isEnemy || string.IsNullOrEmpty(username)) return;
 
-        [ClientRpc]
-        private void RPC_Destroy()
-        {
-            _isMove = false;
+            var _leaderboardManager = gameObject.GameContainer().Get<LeaderboardManager>();
             
-            CloseVisual();
-
-            SpawnFireworks(transform.position, Quaternion.identity, 1);
+            _leaderboardManager?.AddScore(username, value);
         }
         
         [ServerCallback]
         private IEnumerator DestroySequence()
         {
-            RPC_Destroy();
+            _isMove = false;
+            
+            RPC_CloseVisual();
+
+            RPC_SpawnFireworks(transform.position, Quaternion.identity, 1);
 
             yield return new WaitForSeconds(1.1f);
             
             NetworkServer.Destroy(gameObject);
         }
 
+        [ServerCallback]
         private void Lifetime() => NetworkServer.Destroy(gameObject);
 
-        private void CloseVisual()
+        [ClientRpc]
+        private void RPC_CloseVisual()
         {
             if (Trail == null) return;
             
             Trail.gameObject.SetActive(false);
         }
         
-        private async void SpawnFireworks(Vector3 pos, Quaternion rot, int destroyCountdown)
+        [ClientRpc]
+        private async void RPC_SpawnFireworks(Vector3 pos, Quaternion rot, int destroyCountdown)
         {
             if (HitEffect == null) return;
         

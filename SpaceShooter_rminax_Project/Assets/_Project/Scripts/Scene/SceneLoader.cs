@@ -14,6 +14,8 @@ namespace _Project.Scripts.Scenes
     
     public class SceneLoader
     {
+        private event Action<Scene> OnUnloading; 
+        
         private readonly SpaceSceneManager _sceneManager;
         
         public SceneLoader(SpaceSceneManager sceneManager)
@@ -31,6 +33,22 @@ namespace _Project.Scripts.Scenes
 
         private bool _isCurrentlyLoading;
 
+        public struct SceneTask
+        {
+            public Scene Scene;
+            public LoadOperation LoadOperation;
+
+            public readonly GameObject[] RootGameObjects;
+
+            public SceneTask(Scene scene = default, LoadOperation loadOperation = LoadOperation.Load, GameObject[] rootGameObjects = null)
+            {
+                Scene = scene;
+                LoadOperation = loadOperation;
+                
+                RootGameObjects = rootGameObjects;
+            }
+        }
+        
         private class SceneLoadingTask
         {
             public readonly string SceneName;
@@ -68,9 +86,11 @@ namespace _Project.Scripts.Scenes
             _sceneLoaderHandler.StartCoroutine(SceneCoroutine());
         }
 
-        public void UnloadScene(Scene scene, Action<Scene> onCompleted = null)
+        public void UnloadScene(Scene scene, Action<Scene> onCompleted = null, Action<Scene> onUnloading = null)
         {
             Init();
+
+            OnUnloading += onUnloading;
 
             _scenes.Enqueue(new SceneLoadingTask(scene, LoadOperation.UnLoad, onCompleted));
 
@@ -94,7 +114,11 @@ namespace _Project.Scripts.Scenes
                 
                 //If the scene is unloading, we need to get the scene info without deleting it
                 if (task.LoadOperation == LoadOperation.UnLoad)
+                {
+                    OnUnloading?.Invoke(task.Scene);
+                    OnUnloading = null;
                     scene = task.Scene;
+                }
 
                 yield return task.LoadOperation switch
                 {
@@ -104,7 +128,7 @@ namespace _Project.Scripts.Scenes
                 };
                 
                 //If the scene is loading, the scene information comes after loaded
-                if(task.LoadOperation == LoadOperation.Load)
+                if (task.LoadOperation == LoadOperation.Load)
                     scene = SceneManager.GetSceneAt(sceneIndex);
 
                 task.OnTaskCompletedAction?.Invoke(scene);
@@ -129,7 +153,7 @@ namespace _Project.Scripts.Scenes
         private AsyncOperation StartAsyncSceneUnload(SceneLoadingTask task)
         {
             var asyncOperation =
-                SceneManager.UnloadSceneAsync(task.Scene, UnloadSceneOptions.UnloadAllEmbeddedSceneObjects);
+                SceneManager.UnloadSceneAsync(task.Scene, UnloadSceneOptions.None);
 
             return asyncOperation;
         }

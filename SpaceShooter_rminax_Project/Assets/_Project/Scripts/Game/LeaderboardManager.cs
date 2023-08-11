@@ -6,6 +6,9 @@ using System.Collections.Generic;
 
 namespace _Project.Scripts.Game
 {
+    using Room;
+    
+    [RoomSingleton]
     [RequireComponent(typeof(NetworkIdentity))]
     public class LeaderboardManager : NetworkBehaviour
     {
@@ -13,33 +16,11 @@ namespace _Project.Scripts.Game
         
         [SerializeField] private int maxRanking = 10;
         
-        private static List<PlayerScoreData> scoreEntries = new();
-
-        public static LeaderboardManager Instance;
-
-        private void Awake()
-        {
-            Instance = this;
-        }
+        private List<PlayerScoreData> scoreEntries = new();
 
         public List<PlayerScoreData> GetLeaderboard() => scoreEntries;
 
-        #region Command Methods
-        
-        [Command(requiresAuthority = false)]
-        public void CMD_AddPlayer(string username) => AddPlayer(username);
-        
-        [Command(requiresAuthority = false)]
-        public void CMD_RemovePlayer(string username) => RemovePlayer(username);
-
-        [Command(requiresAuthority = false)]
-        public void CMD_AddScore(string username, int value) => AddScore(username, value);
-
-        [Command(requiresAuthority = false)]
-        public void CMD_SetScore(string username, int value) => SetScore(username, value);
-
-        [Command(requiresAuthority = false)]
-        public void CMD_SubtractScore(string username, int value) => SubtractScore(username, value);
+        #region Message handlers
 
         #endregion
 
@@ -142,11 +123,5 @@ namespace _Project.Scripts.Game
         }
 
         #endregion
-    }
-
-    public struct PlayerScoreData
-    {
-        public string Username;
-        public int Score;
     }
 }

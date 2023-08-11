@@ -1,4 +1,5 @@
-﻿using Mirror;
+﻿using _Project.Scripts.Extensions;
+using Mirror;
 using UnityEngine;
 
 namespace _Project.Scripts.Game
@@ -20,7 +21,9 @@ namespace _Project.Scripts.Game
         [ServerCallback]
         public void SpawnPlayer()
         {
-            var spawnRange = GameManager.Instance.GetData().GameAreaRadius;
+            var gameManager = gameObject.GameContainer().Get<GameManager>();
+            
+            var spawnRange = gameManager.GetData().GameAreaRadius;
 
             var spawnPosition = SpawnUtilities.GetSpawnPosition(spawnRange);
 

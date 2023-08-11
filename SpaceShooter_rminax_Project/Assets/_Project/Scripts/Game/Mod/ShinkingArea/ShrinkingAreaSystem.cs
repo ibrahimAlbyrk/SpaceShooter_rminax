@@ -1,20 +1,25 @@
-﻿using Mirror;
+﻿using System;
+using Mirror;
 using System.Linq;
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using _Project.Scripts.PostProcess;
+using _Project.Scripts.Extensions;
 
 namespace _Project.Scripts.Game.Mod.ShrinkingArea
 {
     using Data;
+    using Room;
     using Network;
     using Spaceship;
-
+    using PostProcess;
+    
+    [RoomSingleton]
     public class ShrinkingAreaSystem : NetIdentity
     {
-        public static ShrinkingAreaSystem Instance;
-
+        public event Action<float> OnShrinkingStarted;
+        public event Action<float> OnCountDownStarted;
+        
         #region Serialize Variables
         
         private MapGeneratorData _data;
@@ -45,16 +50,13 @@ namespace _Project.Scripts.Game.Mod.ShrinkingArea
         #endregion
 
         #region Base Methods
-
-        private void Awake()
-        {
-            Instance = this;
-        }
         
         [Server]
         private void Start()
         {
-            _data = GameManager.Instance.GetData();
+            var gameManager = gameObject.GameContainer().Get<GameManager>();
+            
+            _data = gameManager.GetData();
             
             _areaRange = _data.GameAreaRadius;
 
@@ -109,8 +111,12 @@ namespace _Project.Scripts.Game.Mod.ShrinkingArea
 
         private IEnumerator OnShrinking(ShrinkingData data)
         {
+            OnCountDownStarted?.Invoke(data.CooldownTime);
+            
             yield return new WaitForSeconds(data.CooldownTime);
 
+            OnShrinkingStarted?.Invoke(data.ShrinkingTime);
+            
             var rangeDistance = Mathf.Abs(_areaRange - data.Range);
 
             var startingTime = Time.time;
@@ -166,22 +172,16 @@ namespace _Project.Scripts.Game.Mod.ShrinkingArea
 
         #region Player Methods
 
-        [Command(requiresAuthority = false)]
-        public void CMD_AddPlayer(SpaceshipController ship) => AddPlayer(ship);
-
-        [Command(requiresAuthority = false)]
-        public void CMD_RemovePlayer(SpaceshipController ship) => RemovePlayer(ship);
-
-        [Server]
-        private void AddPlayer(SpaceshipController ship)
+        [ServerCallback]
+        public void AddPlayer(SpaceshipController ship)
         {
             if (CheckPlayer(ship)) return;
 
             _ships.Add(ship);
         }
 
-        [Server]
-        private void RemovePlayer(SpaceshipController ship)
+        [ServerCallback]
+        public void RemovePlayer(SpaceshipController ship)
         {
             if (!CheckPlayer(ship)) return;
 

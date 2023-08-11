@@ -5985,6 +5985,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: AutoConnector
       objectReference: {fileID: 0}
+    - target: {fileID: 3490707948493390200, guid: 318fd31e29975184ea69714d1647521d,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5886697828658424000, guid: 318fd31e29975184ea69714d1647521d,
         type: 3}
       propertyPath: m_RootOrder

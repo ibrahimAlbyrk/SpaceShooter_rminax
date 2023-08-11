@@ -32,10 +32,16 @@ namespace _Project.Scripts.Game
             _selectedMod.Init(this);
         }
         
-        [ServerCallback]
-        public void StartGameMod()
+        [ClientCallback]
+        public void StartGameModOnClient()
         {
-            _selectedMod?.Start();
+            _selectedMod?.StartOnClient();
+        }
+        
+        [ServerCallback]
+        public void StartGameModOnServer()
+        {
+            _selectedMod?.StartOnServer();
         }
         
         [ServerCallback]

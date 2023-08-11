@@ -31,7 +31,7 @@ namespace _Project.Scripts.Game.Mod
         private SyncDictionary<Transform, Transform> _spawnedFuelStationAIs = new();
         private SyncList<Transform> _spawnedAreaAIs = new();
 
-        public override void Start()
+        public override void StartOnServer()
         {
             CreateContents();
 
@@ -111,7 +111,7 @@ namespace _Project.Scripts.Game.Mod
 
         private void CheckFuelStationAI()
         {
-            foreach (var (ai, fuelStation) in _spawnedFuelStationAIs)
+            foreach (var (ai, fuelStation) in _spawnedFuelStationAIs.ToList())
             {
                 if (ai != null) continue;
 

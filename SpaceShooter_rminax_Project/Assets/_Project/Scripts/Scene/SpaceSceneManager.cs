@@ -39,6 +39,7 @@ namespace _Project.Scripts.Scenes
         #endregion
 
         public static event Action<Scene> OnSceneLoaded;
+        public static event Action<Scene> OnSceneUnloading;
         public static event Action<Scene> OnSceneUnloaded;
 
         private readonly List<Scene> LoadedScenes = new();
@@ -52,20 +53,20 @@ namespace _Project.Scripts.Scenes
         public void LoadScene(string sceneName, LoadSceneMode loadSceneMode = LoadSceneMode.Single, Action<Scene> onCompleted = null)
         {
             _loader.LoadScene(sceneName, loadSceneMode,
-                loadedScene =>
+                loadScene =>
                 {
-                    onCompleted?.Invoke(loadedScene);
-                    OnSceneLoaded?.Invoke(loadedScene);
+                    onCompleted?.Invoke(loadScene);
+                    OnSceneLoaded?.Invoke(loadScene);
                 });
         }
 
         public void UnLoadScene(Scene scene, Action<Scene> onCompleted = null)
         {
-            _loader.UnloadScene(scene, unloadedScene =>
+            _loader.UnloadScene(scene, unloadScene =>
             {
-                onCompleted?.Invoke(scene);
-                OnSceneUnloaded?.Invoke(unloadedScene);
-            });
+                onCompleted?.Invoke(unloadScene);
+                OnSceneUnloaded?.Invoke(unloadScene);
+            }, OnSceneUnloading);
         }
 
         #endregion

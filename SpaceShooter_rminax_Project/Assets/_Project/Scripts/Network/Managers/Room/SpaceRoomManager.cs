@@ -34,6 +34,8 @@ namespace _Project.Scripts.Network.Managers.Room
 
         #endregion
 
+        public static event Action<RoomListInfo, RoomListInfo> OnServerCreatedRoom;
+
         public static event Action<NetworkConnectionToClient> OnServerJoinedClient;
 
         private readonly List<Room> _rooms = new();
@@ -160,6 +162,8 @@ namespace _Project.Scripts.Network.Managers.Room
 
             var removedConnections = room.RemoveAllConnections();
 
+            if (room.IsServer) return;
+
             RemoveToList(room);
 
             var roomScene = room.Scene;
@@ -179,15 +183,11 @@ namespace _Project.Scripts.Network.Managers.Room
                 // Handle exit failed (user not in any room).
                 return;
             }
-
+            
             if (exitedRoom.CurrentPlayers < 1)
-            {
                 RemoveRoom(exitedRoom.RoomName);
-            }
             else
-            {
                 UpdateRoomInfo(exitedRoom);
-            }
 
             var roomMessage = new ClientRoomMessage(ClientRoomState.Exited, conn.connectionId);
 
@@ -223,10 +223,8 @@ namespace _Project.Scripts.Network.Managers.Room
             switch (msg.ClientRoomState)
             {
                 case ClientRoomState.Created:
-                    print("created room");
                     break;
                 case ClientRoomState.Joined:
-                    print("joined room");
                     break;
                 case ClientRoomState.Removed:
                     break;
@@ -241,12 +239,20 @@ namespace _Project.Scripts.Network.Managers.Room
 
         #endregion
 
+        private void OnRoomListChanged(SyncList<RoomListInfo>.Operation operation, int index, RoomListInfo oldInfo,
+            RoomListInfo newInfo)
+        {
+            OnServerCreatedRoom?.Invoke(oldInfo, newInfo);
+        }
+
         #region Base Server Methods
 
         [ServerCallback]
         internal void OnStartedServer()
         {
             NetworkServer.RegisterHandler<ServerRoomMessage>(OnReceivedRoomMessageViaServer);
+
+            _roomInfos.Callback += OnRoomListChanged;
         }
 
         [ClientCallback]

@@ -1,13 +1,15 @@
 ﻿using System;
-using System.Linq;
 using Mirror;
 using UnityEngine;
+using System.Linq;
 using Sirenix.Utilities;
 using MoreMountains.Feedbacks;
 using UnityEngine.SceneManagement;
 
 namespace _Project.Scripts.Spaceship
 {
+    using Network.Managers.Room;
+    
     public class SpaceshipShooter : NetworkBehaviour
     {
         private int b;
@@ -41,7 +43,7 @@ namespace _Project.Scripts.Spaceship
                 var bulletInfo = new BulletInfo
                 {
                     BulletDamage = m_shooting.bulletSettings.BulletDamage,
-                    BulletSpeed = m_shooting.bulletSettings.BulletSpeed,
+                    BulletSpeed = m_shooting.bulletSettings.BulletSpeed + _controller.CurrentSpeed,
                     BulletLifetime = m_shooting.bulletSettings.BulletLifetime,
                     BulletCount = m_shooting.bulletSettings.BulletCount
                 };
@@ -89,13 +91,13 @@ namespace _Project.Scripts.Spaceship
                         pos + forward * (x * 50),
                         Quaternion.LookRotation(transform.forward, transform.up));
                     
+                    SceneManager.MoveGameObjectToScene(bullet, gameObject.scene);
+                    
                     SetBulletConfiguration(owner, bullet,
                         mousePos,
                         bulletInfo.BulletDamage,
                         bulletInfo.BulletLifetime,
                         bulletInfo.BulletSpeed);
-                    
-                    SceneManager.MoveGameObjectToScene(bullet, gameObject.scene);
                     
                     NetworkServer.Spawn(bullet, gameObject);
                     

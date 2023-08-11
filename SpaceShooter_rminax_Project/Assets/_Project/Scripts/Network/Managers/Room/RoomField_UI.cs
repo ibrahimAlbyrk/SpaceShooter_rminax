@@ -11,6 +11,8 @@ namespace _Project.Scripts.Network.Managers.Room
 
         [SerializeField] private Button _connectButton;
 
+        public string GetRoomName() => _nameText.text;
+        
         public void Init(string roomName, int currentPlayerCount, int maxPlayerCount)
         {
             _countText.text = $"{currentPlayerCount}/{maxPlayerCount}";

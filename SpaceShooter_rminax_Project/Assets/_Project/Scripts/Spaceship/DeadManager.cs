@@ -1,10 +1,12 @@
-﻿using Mirror;
+﻿using _Project.Scripts.Extensions;
+using Mirror;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace _Project.Scripts.Spaceship
 {
     using Game;
+    using Enum;
     using Network;
     using Game.Mod.ShrinkingArea;
     
@@ -51,17 +53,25 @@ namespace _Project.Scripts.Spaceship
             
             _exitGameButton.onClick.AddListener(() =>
             {
-                if (GameManager.Instance.GetModType() != ModType.OpenWorld)
+                var gameManager = gameObject.GameContainer().Get<GameManager>();
+                
+                if (gameManager.GetModType() != ModType.OpenWorld)
                 {
-                    if (LeaderboardManager.Instance != null)
-                        LeaderboardManager.Instance.CMD_RemovePlayer(_controller.Username);
-            
-                    if (ShrinkingAreaSystem.Instance != null)
-                        ShrinkingAreaSystem.Instance.CMD_RemovePlayer(_controller);   
+                    CMD_RemovePlayer();
                 }
                 
                 NetworkClient.Disconnect();
             });
+        }
+
+        [Command(requiresAuthority = false)]
+        private void CMD_RemovePlayer()
+        {
+            var leaderboardManager = gameObject.GameContainer().Get<LeaderboardManager>();
+            leaderboardManager?.RemovePlayer(_controller.Username);
+            
+            var shrinkingAreaSystem = gameObject.GameContainer().Get<ShrinkingAreaSystem>();
+            shrinkingAreaSystem?.RemovePlayer(_controller);
         }
 
         private void Awake() => _controller = GetComponent<SpaceshipController>();

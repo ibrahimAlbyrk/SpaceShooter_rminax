@@ -4,12 +4,12 @@ using UnityEngine;
 namespace _Project.Scripts.Game
 {
     using Data;
+    using Room;
     using Network;
 
+    [RoomSingleton]
     public class GameManager : NetIdentity
     {
-        public static GameManager Instance;
-        
         [Header("Mod Settings")]
         [SerializeField] private ModManager _modManager;
         [SerializeField] private ModType _modType;
@@ -20,14 +20,17 @@ namespace _Project.Scripts.Game
         
         public override void OnStartServer()
         {
-            _modManager.Init(_modType);
+            _modManager?.Init(_modType);
             
-            _modManager.StartGameMod();
+            _modManager?.StartGameModOnServer();
+
+            RPC_StartOnClient();
         }
 
-        private void Awake()
+        [Command(requiresAuthority = false)]
+        private void RPC_StartOnClient()
         {
-            Instance = this;
+            _modManager?.StartGameModOnClient();
         }
 
         [ServerCallback]

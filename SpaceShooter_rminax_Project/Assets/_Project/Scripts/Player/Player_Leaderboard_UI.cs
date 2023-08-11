@@ -2,6 +2,7 @@
 using System.Linq;
 using UnityEngine;
 using System.Collections.Generic;
+using _Project.Scripts.Extensions;
 
 namespace _Project.Scripts.Player
 {
@@ -19,7 +20,9 @@ namespace _Project.Scripts.Player
         [Command]
         private void CMD_RequestLeaderboard()
         {
-            T_RPC_ReceiveLeaderboard(LeaderboardManager.Instance.GetLeaderboard());
+            var _leaderboardManager = gameObject.GameContainer().Get<LeaderboardManager>();
+            
+            T_RPC_ReceiveLeaderboard(_leaderboardManager.GetLeaderboard());
         }
 
         [TargetRpc]
@@ -70,8 +73,10 @@ namespace _Project.Scripts.Player
         [ClientCallback]
         private void OnDestroy()
         {
-            if (LeaderboardManager.Instance != null)
-                LeaderboardManager.Instance.OnLeaderboardUpdated -= UpdateLeaderboard;
+            var _leaderboardManager = gameObject.GameContainer().Get<LeaderboardManager>();
+            
+            if (_leaderboardManager != null)
+                _leaderboardManager.OnLeaderboardUpdated -= UpdateLeaderboard;
         }
 
         [ClientCallback]
@@ -79,8 +84,10 @@ namespace _Project.Scripts.Player
         {
             CloseLeaderboard();
             
-            if (LeaderboardManager.Instance != null)
-                LeaderboardManager.Instance.OnLeaderboardUpdated += UpdateLeaderboard;
+            var _leaderboardManager = gameObject.GameContainer().Get<LeaderboardManager>();
+            
+            if (_leaderboardManager != null)
+                _leaderboardManager.OnLeaderboardUpdated += UpdateLeaderboard;
         }
 
         [ClientCallback]
