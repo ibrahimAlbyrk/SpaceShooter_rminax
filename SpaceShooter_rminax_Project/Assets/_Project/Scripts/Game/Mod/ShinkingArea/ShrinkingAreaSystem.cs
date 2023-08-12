@@ -4,25 +4,27 @@ using System.Linq;
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using _Project.Scripts.Extensions;
+using UnityEngine.SceneManagement;
 
 namespace _Project.Scripts.Game.Mod.ShrinkingArea
 {
     using Data;
     using Room;
-    using Network;
     using Spaceship;
+    using Utilities;
+    using Extensions;
     using PostProcess;
+    using Network.Managers.Room;
     
-    [RoomSingleton]
-    public class ShrinkingAreaSystem : NetIdentity
+    public class ShrinkingAreaSystem : RoomSingleton<ShrinkingAreaSystem>
     {
         public event Action<float> OnShrinkingStarted;
-        public event Action<float> OnCountDownStarted;
         
         #region Serialize Variables
         
         private MapGeneratorData _data;
+
+        [SerializeField] private ShrinkingArea_UI _shrinkingAreaUI;
 
         [SerializeField] private ShrinkingData[] _states;
 
@@ -35,8 +37,6 @@ namespace _Project.Scripts.Game.Mod.ShrinkingArea
 
         #region Private Variables
 
-        private readonly List<SpaceshipController> _ships = new();
-
         private readonly Dictionary<SpaceshipController, float> _outsideShips = new();
 
         private float _areaRange;
@@ -47,6 +47,10 @@ namespace _Project.Scripts.Game.Mod.ShrinkingArea
 
         private GameObject _zoneObj;
 
+        private bool _isInit;
+
+        private Room _currentRoom;
+
         #endregion
 
         #region Base Methods
@@ -54,6 +58,8 @@ namespace _Project.Scripts.Game.Mod.ShrinkingArea
         [Server]
         private void Start()
         {
+            _currentRoom = SpaceRoomManager.Instance.GetRoomOfScene(gameObject.scene);
+            
             var gameManager = gameObject.GameContainer().Get<GameManager>();
             
             _data = gameManager.GetData();
@@ -65,19 +71,25 @@ namespace _Project.Scripts.Game.Mod.ShrinkingArea
             StartCoroutine(OnShrinking(data));
             
             SpawnZone();
+
+            OnShrinkingStarted += _shrinkingAreaUI.StartShrinkingHandler;
+
+            _isInit = true;
         }
 
         [ServerCallback]
         private void FixedUpdate()
         {
+            if (!_isInit) return;
+            
             var currentState = _states[_stateIndex];
 
             CheckShipDistance();
-
-            foreach (var (outsideShip, time) in _outsideShips.ToDictionary(x => x.Key, x => x.Value))
+            
+            foreach (var (outsideShip, time) in _outsideShips.ToDictionary(pair => pair.Key, pair => pair.Value))
             {
                 if(time > Time.time) continue;
-
+                
                 _outsideShips[outsideShip] = Time.time + _outSideDetectTime;
                 outsideShip.Health.Remove(currentState.Damage);
             }
@@ -86,13 +98,21 @@ namespace _Project.Scripts.Game.Mod.ShrinkingArea
         }
 
         #endregion
-
+        
+        [ClientRpc]
+        private void RPC_ShrinkingStartedHandler(float time)
+        {
+            OnShrinkingStarted?.Invoke(time);
+        }
+        
         #region Zone Methods
 
         [Server]
         private void SpawnZone()
         {
-            _zoneObj = Instantiate(_zonePrefab, Vector3.zero, Quaternion.identity, transform);
+            _zoneObj = Instantiate(_zonePrefab, Vector3.zero, Quaternion.identity);
+            
+            SceneManager.MoveGameObjectToScene(_zoneObj, gameObject.scene);
             
             NetworkServer.Spawn(_zoneObj);
             
@@ -111,11 +131,9 @@ namespace _Project.Scripts.Game.Mod.ShrinkingArea
 
         private IEnumerator OnShrinking(ShrinkingData data)
         {
-            OnCountDownStarted?.Invoke(data.CooldownTime);
-            
             yield return new WaitForSeconds(data.CooldownTime);
-
-            OnShrinkingStarted?.Invoke(data.ShrinkingTime);
+            
+            RPC_ShrinkingStartedHandler(data.ShrinkingTime);
             
             var rangeDistance = Mathf.Abs(_areaRange - data.Range);
 
@@ -147,12 +165,15 @@ namespace _Project.Scripts.Game.Mod.ShrinkingArea
 
         private void CheckShipDistance()
         {
-            foreach (var ship in _ships)
+            var ships = GetPlayersFromRoom();
+            
+            foreach (var ship in ships)
             {
-                var shipTransform = ship.transform;
-                var shipDistance = (-shipTransform.position).sqrMagnitude;
+                if(ship == null) continue;
+                
+                var outDistance = MathUtilities.OutDistance(Vector3.zero, ship.transform.position, _areaRange);
 
-                if (shipDistance > _areaRange * _areaRange)
+                if (outDistance)
                 {
                     _outsideShips.TryAdd(ship, Time.time + _outSideDetectTime);
                     ship.PostProcessManager.SetPostProcess(PostProcessMode.ZoneArea);
@@ -170,35 +191,16 @@ namespace _Project.Scripts.Game.Mod.ShrinkingArea
 
         #endregion
 
-        #region Player Methods
-
-        [ServerCallback]
-        public void AddPlayer(SpaceshipController ship)
-        {
-            if (CheckPlayer(ship)) return;
-
-            _ships.Add(ship);
-        }
-
-        [ServerCallback]
-        public void RemovePlayer(SpaceshipController ship)
-        {
-            if (!CheckPlayer(ship)) return;
-
-            _ships.Remove(ship);
-        }
-
-        #endregion
-
         #region Utilities
 
-        private bool CheckPlayer(SpaceshipController ship)
+        private IEnumerable<SpaceshipController> GetPlayersFromRoom()
         {
-            return _ships.Any(s => s == ship);
+            return _currentRoom._connections.ToList()
+                .Select(conn =>conn?.identity?.gameObject.GetComponent<SpaceshipController>());
         }
 
         #endregion
-
+        
         private void OnDrawGizmosSelected()
         {
             Gizmos.color = Color.white;

@@ -19,8 +19,6 @@ namespace _Project.Scripts.Game.Mod
             _manager = manager;
         }
 
-        public virtual void StartOnClient(){}
-
         public virtual void StartOnServer(){}
 
         public virtual void Run(){}

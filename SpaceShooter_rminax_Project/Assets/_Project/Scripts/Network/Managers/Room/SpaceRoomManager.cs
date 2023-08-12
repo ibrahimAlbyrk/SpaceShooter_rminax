@@ -37,6 +37,7 @@ namespace _Project.Scripts.Network.Managers.Room
         public static event Action<RoomListInfo, RoomListInfo> OnServerCreatedRoom;
 
         public static event Action<NetworkConnectionToClient> OnServerJoinedClient;
+        public static event Action<NetworkConnectionToClient> OnServerExitedClient;
 
         private readonly List<Room> _rooms = new();
 
@@ -45,9 +46,14 @@ namespace _Project.Scripts.Network.Managers.Room
 
         public List<RoomListInfo> GetRooms() => _roomInfos.ToList();
 
-        public Room GetPlayersRoom(NetworkConnection conn)
+        public Room GetRoomOfPlayer(NetworkConnection conn)
         {
             return _rooms.FirstOrDefault(room => room._connections.Any(connection => connection == conn));
+        }
+
+        public Room GetRoomOfScene(Scene scene)
+        {
+            return _rooms.FirstOrDefault(room => room.Scene == scene);
         }
 
         #region Request Methods
@@ -189,9 +195,9 @@ namespace _Project.Scripts.Network.Managers.Room
             else
                 UpdateRoomInfo(exitedRoom);
 
-            var roomMessage = new ClientRoomMessage(ClientRoomState.Exited, conn.connectionId);
-
-            conn.Send(roomMessage);
+            OnServerExitedClient?.Invoke(conn.identity.connectionToClient);
+            
+            SendRoomMessage(conn, ClientRoomState.Exited);
         }
 
         #endregion

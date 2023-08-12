@@ -183,7 +183,7 @@ namespace _Project.Scripts.Spaceship
             
             _usernameCanvas.SetActive(false);
 
-            await Task.Delay(200);
+            await Task.Delay(1000);
 
             CMD_AddPlayer();
         }
@@ -193,9 +193,6 @@ namespace _Project.Scripts.Spaceship
         {
             var leaderboardManager = gameObject.GameContainer().Get<LeaderboardManager>();
             leaderboardManager?.AddPlayer(Username);
-            
-            var shrinkingAreaSystem = gameObject.GameContainer().Get<ShrinkingAreaSystem>();
-            shrinkingAreaSystem?.AddPlayer(this);
         }
         
         public override void OnStopClient()

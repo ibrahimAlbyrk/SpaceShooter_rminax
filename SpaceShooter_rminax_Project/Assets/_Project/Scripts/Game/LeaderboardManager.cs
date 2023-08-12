@@ -8,9 +8,7 @@ namespace _Project.Scripts.Game
 {
     using Room;
     
-    [RoomSingleton]
-    [RequireComponent(typeof(NetworkIdentity))]
-    public class LeaderboardManager : NetworkBehaviour
+    public class LeaderboardManager : RoomSingleton<LeaderboardManager>
     {
         public event Action OnLeaderboardUpdated;
         

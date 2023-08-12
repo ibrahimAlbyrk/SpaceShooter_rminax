@@ -10,8 +10,8 @@ namespace _Project.Scripts.Room
         [RuntimeInitializeOnLoadMethod]
         private static void RuntimeInitializeOnLoad()
         {
-            SpaceSceneManager.OnSceneLoaded += OnSceneLoaded;
-            SpaceSceneManager.OnSceneUnloading += OnSceneUnloading;
+            //SpaceSceneManager.OnSceneLoaded += OnSceneLoaded;
+            //SpaceSceneManager.OnSceneUnloading += OnSceneUnloading;
         }
     
         private static void OnSceneLoaded(Scene scene)

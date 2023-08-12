@@ -1,36 +1,35 @@
 ﻿using Mirror;
 using UnityEngine;
+using System.Threading.Tasks;
 
 namespace _Project.Scripts.Game
 {
     using Data;
     using Room;
-    using Network;
+    using Network.Managers.Room;
 
-    [RoomSingleton]
-    public class GameManager : NetIdentity
+    public class GameManager : RoomSingleton<GameManager>
     {
         [Header("Mod Settings")]
         [SerializeField] private ModManager _modManager;
-        [SerializeField] private ModType _modType;
+        
+        private ModType _modType;
 
         public ModType GetModType() => _modType;
         
-        public MapGeneratorData GetData() => _modManager?.GetMapData();
+        public MapGeneratorData GetData() => _modManager?.GetMapData(); 
         
-        public override void OnStartServer()
+        public override async void OnStartServer()
         {
+            await Task.Delay(100);
+            
+            var room = SpaceRoomManager.Instance.GetRoomOfScene(gameObject.scene);
+
+            _modType = room.IsServer ? ModType.OpenWorld : ModType.ShrinkingArea;
+            
             _modManager?.Init(_modType);
             
             _modManager?.StartGameModOnServer();
-
-            RPC_StartOnClient();
-        }
-
-        [Command(requiresAuthority = false)]
-        private void RPC_StartOnClient()
-        {
-            _modManager?.StartGameModOnClient();
         }
 
         [ServerCallback]

@@ -20,7 +20,7 @@ namespace _Project.Scripts.PostProcess
         [Command(requiresAuthority = false)]
         private void CMD_SetPostProcess(PostProcessMode mode) => RPC_SetPostProcess(mode);
 
-        [TargetRpc]
+        [ClientRpc]
         private void RPC_SetPostProcess(PostProcessMode mode)
         {
             _volume.profile = mode switch

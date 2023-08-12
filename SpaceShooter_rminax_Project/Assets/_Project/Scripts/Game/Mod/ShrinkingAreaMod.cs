@@ -1,7 +1,7 @@
 ﻿using System;
 using Mirror;
-using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
 namespace _Project.Scripts.Game.Mod
@@ -11,8 +11,8 @@ namespace _Project.Scripts.Game.Mod
     [Serializable]
     public class ShrinkingAreaMod : OpenWorldMod
     {
-        [Header("Shrinking Settings")] [SerializeField]
-        private ShrinkingAreaSystem _shrinkingAreaSystem;
+        [Header("Shrinking Settings")]
+        [SerializeField] private ShrinkingAreaSystem _shrinkingAreaSystem;
 
         public override void StartOnServer()
         {
@@ -21,27 +21,13 @@ namespace _Project.Scripts.Game.Mod
             SpawnShrinkingAreaSystem();
         }
 
-        public override void StartOnClient()
-        {
-        }
-
         private void SpawnShrinkingAreaSystem()
         {
             var system = Object.Instantiate(_shrinkingAreaSystem.gameObject);
+            
+            SceneManager.MoveGameObjectToScene(system, _manager.gameObject.scene);
+            
             NetworkServer.Spawn(system);
-        }
-    }
-
-    public class ShrinkingArea_UI : MonoBehaviour
-    {
-        [SerializeField] private TMP_Text _titleText;
-
-        public void StartCountDownHandler(float time)
-        {
-        }
-
-        public void StartShrinkingHandler(float time)
-        {
         }
     }
 }

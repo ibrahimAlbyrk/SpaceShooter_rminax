@@ -111,17 +111,25 @@ namespace _Project.Scripts.Network.Managers
         }
         
         [ServerCallback]
-        public void OnServerJoinedClient(int connectionId)
+        public void OnServerExitedClient(NetworkConnectionToClient conn)
         {
-            if (!NetworkServer.connections.ContainsKey(connectionId)) return;
-            
-            var conn = NetworkServer.connections[connectionId];
-
-            if (conn == null) return;
-
-            StartCoroutine(OnClientJoinedRoom_Cor(conn));
+            StartCoroutine(OnClientExitedRoom_Cor(conn));
         }
 
+        private IEnumerator OnClientExitedRoom_Cor(NetworkConnectionToClient conn)
+        {
+            conn.Send(new SceneMessage { sceneName = _hubScene, sceneOperation = SceneOperation.Normal });
+
+            yield return new WaitForEndOfFrame();
+            
+            var newPlayer = ReplaceLobbyPlayer(conn);
+            newPlayer.name = $"{_lobbyPlayerPrefab.name} [connId={conn.connectionId}]";
+
+            var playersRoom = SpaceRoomManager.Instance.GetRoomOfPlayer(conn);
+            
+            SceneManager.MoveGameObjectToScene(newPlayer, playersRoom.Scene);
+        } 
+        
         private IEnumerator OnClientJoinedRoom_Cor(NetworkConnectionToClient conn)
         {
             conn.Send(new SceneMessage { sceneName = _gameScene, sceneOperation = SceneOperation.Normal });
@@ -131,7 +139,7 @@ namespace _Project.Scripts.Network.Managers
             var newPlayer = ReplaceGamePlayer(conn);
             newPlayer.name = $"{_gamePlayerPrefab.name} [connId={conn.connectionId}]";
 
-            var playersRoom = SpaceRoomManager.Instance.GetPlayersRoom(conn);
+            var playersRoom = SpaceRoomManager.Instance.GetRoomOfPlayer(conn);
             
             SceneManager.MoveGameObjectToScene(newPlayer, playersRoom.Scene);
         }
@@ -157,6 +165,7 @@ namespace _Project.Scripts.Network.Managers
             SpaceRoomManager.Instance.CreateRoom(roomInfo);
 
             SpaceRoomManager.OnServerJoinedClient += OnServerJoinedClient;
+            SpaceRoomManager.OnServerExitedClient += OnServerExitedClient;
         }
         
         private IEnumerator RoomManagerStartedClient()

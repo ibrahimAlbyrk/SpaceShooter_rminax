@@ -1,14 +1,13 @@
-﻿using _Project.Scripts.Extensions;
-using Mirror;
+﻿using Mirror;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace _Project.Scripts.Spaceship
 {
     using Game;
-    using Enum;
     using Network;
-    using Game.Mod.ShrinkingArea;
+    using Extensions;
+    using Network.Managers.Room;
     
     public class DeadManager : NetIdentity
     {
@@ -60,7 +59,7 @@ namespace _Project.Scripts.Spaceship
                     CMD_RemovePlayer();
                 }
                 
-                NetworkClient.Disconnect();
+                SpaceRoomManager.RequestExitRoom();
             });
         }
 
@@ -69,9 +68,6 @@ namespace _Project.Scripts.Spaceship
         {
             var leaderboardManager = gameObject.GameContainer().Get<LeaderboardManager>();
             leaderboardManager?.RemovePlayer(_controller.Username);
-            
-            var shrinkingAreaSystem = gameObject.GameContainer().Get<ShrinkingAreaSystem>();
-            shrinkingAreaSystem?.RemovePlayer(_controller);
         }
 
         private void Awake() => _controller = GetComponent<SpaceshipController>();

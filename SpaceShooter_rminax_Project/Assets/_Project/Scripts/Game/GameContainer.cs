@@ -20,11 +20,12 @@ namespace _Project.Scripts.Game
                 );
 
                 _data.Add(containerData);
+                
                 return true;
             }
 
             if (container.HasSameTypeObject<T>()) return false;
-
+            
             container.Objects.Add(element);
 
             return true;
