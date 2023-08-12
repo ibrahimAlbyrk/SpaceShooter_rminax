@@ -9,6 +9,8 @@ namespace _Project.Scripts.Game.Mod
     {
         protected ModManager _manager;
 
+        protected bool _isSpawned;
+
         [Header("General Settings"), SerializeField]
         protected MapGeneratorData _mapGeneratorData;
         

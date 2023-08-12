@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using Mirror;
 using System.Linq;
 using System.Collections.Generic;
@@ -18,7 +19,7 @@ namespace _Project.Scripts.Utilities
         }
 
         #endregion
-        
+
         #region Array
 
         public static void RemoveAll<T>(this T[] array)
@@ -44,23 +45,36 @@ namespace _Project.Scripts.Utilities
             foreach (var element in collection)
             {
                 if (index == atIndex) return element;
-                
+
                 index++;
             }
-            
+
             throw new ArgumentOutOfRangeException(nameof(atIndex), $"Expected value less then {index}");
         }
 
-        public static int GetLenght<T>(this IEnumerable<T> collection)
+        public static int GetLenght<T>(this IEnumerable<T> source)
         {
-            var lenght = 0;
-            
-            using var enumerator = collection.GetEnumerator();
-            
-            while (enumerator.MoveNext())
-                checked { ++lenght; }
+            switch (source)
+            {
+                case null:
+                    throw new ArgumentException(nameof(source));
+                case ICollection<T> sources:
+                    return sources.Count;
+                case ICollection collection:
+                    return collection.Count;
+                default:
+                    var num = 0;
+                    using (var enumerator = source.GetEnumerator())
+                    {
+                        while (enumerator.MoveNext())
+                            checked
+                            {
+                                ++num;
+                            }
+                    }
 
-            return lenght;
+                    return num;
+            }
         }
 
         public static SyncList<T> ToSyncList<T>(this IEnumerable<T> collection)

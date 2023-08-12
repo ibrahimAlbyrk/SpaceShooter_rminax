@@ -2,8 +2,6 @@
 using UnityEngine;
 using System.Linq;
 using System.Collections.Generic;
-using _Project.Scripts.Features;
-using Sirenix.Utilities;
 using Random = UnityEngine.Random;
 
 namespace _Project.Scripts.Game.Mod
@@ -33,6 +31,8 @@ namespace _Project.Scripts.Game.Mod
 
         public override void StartOnServer()
         {
+            _isSpawned = true;
+            
             CreateContents();
 
             SpawnHandler();
@@ -40,6 +40,8 @@ namespace _Project.Scripts.Game.Mod
 
         public override void FixedRun()
         {
+            if (!_isSpawned) return;
+            
             IteratorHandler();
         }
 

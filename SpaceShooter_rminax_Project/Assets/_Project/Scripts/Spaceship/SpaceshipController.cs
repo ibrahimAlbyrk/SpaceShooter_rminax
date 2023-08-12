@@ -202,6 +202,11 @@ namespace _Project.Scripts.Spaceship
 
         #endregion
 
+        public void OpenWinPanel()
+        {
+            //TODO
+        }
+        
         public void Init()
         {
             foreach (var obj in NetworkObjects)

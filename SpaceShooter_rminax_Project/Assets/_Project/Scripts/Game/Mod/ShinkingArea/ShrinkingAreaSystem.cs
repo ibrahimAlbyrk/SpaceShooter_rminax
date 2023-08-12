@@ -193,7 +193,7 @@ namespace _Project.Scripts.Game.Mod.ShrinkingArea
 
         private IEnumerable<SpaceshipController> GetPlayersFromRoom()
         {
-            return _currentRoom._connections.ToList()
+            return _currentRoom.Connections.ToList()
                 .Select(conn =>conn?.identity?.gameObject.GetComponent<SpaceshipController>());
         }
 

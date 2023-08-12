@@ -1,7 +1,7 @@
 ﻿using Mirror;
 using System.Linq;
 using System.Collections.Generic;
-using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace _Project.Scripts.Network.Managers.Room
 {
@@ -12,26 +12,26 @@ namespace _Project.Scripts.Network.Managers.Room
         
         public string RoomName;
 
-        public UnityEngine.SceneManagement.Scene Scene;
+        public Scene Scene;
         
         public int MaxPlayers;
         public int CurrentPlayers;
 
-        public readonly List<NetworkConnection> _connections;
+        public readonly List<NetworkConnection> Connections;
 
         public Room(string roomName, int maxPlayers, bool isServer)
         {
             IsServer = isServer;
             RoomName = roomName;
             MaxPlayers = maxPlayers;
-            _connections = new List<NetworkConnection>();
+            Connections = new List<NetworkConnection>();
         }
 
         public bool AddConnection(NetworkConnection conn)
         {
-            if (_connections.Contains(conn)) return false;
+            if (Connections.Contains(conn)) return false;
 
-            _connections.Add(conn);
+            Connections.Add(conn);
 
             CurrentPlayers++;
             
@@ -40,7 +40,7 @@ namespace _Project.Scripts.Network.Managers.Room
 
         public List<NetworkConnection> RemoveAllConnections()
         {
-            var connections = _connections.ToList();
+            var connections = Connections.ToList();
             
             connections.ForEach(connection => RemoveConnection(connection));
 
@@ -49,7 +49,7 @@ namespace _Project.Scripts.Network.Managers.Room
         
         public bool RemoveConnection(NetworkConnection conn)
         {
-            var isRemoved = _connections.Remove(conn);
+            var isRemoved = Connections.Remove(conn);
 
             if (isRemoved) CurrentPlayers--;
 

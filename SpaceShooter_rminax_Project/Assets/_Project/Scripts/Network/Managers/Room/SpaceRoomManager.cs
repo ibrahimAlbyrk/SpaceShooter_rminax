@@ -48,7 +48,7 @@ namespace _Project.Scripts.Network.Managers.Room
 
         public Room GetRoomOfPlayer(NetworkConnection conn)
         {
-            return _rooms.FirstOrDefault(room => room._connections.Any(connection => connection == conn));
+            return _rooms.FirstOrDefault(room => room.Connections.Any(connection => connection == conn));
         }
 
         public Room GetRoomOfScene(Scene scene)
