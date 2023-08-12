@@ -49637,6 +49637,7 @@ MonoBehaviour:
   <SpawnSystem>k__BackingField: {fileID: 2746567106025803494}
   <DeadManager>k__BackingField: {fileID: 8432741419220102464}
   <Shooter>k__BackingField: {fileID: 4327291494886843152}
+  <Damageable>k__BackingField: {fileID: 4562092721275903791}
   <Health>k__BackingField: {fileID: 8418408280281836299}
   _environmentLayer:
     serializedVersion: 2

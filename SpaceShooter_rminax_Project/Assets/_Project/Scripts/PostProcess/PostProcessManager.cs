@@ -12,16 +12,9 @@ namespace _Project.Scripts.PostProcess
         
         [SerializeField] private PostProcessProfile GlobalProcess;
         [SerializeField] private PostProcessProfile ZoneArenaProcess;
-        
-        public static PostProcessManager Instance;
-        
-        public void SetPostProcess(PostProcessMode mode) => CMD_SetPostProcess(mode);
-
-        [Command(requiresAuthority = false)]
-        private void CMD_SetPostProcess(PostProcessMode mode) => RPC_SetPostProcess(mode);
 
         [ClientRpc]
-        private void RPC_SetPostProcess(PostProcessMode mode)
+        public void RPC_SetPostProcess(PostProcessMode mode)
         {
             _volume.profile = mode switch
             {
@@ -29,11 +22,6 @@ namespace _Project.Scripts.PostProcess
                 PostProcessMode.ZoneArea => ZoneArenaProcess,
                 _ => _volume.profile
             };
-        }
-        
-        private void Awake()
-        {
-            Instance = this;
         }
     }
 

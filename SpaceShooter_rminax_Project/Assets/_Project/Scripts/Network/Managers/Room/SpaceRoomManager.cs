@@ -77,9 +77,9 @@ namespace _Project.Scripts.Network.Managers.Room
         }
 
         [ClientCallback]
-        public static void RequestExitRoom()
+        public static void RequestExitRoom(bool isDisconnected = false)
         {
-            var serverRoomMessage = new ServerRoomMessage(ServerRoomState.Exit, default);
+            var serverRoomMessage = new ServerRoomMessage(ServerRoomState.Exit, default, isDisconnected);
 
             NetworkClient.Send(serverRoomMessage);
         }
@@ -180,7 +180,7 @@ namespace _Project.Scripts.Network.Managers.Room
         }
 
         [ServerCallback]
-        public void ExitRoom(NetworkConnection conn)
+        public void ExitRoom(NetworkConnection conn, bool isDisconnected)
         {
             var exitedRoom = _rooms.FirstOrDefault(room => room.RemoveConnection(conn));
 
@@ -195,7 +195,8 @@ namespace _Project.Scripts.Network.Managers.Room
             else
                 UpdateRoomInfo(exitedRoom);
 
-            OnServerExitedClient?.Invoke(conn.identity.connectionToClient);
+            if(!isDisconnected)
+                OnServerExitedClient?.Invoke(conn.identity.connectionToClient);
             
             SendRoomMessage(conn, ClientRoomState.Exited);
         }
@@ -216,7 +217,7 @@ namespace _Project.Scripts.Network.Managers.Room
                     JoinRoom(conn, msg.RoomInfo.Name);
                     break;
                 case ServerRoomState.Exit:
-                    ExitRoom(conn);
+                    ExitRoom(conn, msg.IsDisconnected);
                     break;
                 default:
                     return;

@@ -1,17 +1,10 @@
-﻿using System;
-using Mirror;
+﻿using Mirror;
 using UnityEngine;
 
 namespace _Project.Scripts.Room
 {
     using Game;
     
-    [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = true)]
-
-    public sealed class RoomSingletonAttribute : Attribute
-    {
-    }
-
     [RequireComponent(typeof(NetworkIdentity))]
     public class RoomSingleton<T> : NetworkBehaviour where T : class
     {

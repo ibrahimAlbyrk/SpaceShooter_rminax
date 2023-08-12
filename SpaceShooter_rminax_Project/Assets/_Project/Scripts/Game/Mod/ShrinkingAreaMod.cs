@@ -1,14 +1,12 @@
-﻿using System;
-using Mirror;
+﻿using Mirror;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using Object = UnityEngine.Object;
 
 namespace _Project.Scripts.Game.Mod
 {
     using ShrinkingArea;
 
-    [Serializable]
+    [System.Serializable]
     public class ShrinkingAreaMod : OpenWorldMod
     {
         [Header("Shrinking Settings")]

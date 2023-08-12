@@ -25,14 +25,11 @@ namespace _Project.Scripts.Network.Managers
 
         [SerializeField] private int _maxConnection;
 
-        public new static SpaceNetworkManager singleton { get; private set; }
-
         #region Base methods
 
         public override void Awake()
         {
             base.Awake();
-            singleton = this;
 
             maxConnections = _maxConnection;
         }
@@ -126,6 +123,8 @@ namespace _Project.Scripts.Network.Managers
             newPlayer.name = $"{_lobbyPlayerPrefab.name} [connId={conn.connectionId}]";
 
             var playersRoom = SpaceRoomManager.Instance.GetRoomOfPlayer(conn);
+
+            if (newPlayer.scene.path == _hubScene) yield break;
             
             SceneManager.MoveGameObjectToScene(newPlayer, playersRoom.Scene);
         } 
@@ -269,6 +268,8 @@ namespace _Project.Scripts.Network.Managers
         
         public GameObject ReplaceLobbyPlayer(NetworkConnectionToClient conn, GameObject playerObj = null)
         {
+            if (conn?.identity?.gameObject == null) return null;
+            
             var oldPlayer = conn.identity.gameObject;
 
             var newPlayer = Instantiate(playerObj == null ? _lobbyPlayerPrefab : playerObj);

@@ -8,10 +8,13 @@ namespace _Project.Scripts.Network.Managers.Room
         public readonly ServerRoomState ServerRoomState;
         public readonly RoomInfo RoomInfo;
 
-        public ServerRoomMessage(ServerRoomState serverRoomState, RoomInfo roomInfo)
+        public readonly bool IsDisconnected;
+
+        public ServerRoomMessage(ServerRoomState serverRoomState, RoomInfo roomInfo, bool isDisconnected = false)
         {
             ServerRoomState = serverRoomState;
             RoomInfo = roomInfo;
+            IsDisconnected = isDisconnected;
         }
     }
     

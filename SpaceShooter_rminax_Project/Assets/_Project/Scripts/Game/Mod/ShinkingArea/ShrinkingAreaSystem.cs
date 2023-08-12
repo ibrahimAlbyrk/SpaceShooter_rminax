@@ -72,8 +72,6 @@ namespace _Project.Scripts.Game.Mod.ShrinkingArea
             
             SpawnZone();
 
-            OnShrinkingStarted += _shrinkingAreaUI.StartShrinkingHandler;
-
             _isInit = true;
         }
 
@@ -91,7 +89,7 @@ namespace _Project.Scripts.Game.Mod.ShrinkingArea
                 if(time > Time.time) continue;
                 
                 _outsideShips[outsideShip] = Time.time + _outSideDetectTime;
-                outsideShip.Health.Remove(currentState.Damage);
+                outsideShip.Damageable.DealDamage(currentState.Damage);
             }
             
             UpdateZone();
@@ -102,7 +100,7 @@ namespace _Project.Scripts.Game.Mod.ShrinkingArea
         [ClientRpc]
         private void RPC_ShrinkingStartedHandler(float time)
         {
-            OnShrinkingStarted?.Invoke(time);
+            _shrinkingAreaUI.StartShrinkingHandler(time);
         }
         
         #region Zone Methods
@@ -176,14 +174,14 @@ namespace _Project.Scripts.Game.Mod.ShrinkingArea
                 if (outDistance)
                 {
                     _outsideShips.TryAdd(ship, Time.time + _outSideDetectTime);
-                    ship.PostProcessManager.SetPostProcess(PostProcessMode.ZoneArea);
+                    ship.PostProcessManager.RPC_SetPostProcess(PostProcessMode.ZoneArea);
                 }
                 else
                 {
                     if (_outsideShips.ContainsKey(ship))
                     {
                         _outsideShips.Remove(ship);
-                        ship.PostProcessManager.SetPostProcess(PostProcessMode.Global);
+                        ship.PostProcessManager.RPC_SetPostProcess(PostProcessMode.Global);
                     }
                 }
             }

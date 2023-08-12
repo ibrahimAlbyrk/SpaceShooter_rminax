@@ -11,11 +11,6 @@ namespace _Project.Scripts.Game.Mod
         [SerializeField] private GameObject _countDownContent;
         [SerializeField] private TMP_Text _titleText;
 
-        public void StartCountDownHandler(float time)
-        {
-            StartCoroutine(CountDown(time));
-        }
-
         public void StartShrinkingHandler(float time)
         {
             StartCoroutine(CountDown(time));

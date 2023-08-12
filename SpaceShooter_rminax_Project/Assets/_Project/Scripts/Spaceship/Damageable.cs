@@ -20,7 +20,7 @@ namespace _Project.Scripts.Spaceship
 
             if (controller != null)
             {
-                controller.RPC_Shake(); //TODO: It's was CMD
+                controller.RPC_Shake();
                 RPC_PlayShakers();
             }
             

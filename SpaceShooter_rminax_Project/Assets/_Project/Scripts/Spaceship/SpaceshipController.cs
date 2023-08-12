@@ -11,12 +11,10 @@ using Random = UnityEngine.Random;
 namespace _Project.Scripts.Spaceship
 {
     using Game;
-    using Enum;
     using Network;
     using Utilities;
     using PostProcess;
     using Network.Managers.Room;
-    using Game.Mod.ShrinkingArea;
 
     public sealed class SpaceshipController : NetIdentity
     {
@@ -47,6 +45,8 @@ namespace _Project.Scripts.Spaceship
         
         [field: SerializeField] public SpaceshipShooter Shooter { get; private set; }
 
+        [field: SerializeField] public Damageable Damageable { get; private set; }
+        
         [field: SerializeField] public Health Health { get; private set; }
 
         [SerializeField] private LayerMask _environmentLayer;
@@ -197,13 +197,7 @@ namespace _Project.Scripts.Spaceship
         
         public override void OnStopClient()
         {
-            //if (LeaderboardManager.Instance != null)
-            //    LeaderboardManager.Instance.CMD_RemovePlayer(Username);
-            //
-            //if (ShrinkingAreaSystem.Instance != null)
-            //    ShrinkingAreaSystem.Instance.CMD_RemovePlayer(this);
-            
-            SpaceRoomManager.RequestExitRoom();
+            SpaceRoomManager.RequestExitRoom(true);
         }
 
         #endregion
