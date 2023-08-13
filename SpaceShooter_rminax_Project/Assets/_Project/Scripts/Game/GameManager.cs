@@ -6,6 +6,7 @@ namespace _Project.Scripts.Game
 {
     using Data;
     using Room;
+    using Mod;
     using Network.Managers.Room;
 
     public class GameManager : RoomSingleton<GameManager>
@@ -15,6 +16,8 @@ namespace _Project.Scripts.Game
         
         private ModType _modType;
 
+        public GameMod GetMod() => _modManager.GetMod();
+        
         public ModType GetModType() => _modType;
         
         public MapGeneratorData GetData() => _modManager?.GetMapData(); 

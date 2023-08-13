@@ -10,9 +10,6 @@ namespace _Project.Scripts.UI.Player
         [Header("Health Settings")]
         [SerializeField] private Health _health;
         [SerializeField] private TMP_Text _healthText;
-        
-        [Header("Kills Settings")]
-        [SerializeField] private TMP_Text _killsText;
 
         private void Awake()
         {

@@ -13,6 +13,8 @@ namespace _Project.Scripts.Game
         [SerializeField] private ShrinkingAreaMod _shrinkingAreaMod;
         
         private GameMod _selectedMod;
+
+        public GameMod GetMod() => _selectedMod;
         
         public MapGeneratorData GetMapData() => _selectedMod?.GetMapData();
         

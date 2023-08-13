@@ -2,11 +2,11 @@
 using System.Linq;
 using UnityEngine;
 using System.Collections.Generic;
-using _Project.Scripts.Utilities;
 using UnityEngine.SceneManagement;
 
 namespace _Project.Scripts.Game.Mod
 {
+    using Lobby;
     using Spaceship;
     using ShrinkingArea;
     using Network.Managers.Room;
@@ -16,14 +16,20 @@ namespace _Project.Scripts.Game.Mod
     {
         [Header("Shrinking Settings")]
         [SerializeField] private ShrinkingAreaSystem _shrinkingAreaSystem;
+        [SerializeField] private GameLobbySystem gameLobbySystem;
 
         private bool _isGameEnded;
         
         public override void StartOnServer()
         {
-            //base.StartOnServer();
+            SpawnGameLobbySystem();
+        }
 
-            //SpawnShrinkingAreaSystem();
+        public void Start()
+        {
+            base.StartOnServer();
+
+            SpawnShrinkingAreaSystem();
         }
 
         public override void FixedRun()
@@ -37,7 +43,7 @@ namespace _Project.Scripts.Game.Mod
             if (livingShips.Count() == 1)
             {
                 var ship = livingShips.First();
-                ship.OpenWinPanel();
+                ship.RPC_OpenWinPanel();
                 _isGameEnded = true;
             }
         }
@@ -55,6 +61,15 @@ namespace _Project.Scripts.Game.Mod
                 select ship;
         }
 
+        private void SpawnGameLobbySystem()
+        {
+            var system = Object.Instantiate(gameLobbySystem.gameObject);
+            
+            SceneManager.MoveGameObjectToScene(system, _manager.gameObject.scene);
+            
+            NetworkServer.Spawn(system);
+        }
+        
         private void SpawnShrinkingAreaSystem()
         {
             var system = Object.Instantiate(_shrinkingAreaSystem.gameObject);

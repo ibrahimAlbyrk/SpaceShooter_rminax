@@ -6,6 +6,7 @@ using System.Collections;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using _Project.Scripts.Extensions;
+using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
 namespace _Project.Scripts.Spaceship
@@ -37,6 +38,9 @@ namespace _Project.Scripts.Spaceship
         public bool IsEnableControl = true;
         public bool IsRunningMotor = true;
 
+        [SerializeField] public GameObject _winContent;
+        [SerializeField] public Button _exitButton;
+        
         [field:SerializeField] public PostProcessManager PostProcessManager { get; private set; }
         [field:SerializeField] public FuelSystem FuelSystem { get; private set; }
         [field:SerializeField] public SpawnSystem SpawnSystem { get; private set; }
@@ -202,9 +206,14 @@ namespace _Project.Scripts.Spaceship
 
         #endregion
 
-        public void OpenWinPanel()
+        [TargetRpc]
+        public void RPC_OpenWinPanel()
         {
-            //TODO
+            _winContent.SetActive(true);
+            _exitButton.onClick.AddListener(() =>
+            {
+                SpaceRoomManager.RequestExitRoom();
+            });
         }
         
         public void Init()
