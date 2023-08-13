@@ -40,10 +40,10 @@ namespace _Project.Scripts.Network.Managers.Room
         {
             if (int.TryParse(value, out var intValue))
             {
-                if (intValue > 10)
-                    _maxPlayerField.text = "10";
-                if (intValue < 1)
-                    _maxPlayerField.text = "1";
+                if (intValue > 30)
+                    _maxPlayerField.text = "30";
+                if (intValue < 2)
+                    _maxPlayerField.text = "2";
             }
             
             ButtonEnableHandler();

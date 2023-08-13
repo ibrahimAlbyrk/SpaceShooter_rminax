@@ -1,7 +1,9 @@
 ﻿using TMPro;
 using Mirror;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
+using Sirenix.Utilities;
 using System.Collections;
 using Sirenix.OdinInspector;
 
@@ -23,10 +25,37 @@ namespace _Project.Scripts.Lobby
         
         [Title("UI")]
         [SerializeField] private TMP_Text _countDownText;
-
+        [SerializeField] private Button _exitButton;
         private Room _currentRoom;
 
         private Coroutine _startCoroutine;
+
+        private bool _isGameStarted;
+
+        [Command(requiresAuthority = false)]
+        private void CMD_ListPlayers()
+        {
+            _currentRoom = SpaceRoomManager.Instance.GetRoomOfScene(gameObject.scene);
+            
+            RPC_ListPlayers(_currentRoom?.Connections?.Select(conn => conn?.identity?.GetComponent<SpaceshipController>()?.Username).ToArray());
+        }
+        
+        [ClientRpc]
+        private void RPC_ListPlayers(string[] usernames)
+        {
+            usernames.ForEach(AddPlayerToList);
+        }
+
+        public override void OnStartClient() => CMD_ListPlayers();
+
+        [ClientCallback]
+        private void Awake()
+        {
+            _exitButton.onClick.AddListener(() =>
+            {
+                SpaceRoomManager.RequestExitRoom();
+            });
+        }
         
         [ServerCallback]
         private void Start()
@@ -44,6 +73,39 @@ namespace _Project.Scripts.Lobby
             SpaceRoomManager.OnServerExitedClient -= OnExitedClient;
         }
 
+        [ClientRpc]
+        private void RPC_StartCountDown()
+        {
+            _countDownText.gameObject.SetActive(true);
+            _startCoroutine = StartCoroutine(Start_Cor());
+        }
+        
+        [ClientRpc]
+        private void RPC_StopCountDown()
+        {
+            if (_startCoroutine == null) return;
+                
+            _countDownText.gameObject.SetActive(false);
+            StopCoroutine(_startCoroutine);
+        }
+        
+        [Command(requiresAuthority = false)]
+        private void CMD_StartGame()
+        {
+            if (_isGameStarted) return;
+            
+            var gameManager = gameObject.GameContainer().Get<GameManager>();
+            var mod = gameManager.GetMod();
+            
+            if (mod is not ShrinkingAreaMod shrinkingAreaMod) return;
+            
+            shrinkingAreaMod.Start();
+
+            NetworkServer.Destroy(gameObject);
+            
+            _isGameStarted = true;
+        }
+        
         private IEnumerator Start_Cor()
         {
             var timer = 3f;
@@ -51,58 +113,59 @@ namespace _Project.Scripts.Lobby
             {
                 _countDownText.text = $"{timer:0}";
 
-                timer += Time.fixedDeltaTime;
+                timer -= Time.fixedDeltaTime;
                 
                 yield return new WaitForFixedUpdate();
             }
 
-            var gameManager = gameObject.GameContainer().Get<GameManager>();
-            var mod = gameManager.GetMod();
-            
-            if (mod is not ShrinkingAreaMod shrinkingAreaMod) yield break;
-            
-            shrinkingAreaMod.Start();
+            CMD_StartGame();
         }
-
+        
         [Server]
         private void OnJoinedClient(NetworkConnectionToClient conn)
         {
+            if (_currentRoom.CurrentPlayers >= _currentRoom.MaxPlayers)
+            {
+                RPC_StartCountDown();
+            }
+            
             var username = conn?.identity?.GetComponent<SpaceshipController>()?.Username;
 
             if (string.IsNullOrEmpty(username)) return;
 
             RPC_AddPlayerToList(username);
-
-            //TODO sayaç işlemi client da oyunu başlatma işlemi sunucuda çalışmalı
-            if (_currentRoom.CurrentPlayers >= _currentRoom.MaxPlayers)
-            {
-                _countDownText.gameObject.SetActive(true);
-                _startCoroutine = StartCoroutine(Start_Cor());
-            }
         }
 
         [Server]
         private void OnExitedClient(NetworkConnectionToClient conn)
         {
+            if (_currentRoom.CurrentPlayers < _currentRoom.MaxPlayers)
+            {
+                RPC_StopCountDown();
+            }
+            
             var username = conn?.identity?.GetComponent<SpaceshipController>()?.Username;
 
             if (string.IsNullOrEmpty(username)) return;
             
             RPC_RemovePlayerFromList(username);
-            
-            //TODO sayaç işlemi client da oyunu başlatma işlemi sunucuda çalışmalı
-            if (_currentRoom.CurrentPlayers < _currentRoom.MaxPlayers)
-            {
-                if (_startCoroutine == null) return;
-                
-                _countDownText.gameObject.SetActive(false);
-                StopCoroutine(_startCoroutine);
-            }
         }
         
         [ClientRpc]
         private void RPC_AddPlayerToList(string username)
         {
+            AddPlayerToList(username);
+        }
+        
+        private void AddPlayerToList(string username)
+        {
+            if (string.IsNullOrEmpty(username)) return;
+
+            if (_playerContent.Cast<Transform>().Any(player => player?.GetComponent<GameLobby_PlayerUI>()?.GetUsername() == username))
+            {
+                return;
+            }
+            
             var playerField = Instantiate(_playerUIPrefab, _playerContent);
             var ui = playerField.GetComponent<GameLobby_PlayerUI>();
             ui.Init(username);
@@ -119,16 +182,6 @@ namespace _Project.Scripts.Lobby
                 
                 child.gameObject.Destroy();
             }
-        }
-    }
-
-    public class GameLobby_PlayerUI : MonoBehaviour
-    {
-        [SerializeField] private TMP_Text _usernameText;
-        
-        public void Init(string username)
-        {
-            _usernameText.text = username;
         }
     }
 }

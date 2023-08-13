@@ -42,8 +42,9 @@ namespace _Project.Scripts.Game.Mod
 
             if (livingShips.Count() == 1)
             {
-                var ship = livingShips.First();
-                ship.RPC_OpenWinPanel();
+                var ship = livingShips.FirstOrDefault(ship => ship != null);
+                
+                ship?.RPC_OpenWinPanel();
                 _isGameEnded = true;
             }
         }
@@ -54,7 +55,7 @@ namespace _Project.Scripts.Game.Mod
             var connections = room.Connections;
 
             return from conn in connections
-                select conn.identity.GetComponent<SpaceshipController>()
+                select conn?.identity?.GetComponent<SpaceshipController>()
                 into ship
                 where ship != null
                 where !ship.Health.IsDead

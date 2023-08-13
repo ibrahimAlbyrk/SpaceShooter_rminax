@@ -22,6 +22,7 @@ namespace _Project.Scripts.Game.Mod
 
         private Dictionary<string, Transform> _contents = new();
 
+        private SyncList<Transform> _spawnedCollectibles = new();
         private SyncList<Transform> _spawnedEnvironments = new();
         private SyncList<Transform> _spawnedMeteors = new();
         private SyncList<Transform> _spawnedFuelStations = new();
@@ -74,6 +75,7 @@ namespace _Project.Scripts.Game.Mod
             CheckFuelStations();
             CheckAIs();
             CheckFeatures();
+            CheckCollectibles();
         }
 
         private void CheckMeteors()
@@ -150,6 +152,20 @@ namespace _Project.Scripts.Game.Mod
 
             SpawnFeature(count);
         }
+        
+        private void CheckCollectibles()
+        {
+            var count = 0;
+
+            foreach (var _spawnedCollectible in _spawnedCollectibles.ToList().Where(_spawnedCollectible => _spawnedCollectible == null))
+            {
+                _spawnedCollectibles.Remove(_spawnedCollectible);
+
+                count++;
+            }
+
+            SpawnCollectible(count);
+        }
 
         #endregion
 
@@ -166,6 +182,8 @@ namespace _Project.Scripts.Game.Mod
             SpawnAIs();
 
             SpawnFeatures();
+
+            SpawnCollectibles();
         }
 
         #region Props
@@ -238,6 +256,16 @@ namespace _Project.Scripts.Game.Mod
                 .ToSyncList();
         }
 
+        private void SpawnCollectibles()
+        {
+            _spawnedCollectibles = SpawnWithConfigurations(
+                    _mapGeneratorData.CollectiblePrefabs,
+                    _contents["Collectible"],
+                    _mapGeneratorData.GameAreaRadius,
+                    _mapGeneratorData.CollectibleCount)
+                .ToSyncList();
+        }
+
         private void SpawnFeature(int count)
         {
             var spawned = SpawnWithConfigurations(
@@ -249,6 +277,20 @@ namespace _Project.Scripts.Game.Mod
             foreach (var t in spawned)
             {
                 _spawnedFeatures.Add(t);
+            }
+        }
+        
+        private void SpawnCollectible(int count)
+        {
+            var spawned = SpawnWithConfigurations(
+                _mapGeneratorData.CollectiblePrefabs,
+                _contents["Collectible"],
+                _mapGeneratorData.GameAreaRadius,
+                count);
+
+            foreach (var t in spawned)
+            {
+                _spawnedCollectibles.Add(t);
             }
         }
 

@@ -165,7 +165,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &3667590761624405333
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1672,7 +1672,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _health: {fileID: 0}
   _healthText: {fileID: 1481064501417056276}
-  _killsText: {fileID: 1722895027498697069}
 --- !u!1 &4871902273572516540
 GameObject:
   m_ObjectHideFlags: 0

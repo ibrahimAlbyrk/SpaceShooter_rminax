@@ -257,7 +257,16 @@ namespace _Project.Scripts.Network.Managers
         {
             var oldPlayer = conn.identity.gameObject;
 
-            var newPlayer = Instantiate(playerObj == null ? _gamePlayerPrefab : playerObj);
+            var lobbyPlayer = oldPlayer.GetComponent<LobbyPlayer>();
+
+            GameObject prefab;
+
+            if (lobbyPlayer != null)
+                prefab = lobbyPlayer.ShipPrefab;
+            else 
+                prefab = playerObj == null ? _gamePlayerPrefab : playerObj;
+
+            var newPlayer = Instantiate(prefab);
 
             NetworkServer.Destroy(oldPlayer);
 

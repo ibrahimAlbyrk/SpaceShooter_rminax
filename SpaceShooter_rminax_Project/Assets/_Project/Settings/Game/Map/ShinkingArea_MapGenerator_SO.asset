@@ -95,3 +95,7 @@ MonoBehaviour:
   - {fileID: 1155164465232224481, guid: 7e5e551eb4e439e4fa8f96f4e5e55e23, type: 3}
   - {fileID: 5665443610472335024, guid: 881c7fc28d0887149a1e01059df07b19, type: 3}
   FeatureCount: 20
+  CollectiblePrefabs:
+  - {fileID: 3580850165668990844, guid: 6d09f1047ed7fb244a255fa66291cb94, type: 3}
+  - {fileID: 4448123184397291684, guid: d18be603c12f9784d8fe93db62320530, type: 3}
+  CollectibleCount: 25

@@ -36,5 +36,8 @@ namespace _Project.Scripts.Game.Data
 
         [BoxGroup("Feature Settings")] public GameObject[] FeaturePrefabs;
         [BoxGroup("Feature Settings")] public int FeatureCount = 10;
+        
+        [BoxGroup("Collectible Settings")] public GameObject[] CollectiblePrefabs;
+        [BoxGroup("Collectible Settings")] public int CollectibleCount = 50;
     }
 }

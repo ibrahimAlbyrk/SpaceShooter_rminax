@@ -161,6 +161,10 @@ MonoBehaviour:
     CooldownTime: 10
     ShrinkingTime: 10
     Damage: 10
+  - Range: 0
+    CooldownTime: 10
+    ShrinkingTime: 10
+    Damage: 15
   _zonePrefab: {fileID: 2526920835020491787, guid: f8b20f68ac463be41b86ddca61b64d8c,
     type: 3}
   _outSideDetectTime: 2

@@ -38,6 +38,7 @@ namespace _Project.Scripts.Network.Managers.Room
 
         public static event Action<NetworkConnectionToClient> OnServerJoinedClient;
         public static event Action<NetworkConnectionToClient> OnServerExitedClient;
+        public static event Action<NetworkConnection> OnServerDisconnectedClient;
 
         private readonly List<Room> _rooms = new();
 
@@ -197,6 +198,8 @@ namespace _Project.Scripts.Network.Managers.Room
 
             if(!isDisconnected)
                 OnServerExitedClient?.Invoke(conn.identity.connectionToClient);
+            else
+                OnServerDisconnectedClient?.Invoke(conn);
             
             SendRoomMessage(conn, ClientRoomState.Exited);
         }
