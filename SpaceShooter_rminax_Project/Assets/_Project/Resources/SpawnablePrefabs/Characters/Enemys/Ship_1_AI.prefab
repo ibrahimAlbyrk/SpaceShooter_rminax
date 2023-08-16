@@ -5004,7 +5004,7 @@ GameObject:
   - component: {fileID: 3415335726005350851}
   - component: {fileID: 3415335726001922195}
   - component: {fileID: 3415335726003047997}
-  - component: {fileID: 3415335726007016509}
+  - component: {fileID: 2473872125095672174}
   - component: {fileID: 3415335726005022881}
   - component: {fileID: 3415335726005022910}
   - component: {fileID: 4657700805919828326}
@@ -5085,7 +5085,7 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!64 &3415335726007016509
+--- !u!64 &2473872125095672174
 MeshCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -5104,7 +5104,7 @@ MeshCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 5
-  m_Convex: 0
+  m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 4300000, guid: cc2a9593af8b4484c92c0d9fdd3de6bc, type: 3}
 --- !u!114 &3415335726005022881
@@ -5162,6 +5162,7 @@ MonoBehaviour:
   _stopRange: 60
   _bulletLifeTime: 1
   _bulletSpeed: 500
+  ID: 0
 --- !u!114 &4657700805919828326
 MonoBehaviour:
   m_ObjectHideFlags: 0

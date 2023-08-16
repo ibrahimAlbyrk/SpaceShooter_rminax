@@ -1613,7 +1613,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: -100.9, y: 44.3}
+  m_AnchoredPosition: {x: -100.8999, y: 44.30005}
   m_SizeDelta: {x: 624.22, y: 251.95}
   m_Pivot: {x: 0, y: 0}
 --- !u!114 &378154794
@@ -5473,7 +5473,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Space Shooter 3D Ultra Super Max online
+  m_Text: Space Shooter 3D
 --- !u!222 &1812410792
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -6384,12 +6384,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 22853247453527872, guid: fb0a4d90cd8e869418cd5636643bcc2f,
-        type: 3}
-      propertyPath: _gamePlayerPrefab
-      value: 
-      objectReference: {fileID: 8000817277521713948, guid: 34a9267cc7acc7d44b97789354cba91f,
-        type: 3}
     - target: {fileID: 2627724217231595445, guid: fb0a4d90cd8e869418cd5636643bcc2f,
         type: 3}
       propertyPath: m_Name
@@ -6471,7 +6465,7 @@ PrefabInstance:
     - target: {fileID: 3490707948493390200, guid: 318fd31e29975184ea69714d1647521d,
         type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5886697828658424000, guid: 318fd31e29975184ea69714d1647521d,
         type: 3}

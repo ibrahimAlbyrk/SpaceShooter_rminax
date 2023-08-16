@@ -1,16 +1,13 @@
 ﻿using Mirror;
 using System.Linq;
 using UnityEngine;
-using System.Collections;
-using System.Threading.Tasks;
-using _Project.Scripts.Extensions;
 
 namespace _Project.Scripts.Spaceship
 {
     using AI;
     using Game;
-    using Utilities;
-    
+    using Extensions;
+
     public class BulletScript : NetworkBehaviour
     {
         [SerializeField] private LayerMask _obstacleLayer;
@@ -34,8 +31,21 @@ namespace _Project.Scripts.Spaceship
         private float _bulletDamage;
 
         private PhysicsScene _physicsScene;
+        
+        //Destroy Variables
+        private const float _delayTime = 1.1f;
+        private float _timer;
+        private bool _isStartDestroySequence;
+        
+        //Firework Variables
+        private float _fireworkTimer;
+        private bool _isStartFireworks;
+        private GameObject _firework;
 
-        public void Init(GameObject owner, bool isEnemy = false, float bulletDamage = 1f, float bulletLifeTime = 3f, float bulletSpeed = 100f)
+        private bool _takeDamage;
+
+        public void Init(GameObject owner, bool isEnemy = false, float bulletDamage = 1f, float bulletLifeTime = 3f,
+            float bulletSpeed = 100f)
         {
             _owner = owner;
 
@@ -51,47 +61,91 @@ namespace _Project.Scripts.Spaceship
 
             _physicsScene = gameObject.scene.GetPhysicsScene();
         }
-        
+
+        //private void FixedUpdate()
+        //{
+        //    if (!_init || !_isMove) return;
+        //
+        //    transform.position += transform.forward * (_bulletSpeed * Time.fixedDeltaTime);
+        //}
+
+        [ServerCallback]
+        private void LateUpdate()
+        {
+            if (_isStartDestroySequence)
+            {
+                if (_timer > _delayTime)
+                {
+                    NetworkServer.Destroy(gameObject);
+            
+                    _timer = 0;
+                    _isStartDestroySequence = false;
+                }
+                else
+                    _timer += Time.fixedDeltaTime;
+            }
+        }
+
         private void FixedUpdate()
         {
+            if (_isStartFireworks)
+            {
+                if (_fireworkTimer > 1)
+                {
+                    Destroy(_firework);
+            
+                    _fireworkTimer = 0;
+                    _isStartFireworks = false;
+                }
+                else
+                    _fireworkTimer += Time.fixedDeltaTime;
+            }
+
             if (!_init || !_isMove) return;
             
             transform.position += transform.forward * (_bulletSpeed * Time.fixedDeltaTime);
-        }
-        
-        [ClientCallback]
-        private void Update()
-        {
-            if (!_init || !_isMove) return;
 
-            var detectedColls = new Collider[3];
+            if (isServer) return;
 
-            var detectCount = _physicsScene.OverlapBox(transform.position, transform.localScale, detectedColls, transform.rotation,
-                _obstacleLayer);
+            var detectedColls = new Collider[10];
+
+            var detectCount = _physicsScene.OverlapSphere(transform.position, 3f, detectedColls,
+                _obstacleLayer,
+                QueryTriggerInteraction.UseGlobal);
 
             if (detectCount < 1 || _isHit) return;
+
             if (detectedColls
                 .Where(coll => coll != null)
-                .Any(coll => coll.gameObject == _owner)) return;
-            
+                .Any(coll => coll.gameObject == _owner))
+                return;
+
             _isHit = true;
 
-            var obstacle = detectedColls.FirstOrDefault()?.gameObject;
-            
+            var obstacle = detectedColls.FirstOrDefault(coll => coll.gameObject != _owner)?.gameObject;
+
             CMD_TakeDamageToObstacle(_owner, obstacle);
         }
         
         [Command(requiresAuthority = false)]
         private void CMD_TakeDamageToObstacle(GameObject owner, GameObject obstacle)
         {
-            if (obstacle == null || owner == null) return;
+            if (_takeDamage) return;
+
+            _takeDamage = true;
             
-            if (obstacle.gameObject == owner) return;
-            
+            //if (obstacle == null) return;
+            //
+            //if (gameObject == owner) return;
+
+            DestroySequence();
+
             var username = "";
-            
-            if(!_isEnemy)
-                username = owner.GetComponent<SpaceshipController>()?.Username;
+
+            if (!_isEnemy)
+            {
+                username = owner.GetComponent<SpaceshipController>()?.Username;   
+            }
 
             var Damageable = obstacle.GetComponent<Damageable>();
 
@@ -103,8 +157,9 @@ namespace _Project.Scripts.Spaceship
                 }
                 else
                 {
-                    Damageable.DealDamage(_bulletDamage);   
+                    Damageable.DealDamage(_bulletDamage);
                 }
+
                 return;
             }
 
@@ -112,9 +167,9 @@ namespace _Project.Scripts.Spaceship
             if (destructionScript != null)
             {
                 if (destructionScript.HP <= 0) return;
-                
+
                 destructionScript.HP -= _bulletDamage;
-                
+
                 var basicAI = destructionScript.GetComponent<BasicAI>();
 
                 var isDead = destructionScript.HP <= 0;
@@ -122,14 +177,12 @@ namespace _Project.Scripts.Spaceship
                 if (basicAI != null)
                 {
                     basicAI.Threat();
-                    
+
                     if (isDead) AddScore(username, 30);
                 }
                 else if
                     (isDead) AddScore(username, 1);
             }
-            
-            StartCoroutine(DestroySequence());
         }
 
         [ServerCallback]
@@ -138,22 +191,20 @@ namespace _Project.Scripts.Spaceship
             if (_isEnemy || string.IsNullOrEmpty(username)) return;
 
             var _leaderboardManager = gameObject.GameContainer().Get<LeaderboardManager>();
-            
+
             _leaderboardManager?.AddScore(username, value);
         }
-        
+
         [ServerCallback]
-        private IEnumerator DestroySequence()
+        private void DestroySequence()
         {
             _isMove = false;
-            
+
             RPC_CloseVisual();
 
-            RPC_SpawnFireworks(transform.position, Quaternion.identity, 1);
-
-            yield return new WaitForSeconds(1.1f);
+            RPC_SpawnFireworks(transform.position, Quaternion.identity);
             
-            NetworkServer.Destroy(gameObject);
+            _isStartDestroySequence = true;
         }
 
         [ServerCallback]
@@ -163,24 +214,22 @@ namespace _Project.Scripts.Spaceship
         private void RPC_CloseVisual()
         {
             if (Trail == null) return;
-            
+
             Trail.gameObject.SetActive(false);
         }
-        
+
         [ClientRpc]
-        private async void RPC_SpawnFireworks(Vector3 pos, Quaternion rot, int destroyCountdown)
+        private void RPC_SpawnFireworks(Vector3 pos, Quaternion rot)
         {
             if (HitEffect == null) return;
-        
-            var firework = Instantiate(HitEffect, pos, rot);
-            
-            if (firework == null) return;
 
-            firework.GetComponentInChildren<ParticleSystem>().Play();
+            _firework = Instantiate(HitEffect, pos, rot);
 
-            await Task.Delay(destroyCountdown * 1000);
+            if (_firework == null) return;
 
-            firework.Destroy();
+            _firework.GetComponentInChildren<ParticleSystem>().Play();
+
+            _isStartFireworks = true;
         }
     }
 }

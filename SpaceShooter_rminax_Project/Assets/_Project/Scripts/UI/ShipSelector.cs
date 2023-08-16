@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using _Project.Scripts.Network;
+using UnityEngine;
 
 namespace _Project.Scripts.UI
 {
@@ -7,6 +8,7 @@ namespace _Project.Scripts.UI
         public void SelectShip(string shipName)
         {
             PlayerPrefs.SetString("ShipName", shipName);
+            LobbyPlayer.LocalLobbyPlayer?.CMD_SetShip(shipName);
         }
     }
 }

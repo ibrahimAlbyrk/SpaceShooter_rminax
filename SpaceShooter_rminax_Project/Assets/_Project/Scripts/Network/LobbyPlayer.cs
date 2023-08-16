@@ -6,10 +6,7 @@ namespace _Project.Scripts.Network
     public class LobbyPlayer : NetIdentity
     {
         public static LobbyPlayer LocalLobbyPlayer;
-
-        [SyncVar(hook = nameof(OnChangedShipName))]
-        public string ShipName;
-
+        
         public GameObject ShipPrefab;
         
         [ClientCallback]
@@ -17,22 +14,14 @@ namespace _Project.Scripts.Network
         {
             if (isLocalPlayer)
                 LocalLobbyPlayer = this;
-
-            var shipName = PlayerPrefs.HasKey("ShipName") ? PlayerPrefs.GetString("ShipName") : null;
             
-            CMD_SetShip(shipName);
+            CMD_SetShip("Ship_1_Controller");
         }
 
-        private void OnChangedShipName(string _, string newName)
+        [Command(requiresAuthority = false)]
+        public void CMD_SetShip(string shipName)
         {
-            print(newName);
-            ShipPrefab = Resources.Load<GameObject>($"SpawnablePrefabs/Characters/Ships/{newName}");
-        }
-
-        [Command]
-        private void CMD_SetShip(string shipName)
-        {
-            ShipName = shipName;
+            ShipPrefab = Resources.Load<GameObject>($"SpawnablePrefabs/Characters/Ships/{shipName}");
         }
     }
 }

@@ -31,19 +31,14 @@ MonoBehaviour:
   - {fileID: 155404, guid: 5461b075feb9dfc46acd645f6c57b3bc, type: 3}
   - {fileID: 141462, guid: 9aa294a30fbef864d9381873a402b32c, type: 3}
   - {fileID: 184784, guid: 671b04b68a73aed43974dd58a777e5e4, type: 3}
-  - {fileID: 126582, guid: 50efeb3dc0245da42b51d71f05e83eae, type: 3}
-  - {fileID: 155968, guid: ffb698e6b4c4af44791d34593e8eb39e, type: 3}
-  - {fileID: 165578, guid: 8c5905b133ad30346a0592d68ea745de, type: 3}
   - {fileID: 100306, guid: 9d3c40bc777cf3e41bbad3c19974794c, type: 3}
   - {fileID: 142778, guid: 7e741f8679574a84891955e9763d2059, type: 3}
   - {fileID: 156506, guid: 15dfe52eb6a588940819b08846a711e3, type: 3}
   - {fileID: 158252, guid: 2e6bada2f9d0d7e4a85b262109deda55, type: 3}
-  - {fileID: 157470, guid: a94a816c0589b2243ae834e845a76649, type: 3}
   - {fileID: 148084, guid: def67fe187d6b2346bff51b2f69638f3, type: 3}
   - {fileID: 191196, guid: cdfd773a1b57fbb4e8be031577493d0b, type: 3}
   - {fileID: 180906, guid: f9d41e63df62ad54fab06ae2093d1730, type: 3}
   - {fileID: 126538, guid: b4af56bc6c69497449e4dd9e84262314, type: 3}
-  - {fileID: 167630, guid: 99b3ea1bc98454447a29f91665eef364, type: 3}
   - {fileID: 137208, guid: 4d1fe716878bc194ca0ee3965fca5e88, type: 3}
   - {fileID: 187562, guid: 5ad61ddfa979772479cfa3b03c3111f0, type: 3}
   - {fileID: 123790, guid: d0f435515bf768f43afc556b90dd9521, type: 3}
@@ -61,7 +56,6 @@ MonoBehaviour:
   - {fileID: 2049238218590732256, guid: 0448e02254c9ec94fb44909f0c6dd3dc, type: 3}
   - {fileID: 1018034526601464801, guid: d637a0939d5f3894889718fe2cf8820f, type: 3}
   - {fileID: 2658409316744026851, guid: 88fcf1a6df9431545ad520c1547a201c, type: 3}
-  - {fileID: 3523926948420551541, guid: c0ff8ad6a935d284bab209b75966eb4c, type: 3}
   - {fileID: 4023404594442945827, guid: ace9b8dd542d701498f41e3fae3e3d28, type: 3}
   - {fileID: 1720868122143478213, guid: 3f770adfdad31634591f2788171edeb1, type: 3}
   - {fileID: 3430900199479025634, guid: a5d965f7b6bbb4e4489f607b25cf9e64, type: 3}
@@ -70,7 +64,6 @@ MonoBehaviour:
   - {fileID: 8555707277288464036, guid: 03fce576e007c2e40a88e7da99ab076d, type: 3}
   - {fileID: 709151214647070393, guid: d8b972661c5bc3f418842bee406d58b3, type: 3}
   - {fileID: 8685136786152644344, guid: 0dfe508f6201b0843be08dcc354c54cb, type: 3}
-  - {fileID: 505062923186893330, guid: d30fe61ab6e886f4483a7009e9478424, type: 3}
   EnvironmentMinSpawnRange: 2500
   EnvironmentMaxSpawnRange: 7000
   EnvironmentCount: 20
@@ -94,7 +87,7 @@ MonoBehaviour:
   FeaturePrefabs:
   - {fileID: 1155164465232224481, guid: 7e5e551eb4e439e4fa8f96f4e5e55e23, type: 3}
   - {fileID: 5665443610472335024, guid: 881c7fc28d0887149a1e01059df07b19, type: 3}
-  FeatureCount: 20
+  FeatureCount: 30
   CollectiblePrefabs:
   - {fileID: 3580850165668990844, guid: 6d09f1047ed7fb244a255fa66291cb94, type: 3}
   - {fileID: 4448123184397291684, guid: d18be603c12f9784d8fe93db62320530, type: 3}

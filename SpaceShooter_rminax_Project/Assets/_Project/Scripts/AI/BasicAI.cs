@@ -2,9 +2,9 @@
 using System.Linq;
 using UnityEngine;
 using System.Collections;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
 
@@ -236,7 +236,7 @@ namespace _Project.Scripts.AI
         private void RPC_SetBulletSettings(GameObject owner, GameObject bulletObj, float bulletLifeTime,
             float bulletSpeed)
         {
-            if (owner == null || bulletObj == null) return;
+            if (bulletObj == null) return;
         
             bulletObj.GetComponent<BulletScript>().Init(owner, isEnemy: false, _damage, bulletLifeTime, bulletSpeed);
         }

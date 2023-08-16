@@ -3,9 +3,6 @@ using UnityEngine;
 
 namespace _Project.Scripts.Network.Connection
 {
-    using Web;
-    using Managers;
-
     public class AutoNetworkConnector : MonoBehaviour
     {
         [SerializeField] private bool _autoConnect;
@@ -22,9 +19,15 @@ namespace _Project.Scripts.Network.Connection
             NetworkManager.singleton.networkAddress = onServer
                 ? _serverConnectionAddress
                 : _clientConnectionAddress;
-            
-            if(onServer)
-                NetworkManager.singleton.StartServer();
+
+            if (onServer)
+            {
+                QualitySettings.vSyncCount = 0;
+                Application.targetFrameRate = 120;
+                
+                if(!NetworkServer.active)
+                    NetworkManager.singleton.StartServer();
+            }
             else
                 NetworkManager.singleton.StartClient();
         }

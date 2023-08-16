@@ -8,8 +8,6 @@ using UnityEngine.SceneManagement;
 
 namespace _Project.Scripts.Spaceship
 {
-    using Network.Managers.Room;
-    
     public class SpaceshipShooter : NetworkBehaviour
     {
         private int b;
@@ -21,7 +19,6 @@ namespace _Project.Scripts.Spaceship
 
         private SpaceshipController _controller;
 
-        [ClientCallback]
         private void Start()
         {
             _controller = GetComponent<SpaceshipController>();
@@ -42,22 +39,19 @@ namespace _Project.Scripts.Spaceship
 
                 var bulletInfo = new BulletInfo
                 {
-                    BulletDamage = m_shooting.bulletSettings.BulletDamage,
-                    BulletSpeed = m_shooting.bulletSettings.BulletSpeed + _controller.CurrentSpeed,
-                    BulletLifetime = m_shooting.bulletSettings.BulletLifetime,
-                    BulletCount = m_shooting.bulletSettings.BulletCount
+                    BulletDamage = (byte)m_shooting.bulletSettings.BulletDamage,
+                    BulletSpeed = (short)(m_shooting.bulletSettings.BulletSpeed + _controller.CurrentSpeed),
+                    BulletLifetime = (byte)m_shooting.bulletSettings.BulletLifetime,
+                    BulletCount = (byte)m_shooting.bulletSettings.BulletCount
                 };
 
                 var barrelPredictionData = new BarrelPredictionData
                 {
                     LastBarrelPositions = m_shooting.bulletSettings.BulletBarrels
                         .Select(barrel => barrel.transform.position).ToArray(),
-                    
-                    LastBarrelForwards = m_shooting.bulletSettings.BulletBarrels
-                        .Select(barrel => barrel.transform.forward).ToArray()
                 };
-                
-                CMD_BulletShooting(gameObject, mousePos, bulletInfo, barrelPredictionData);
+
+                BulletShooting(gameObject, mousePos, bulletInfo, barrelPredictionData);
 
                 _shakers.ForEach(shaker => shaker?.Play());
             }
@@ -73,19 +67,32 @@ namespace _Project.Scripts.Spaceship
         public struct BarrelPredictionData
         {
             public Vector3[] LastBarrelPositions;
-            public Vector3[] LastBarrelForwards;
+        }
+        
+        private Vector3 CalculatePredictedPosition(Vector3 originalPosition, float speed, float predictionFactor)
+        {
+            var direction = transform.forward;
+
+            var futurePosition = originalPosition + direction * (speed * predictionFactor * Time.fixedDeltaTime);
+            
+            var predictedPosition = Vector3.Lerp(originalPosition, futurePosition, Time.fixedDeltaTime);
+
+            return predictedPosition;
         }
 
         [Command]
-        private void CMD_BulletShooting(GameObject owner, Vector3 mousePos, BulletInfo bulletInfo, BarrelPredictionData barrelPredictionData)
+        private void BulletShooting(GameObject owner, Vector3 mousePos, BulletInfo bulletInfo, BarrelPredictionData barrelPredictionData)
         {
             for (var x = 0; x < bulletInfo.BulletCount; x++)
             {
-                for (var i = b; i < barrelPredictionData.LastBarrelPositions.Length; i++)
+                for (var i = b; i < m_shooting.bulletSettings.BulletBarrels.Count; i++)
                 {
-                    var forward = barrelPredictionData.LastBarrelForwards[i];
+                    var forward = m_shooting.bulletSettings.BulletBarrels[i].transform.forward;
+
+                    var predictedPosition = CalculatePredictedPosition(barrelPredictionData.LastBarrelPositions[i],
+                        _controller.CurrentSpeed, 200);
                     
-                    var pos = barrelPredictionData.LastBarrelPositions[i] + forward * 2;
+                    var pos = predictedPosition + forward;
 
                     var bullet = Instantiate(m_shooting.bulletSettings.Bullet,
                         pos + forward * (x * 50),
@@ -99,14 +106,14 @@ namespace _Project.Scripts.Spaceship
                         bulletInfo.BulletLifetime,
                         bulletInfo.BulletSpeed);
                     
-                    NetworkServer.Spawn(bullet, gameObject);
+                    NetworkServer.Spawn(bullet);
                     
-                    RPC_SetBulletConfiguration(owner, bullet,
+                    RPC_SyncBullet(owner, bullet,
                         mousePos,
                         bulletInfo.BulletDamage,
                         bulletInfo.BulletLifetime,
-                        bulletInfo.BulletSpeed);
-
+                        bulletInfo.BulletSpeed,i, x);
+                    
                     if (m_shooting.bulletSettings.BulletBarrels.Count > 1)
                     {
                         b = b == 0 ? 1 : 0;
@@ -123,9 +130,14 @@ namespace _Project.Scripts.Spaceship
         }
 
         [ClientRpc]
-        private void RPC_SetBulletConfiguration(GameObject owner, GameObject bullet, Vector3 mousePos,
-            float bulletDamage, float bulletLifeTime, float bulletSpeed)
+        private void RPC_SyncBullet(GameObject owner, GameObject bullet, Vector3 mousePos,
+            float bulletDamage, float bulletLifeTime, float bulletSpeed, int index, int x)
         {
+            var forward = m_shooting.bulletSettings.BulletBarrels[index].transform.forward;
+            var pos = m_shooting.bulletSettings.BulletBarrels[index].transform.position;
+
+            bullet.transform.position = pos + forward * (x * 50);
+            
             SetBulletConfiguration(owner, bullet, mousePos, bulletDamage, bulletLifeTime, bulletSpeed);
         }
         
@@ -140,10 +152,10 @@ namespace _Project.Scripts.Spaceship
         [Serializable]
         public struct BulletInfo
         {
-            public float BulletCount;
-            public float BulletSpeed;
-            public float BulletLifetime;
-            public float BulletDamage;
+            public byte BulletCount;
+            public short BulletSpeed;
+            public byte BulletLifetime;
+            public byte BulletDamage;
         }
     }
 }

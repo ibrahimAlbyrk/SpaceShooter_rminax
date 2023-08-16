@@ -48,7 +48,7 @@ Shader "AdultLink/HoloShield"
 		#include "UnityShaderVariables.cginc"
 		#include "UnityPBSLighting.cginc"
 		#include "Lighting.cginc"
-		#pragma target 4.6
+		#pragma target 3.0
 		#if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
 		#define ASE_DECLARE_SCREENSPACE_TEXTURE(tex) UNITY_DECLARE_SCREENSPACE_TEXTURE(tex);
 		#else
@@ -230,7 +230,7 @@ Shader "AdultLink/HoloShield"
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
-			#pragma target 4.6
+			#pragma target 3.0
 			#pragma multi_compile_shadowcaster
 			#pragma multi_compile UNITY_PASS_SHADOWCASTER
 			#pragma skip_variants FOG_LINEAR FOG_EXP FOG_EXP2
@@ -431,7 +431,7 @@ Node;AmplifyShaderEditor.GetLocalVarNode;67;-414.4495,-164.418;Inherit;False;66;
 Node;AmplifyShaderEditor.GetLocalVarNode;65;-455.6826,35.81804;Inherit;False;64;MainTexOut;1;0;OBJECT;0;False;1;COLOR;0
 Node;AmplifyShaderEditor.SimpleAddOpNode;31;-222.0349,-120.5173;Inherit;True;3;3;0;COLOR;0,0,0,0;False;1;COLOR;0,0,0,0;False;2;COLOR;0,0,0,0;False;1;COLOR;0
 Node;AmplifyShaderEditor.RegisterLocalVarNode;70;-22.06606,-123.6667;Float;False;EmissionOut;-1;True;1;0;COLOR;0,0,0,0;False;1;COLOR;0
-Node;AmplifyShaderEditor.StandardSurfaceOutputNode;0;-848.2809,-134.8474;Float;False;True;-1;6;AdultLink.HoloShieldEditor;0;0;Unlit;AdultLink/HoloShield;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;False;False;False;False;False;False;Off;0;False;;0;False;;False;0;False;;0;False;;False;0;Transparent;0.5;True;True;0;False;Transparent;;Transparent;All;0;True;True;True;True;0;False;;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;2;15;10;25;False;0.5;True;2;5;False;;10;False;;2;5;False;;10;False;;1;False;;0;False;;0;False;0;0,0,0,0;VertexOffset;True;False;Cylindrical;False;True;Relative;0;;0;-1;-1;-1;0;True;0;0;False;;-1;0;False;;0;0;0;False;0.1;False;;0;False;;False;15;0;FLOAT3;0,0,0;False;1;FLOAT3;0,0,0;False;2;FLOAT3;0,0,0;False;3;FLOAT;0;False;4;FLOAT;0;False;6;FLOAT3;0,0,0;False;7;FLOAT3;0,0,0;False;8;FLOAT;0;False;9;FLOAT;0;False;10;FLOAT;0;False;13;FLOAT3;0,0,0;False;11;FLOAT3;0,0,0;False;12;FLOAT3;0,0,0;False;14;FLOAT4;0,0,0,0;False;15;FLOAT3;0,0,0;False;0
+Node;AmplifyShaderEditor.StandardSurfaceOutputNode;0;-848.2809,-134.8474;Float;False;True;-1;2;AdultLink.HoloShieldEditor;0;0;Unlit;AdultLink/HoloShield;False;False;False;False;False;False;False;False;False;False;False;False;False;False;True;False;False;False;False;False;False;Off;0;False;;0;False;;False;0;False;;0;False;;False;0;Transparent;0.5;True;True;0;False;Transparent;;Transparent;All;12;all;True;True;True;True;0;False;;False;0;False;;255;False;;255;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;0;False;;False;2;15;10;25;False;0.5;True;2;5;False;;10;False;;2;5;False;;10;False;;1;False;;0;False;;0;False;0;0,0,0,0;VertexOffset;True;False;Cylindrical;False;True;Relative;0;;-1;-1;-1;-1;0;True;0;0;False;;-1;0;False;;0;0;0;False;0.1;False;;0;False;;False;15;0;FLOAT3;0,0,0;False;1;FLOAT3;0,0,0;False;2;FLOAT3;0,0,0;False;3;FLOAT;0;False;4;FLOAT;0;False;6;FLOAT3;0,0,0;False;7;FLOAT3;0,0,0;False;8;FLOAT;0;False;9;FLOAT;0;False;10;FLOAT;0;False;13;FLOAT3;0,0,0;False;11;FLOAT3;0,0,0;False;12;FLOAT3;0,0,0;False;14;FLOAT4;0,0,0,0;False;15;FLOAT3;0,0,0;False;0
 Node;AmplifyShaderEditor.SimpleMultiplyOpNode;42;-1182.771,-93.95422;Inherit;False;2;2;0;FLOAT;0;False;1;COLOR;0,0,0,0;False;1;COLOR;0
 Node;AmplifyShaderEditor.SimpleMultiplyOpNode;205;-1033.339,-97.39735;Inherit;False;2;2;0;FLOAT;0;False;1;COLOR;0,0,0,0;False;1;COLOR;0
 Node;AmplifyShaderEditor.SimpleAddOpNode;206;-993.7836,248.8759;Inherit;False;2;2;0;COLOR;0,0,0,0;False;1;COLOR;0,0,0,0;False;1;COLOR;0
@@ -570,4 +570,4 @@ WireConnection;205;1;42;0
 WireConnection;206;0;205;0
 WireConnection;206;1;203;0
 ASEEND*/
-//CHKSM=509DE1B1832FB02FD068DC9C26A513054600B6B0
+//CHKSM=B71B5F6D410909849AB39316E5D6A0BD2EC82030

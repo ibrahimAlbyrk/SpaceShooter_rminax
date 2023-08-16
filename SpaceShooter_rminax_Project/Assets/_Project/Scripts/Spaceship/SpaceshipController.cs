@@ -2,11 +2,9 @@
 using System;
 using Mirror;
 using UnityEngine;
-using System.Collections;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using _Project.Scripts.Extensions;
 using UnityEngine.UI;
+using System.Collections;
+using System.Collections.Generic;
 using Random = UnityEngine.Random;
 
 namespace _Project.Scripts.Spaceship
@@ -14,6 +12,7 @@ namespace _Project.Scripts.Spaceship
     using Game;
     using Network;
     using Utilities;
+    using Extensions;
     using PostProcess;
     using Network.Managers.Room;
 
@@ -175,7 +174,7 @@ namespace _Project.Scripts.Spaceship
             Username = userName;
         }
         
-        public override async void OnStartClient()
+        public override void OnStartClient()
         {
             Init();
 
@@ -186,9 +185,7 @@ namespace _Project.Scripts.Spaceship
             CMD_SetUsername(username);
             
             _usernameCanvas.SetActive(false);
-
-            await Task.Delay(1000);
-
+            
             CMD_AddPlayer();
         }
 
@@ -196,7 +193,7 @@ namespace _Project.Scripts.Spaceship
         private void CMD_AddPlayer()
         {
             var leaderboardManager = gameObject.GameContainer().Get<LeaderboardManager>();
-            leaderboardManager?.AddPlayer(Username);
+            leaderboardManager.AddPlayer(Username);
         }
         
         public override void OnStopClient()
