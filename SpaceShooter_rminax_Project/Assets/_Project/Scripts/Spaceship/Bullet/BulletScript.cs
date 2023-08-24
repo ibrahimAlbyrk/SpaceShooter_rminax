@@ -62,13 +62,6 @@ namespace _Project.Scripts.Spaceship
             _physicsScene = gameObject.scene.GetPhysicsScene();
         }
 
-        //private void FixedUpdate()
-        //{
-        //    if (!_init || !_isMove) return;
-        //
-        //    transform.position += transform.forward * (_bulletSpeed * Time.fixedDeltaTime);
-        //}
-
         [ServerCallback]
         private void LateUpdate()
         {
@@ -76,7 +69,8 @@ namespace _Project.Scripts.Spaceship
             {
                 if (_timer > _delayTime)
                 {
-                    NetworkServer.Destroy(gameObject);
+                    if(gameObject != null)
+                        NetworkServer.Destroy(gameObject);
             
                     _timer = 0;
                     _isStartDestroySequence = false;
@@ -92,7 +86,8 @@ namespace _Project.Scripts.Spaceship
             {
                 if (_fireworkTimer > 1)
                 {
-                    Destroy(_firework);
+                    if(_firework != null)
+                        Destroy(_firework);
             
                     _fireworkTimer = 0;
                     _isStartFireworks = false;
@@ -134,9 +129,9 @@ namespace _Project.Scripts.Spaceship
 
             _takeDamage = true;
             
-            //if (obstacle == null) return;
-            //
-            //if (gameObject == owner) return;
+            if (obstacle == null) return;
+            
+            if (gameObject == owner) return;
 
             DestroySequence();
 
